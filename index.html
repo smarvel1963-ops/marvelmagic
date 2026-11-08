@@ -88,7 +88,7 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 @media (max-width:1500px) and (min-width:1251px){.wl{grid-template-columns:120px 44px minmax(100px,1fr) minmax(130px,1.1fr) auto}.nu{display:none}.wgrid{grid-template-columns:minmax(0,1fr) 340px}}
 @media (max-width:760px){.wht h1{font-size:28px}.tiles,.posters{grid-template-columns:repeat(2,minmax(0,1fr))}.pc{height:190px}.tile{padding:12px!important;gap:8px}.tile small{font-size:14px}.tile b{font-size:15px!important}.ti{font-size:22px}.wl{grid-template-columns:96px minmax(0,1fr) auto}.wlart{height:60px}.wlname,.play{display:none}.bars,.nu{grid-column:1/-1}.wlbtn{grid-row:1;grid-column:3}}
 .signin{display:none;margin-top:auto}.signhead{margin:0 0 8px}.signphone{margin-bottom:12px}
-.signgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.signgrid a{min-height:44px;padding:2px;border-radius:8px;border:1px solid rgba(255,255,255,.25);color:#fff;text-decoration:none;font-size:12px;font-weight:800;line-height:1.1;display:flex;align-items:center;justify-content:center;text-align:center;overflow-wrap:anywhere}
+.signgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.signgrid a{min-height:44px;padding:2px;border-radius:8px;border:1px solid rgba(255,255,255,.25);color:#fff;text-decoration:none;font-size:11px;font-weight:800;line-height:1.1;display:flex;align-items:center;justify-content:center;text-align:center}
 @media (min-width:1000px){.signin{display:block}.signphone{display:none}}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
@@ -243,8 +243,8 @@ const FREE_TV = [['Pluto TV', 'https://pluto.tv/'], ['Tubi', 'https://tubitv.com
 const freeTv = () => `<h2>Free TV</h2><div class="svcs">${FREE_TV.map(([n, u]) => `<a class="btn alt" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a>`).join('')}</div>`;
 // Sign-in buttons (Scott 11/08: "logos need to be cliclable so we can sign in permently"). Each opens the service's OWN sign-in page: the
 // service keeps the person signed in on that device. Marvel Magic never sees or stores a password. Plain name tiles until there's permission to use their logos.
-const SIGN_IN = [['Netflix', 'https://www.netflix.com/login', '#E50914'], ['Prime Video', 'https://www.amazon.com/gp/video/storefront', '#00A8E1'], ['Disney+', 'https://www.disneyplus.com/login', '#1B3FA8'], ['Hulu', 'https://auth.hulu.com/web/login', '#128A4E'],
-  ['Apple TV', 'https://tv.apple.com/', '#3A3A3C'], ['HBO Max', 'https://auth.hbomax.com/login', '#4B2BD6'], ['Peacock', 'https://www.peacocktv.com/signin', '#26262B'], ['Paramount+', 'https://www.paramountplus.com/account/signin/', '#0B5FFF']];
+const SIGN_IN = [['Netflix', 'https://www.netflix.com/login', '#E50914'], ['Prime Video', 'https://www.amazon.com/gp/video/storefront', '#00739E'], ['Disney+', 'https://www.disneyplus.com/login', '#1B3FA8'], ['Hulu', 'https://auth.hulu.com/web/login', '#128A4E'],
+  ['Apple TV', 'https://tv.apple.com/', '#3A3A3C'], ['HBO Max', 'https://auth.hbomax.com/login', '#4B2BD6'], ['Peacock', 'https://www.peacocktv.com/signin', '#26262B'], ['Para- mount+', 'https://www.paramountplus.com/account/signin/', '#0B5FFF']];
 const signIn = () => `<p class="fine signhead">Sign in once. Each service keeps you signed in on this device.</p><div class="signgrid">${SIGN_IN.map(([n, u, c]) => `<a href="${esc(u)}" target="_blank" rel="noopener" style="background:${c}" aria-label="Sign in to ${esc(n)}">${esc(n)}</a>`).join('')}</div>`;
 const credit = () => `<p class="fine">TV listings from <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> (CC BY-SA). Test build. Service links may need adjusting.</p>`;
 
