@@ -50,6 +50,46 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .search{display:flex;gap:8px;max-width:560px}.search input{flex:1;min-width:0;height:44px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--off)}
 .svcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
 .svcs label{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 12px;border-radius:9px;background:var(--cell);cursor:pointer}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.tiles div{padding:12px 14px;border-radius:11px;background:var(--panel);font-size:14px;color:var(--dim)}.tiles b{display:block;font-size:28px;color:var(--text)}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.wl{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:16px;align-items:center;padding:10px 14px;margin-top:8px;border-radius:11px;background:var(--cell)}.wl.on{outline:2px solid var(--pick)}
+.wlmain{display:flex;gap:12px;align-items:center;min-width:0;min-height:44px}.wlmain img{width:52px;height:74px;object-fit:cover;border-radius:6px;flex:none}.wlmain .t{min-width:0}.wlmain b{display:block;overflow-wrap:anywhere}.wlmain small{display:block;font-size:13px;color:var(--dim)}.wlmain small.nx{color:#9FE8B5;font-weight:600}
+.bars{display:flex;flex-direction:column;gap:8px}.prog span{font-size:13px;color:var(--dim)}.bar{height:7px;border-radius:4px;background:var(--off);overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;background:#5BB8FF}
+.wlbtn{display:flex;gap:6px}.wlbtn .btn{padding:0 12px;font-size:14px}
+.up{display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:15px}
+@media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.wl{grid-template-columns:minmax(0,1fr);gap:10px}.wlbtn .btn{flex:1}}
+.logo{display:none}
+.tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.tile{display:flex;align-items:center;gap:14px;padding:16px 18px!important;border-radius:14px;border:1.5px solid;background:rgba(14,22,56,.85)!important}
+.tile small{display:block;font-size:16px;color:var(--text)}.tile b{font-size:20px!important}.ti{font-size:30px}
+.tile.blue{border-color:#2F9BFF;box-shadow:0 0 14px rgba(47,155,255,.45)}.tile.red{border-color:#FF4D5E;box-shadow:0 0 14px rgba(255,77,94,.45)}.tile.amber{border-color:#FFB23E;box-shadow:0 0 14px rgba(255,178,62,.4)}.tile.green{border-color:#2FD07F;box-shadow:0 0 14px rgba(47,208,127,.4)}
+.wh{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}.whico{width:64px;height:64px;border-radius:14px;background:linear-gradient(145deg,#6B4DF0,#B23EE0);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;flex:none}.wht{flex:1 1 320px;min-width:0}.wht h1{margin:0;font-size:38px;line-height:1.1}.wht p{margin:4px 0 0;color:var(--text)}
+.whtabs{display:flex;gap:10px;flex-wrap:wrap}.wtab{min-height:48px;padding:0 22px;border-radius:12px;background:#141C42;border:1px solid var(--line);font-weight:700}.wtab.on{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);box-shadow:0 0 14px rgba(120,80,255,.7);border-color:#A58CFF}.wtab:disabled{color:#8D96B8;cursor:default}
+.wgrid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;align-items:start}.wmain h2,.wlhead h2{font-size:26px;margin:20px 0 10px}.wlhead h2 small{font-size:18px;font-weight:500}
+.posters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.pc{position:relative;height:210px;border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--line);display:block;padding:0}.pc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}.pc::after{content:"";position:absolute;inset:40% 0 0;background:linear-gradient(transparent,rgba(5,8,22,.95))}
+.sv{position:absolute;z-index:1;top:8px;right:8px;padding:3px 8px;border-radius:7px;background:rgba(5,8,22,.85);font-size:12px;font-weight:800}.pcname{position:absolute;z-index:1;left:12px;right:12px;bottom:48px;font-weight:800;font-size:18px}.pcfoot{position:absolute;z-index:1;left:12px;right:12px;bottom:24px;display:flex;justify-content:space-between;font-size:14px;font-weight:700}.thin{position:absolute;z-index:1;left:12px;right:12px;bottom:15px;height:5px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}.thin.b2{bottom:7px}.thin i{display:block;height:100%;background:#35B6FF}.thin.b2 i{background:#FFC24B}
+.wlhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}.chip{min-height:38px;padding:0 16px;border-radius:19px;background:#141C42;border:1px solid var(--line);font-weight:600}.chip.on{background:#1E8FE8;border-color:#5BB8FF}
+.wlbox{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(14,22,56,.85)}
+.wl{grid-template-columns:190px 44px minmax(120px,1fr) minmax(150px,1.2fr) minmax(130px,.9fr) auto;margin:0;border-radius:0;background:none;border-bottom:1px solid var(--line);padding:8px 12px}
+.wlart{position:relative;height:72px;border-radius:8px;overflow:hidden;background:var(--off);padding:0}.wlart img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}.wlart::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.05),rgba(0,0,0,.65))}.wlname{position:absolute;z-index:1;right:8px;bottom:6px;left:8px;text-align:right;font-weight:900;font-size:15px;text-transform:uppercase}
+.play,.round{width:44px;height:44px;flex:none;border-radius:50%;border:1.5px solid #AEB6D2;display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:var(--text);background:rgba(255,255,255,.04)}.round.go{background:#1E6FE0;border-color:#5BB8FF}.round:disabled{opacity:.4;cursor:default}
+.wlt b{display:block;font-size:18px}.wlt small{color:var(--dim)}.nu b{display:block;color:#3DE08A}.nu small{display:block;font-size:14px;color:var(--text)}.nu small.av{color:#FFD24B;font-weight:700}
+.glow{border:1.5px solid;border-radius:16px;padding:14px 16px;margin-bottom:16px;background:rgba(14,22,56,.88)}.glow.amber{border-color:#FFB23E;box-shadow:0 0 16px rgba(255,178,62,.4)}.glow.blue{border-color:#2F9BFF;box-shadow:0 0 16px rgba(47,155,255,.4)}.glow.plain{border-color:var(--line)}.glow h3{margin:0 0 10px;font-size:22px}.badge{display:inline-flex;min-width:28px;height:28px;margin-left:8px;align-items:center;justify-content:center;border-radius:14px;background:#E8293C;font-size:15px}
+.ar{display:flex;align-items:center;gap:12px;width:100%;padding:8px 0;border-bottom:1px solid var(--line);min-height:60px}.ar img,.noimg{width:72px;height:48px;object-fit:cover;object-position:top;border-radius:6px;flex:none;background:var(--off)}.ar .t{flex:1;min-width:0}.ar b{display:block;font-size:17px}.ar small{font-size:14px;color:var(--text)}.ar em{font-style:normal;color:#3DE08A;font-weight:700}
+.glow .svcs{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:1000px){
+ body{background:radial-gradient(900px 500px at 75% -10%,rgba(90,50,220,.35),transparent),radial-gradient(700px 500px at 20% 110%,rgba(30,90,220,.25),transparent),var(--bg);background-attachment:fixed}
+ header{position:fixed;left:0;top:0;bottom:0;width:270px;flex-direction:column;align-items:stretch;padding:12px 14px;gap:14px;background:rgba(10,15,44,.95);border-right:1px solid #3050C0;box-shadow:2px 0 18px rgba(50,90,255,.3)}
+ .brand{display:none}.logo{display:block;width:100%}
+ nav{flex-direction:column}nav button{min-height:52px;font-size:20px;padding:0 18px}nav button[aria-current=page]{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);box-shadow:0 0 14px rgba(120,80,255,.7)}
+ main{margin-left:270px;width:auto;max-width:none;padding:18px 24px 100px}.dock{left:270px}
+}
+@media (max-width:1250px){.wgrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1500px) and (min-width:1251px){.wl{grid-template-columns:120px 44px minmax(100px,1fr) minmax(130px,1.1fr) auto}.nu{display:none}.wgrid{grid-template-columns:minmax(0,1fr) 340px}}
+@media (max-width:760px){.wht h1{font-size:28px}.tiles,.posters{grid-template-columns:repeat(2,minmax(0,1fr))}.pc{height:190px}.tile{padding:12px!important;gap:8px}.tile small{font-size:14px}.tile b{font-size:15px!important}.ti{font-size:22px}.wl{grid-template-columns:96px minmax(0,1fr) auto}.wlart{height:60px}.wlname,.play{display:none}.bars,.nu{grid-column:1/-1}.wlbtn{grid-row:1;grid-column:3}}
+.signin{display:none;margin-top:auto}.signhead{margin:0 0 8px}.signphone{margin-bottom:12px}
+.signgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.signgrid a{min-height:44px;padding:2px;border-radius:8px;border:1px solid rgba(255,255,255,.25);color:#fff;text-decoration:none;font-size:12px;font-weight:800;line-height:1.1;display:flex;align-items:center;justify-content:center;text-align:center;overflow-wrap:anywhere}
+@media (min-width:1000px){.signin{display:block}.signphone{display:none}}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
@@ -63,7 +103,7 @@ dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 </head>
 <body>
 <div class="app">
-  <header><div class="brand">Marvel <b>Magic</b></div><nav id="nav" aria-label="Main"></nav></header>
+  <header><img class="logo" src="logo.png" alt="Marvel Magic"><div class="brand">Marvel <b>Magic</b></div><nav id="nav" aria-label="Main"></nav><div id="signside" class="signin"></div></header>
   <main id="view"></main>
   <div class="dock" id="dock" hidden></div>
 </div>
@@ -86,7 +126,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '' };
+const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {} };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -97,6 +137,7 @@ function draw() {
   items.length = 0;
   $('nav').innerHTML = TABS.map((t, i) => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${esc(t)}</button>`).join('');
   $('view').innerHTML = [guide, shows, sports, stuff][S.tab]();
+  $('signside').innerHTML = signIn();
   dock();
 }
 function dock() {
@@ -148,15 +189,63 @@ function sports() {
   const live = gs.filter(g => g.state === 'in'), up = gs.filter(g => g.state === 'pre'), done = gs.filter(g => g.state === 'post');
   return `<h1>Sports</h1>${live.length ? `<h2>Live now</h2>${live.map(row).join('')}` : ''}${up.length ? `<h2>Coming up</h2>${up.map(row).join('')}` : ''}${done.length ? `<h2>Final</h2>${done.map(row).join('')}` : ''}<p class="fine">Scores from ESPN. Refreshes every minute.</p>`;
 }
-function stuff() {
-  const saved = S.list.map(s => ({ key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[s.net] || null, url: s.url, note: s.net, series: true, img: s.img, show: s }));
-  return `<h1>My Stuff</h1><h2>Your services</h2><p class="fine">Tick what you pay for. The guide puts these first and warns you about the rest.</p>
-    <div class="svcs">${SERVICES.map(s => `<label><input type="checkbox" data-svc="${esc(s)}" ${S.mine.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div>
-    <h2>Saved shows</h2>${saved.length ? saved.map(card).join('') : '<p class="fine">Nothing saved yet. Pick a show and tap Save.</p>'}${credit()}`;
+// WATCHLIST (Scott 11/08 design + "maybe progress in both 2 bars"): where you are is kept by Marvel Magic; services don't share it.
+const epLabel = e => `S${e.season} E${e.number}`, day = t => new Date(t).toLocaleDateString([], { month: 'short', day: 'numeric' });
+function track(s) {
+  const eps = S.eps[s.id]; if (!eps) return null;
+  const now = Date.now(), at = Math.min(s.at || 0, eps.length), aired = eps.filter(e => Date.parse(e.airstamp) <= now).length, next = eps[at] || null, nextAt = next ? Date.parse(next.airstamp) : 0;
+  const ref = next || eps[eps.length - 1], inSeason = ref ? eps.filter(e => e.season === ref.season) : [], seasonSeen = ref ? eps.slice(0, at).filter(e => e.season === ref.season).length : 0;
+  const open = !!next && nextAt && nextAt <= now, status = !next ? 'Completed' : !open ? 'Waiting' : at > 0 ? 'Watching' : 'Up Next';
+  return { at, total: eps.length, aired, next, nextAt, open, status, season: ref ? ref.season : 0, seasonSeen, seasonTotal: inSeason.length, fresh: open && now - nextAt < 14 * 86400000, soon: !!next && !open && nextAt - now < 7 * 86400000 };
 }
+const bar = (label, a, b) => `<div class="prog"><span>${esc(label)}: ${a} of ${b}</span><div class="bar"><i style="width:${b ? Math.round(a / b * 100) : 0}%"></i></div></div>`;
+function stuff() {
+  const rows = S.list.map(s => ({ s, t: track(s), x: { key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[s.net] || null, url: s.url, note: s.net, series: true, img: s.img, show: s } }));
+  const known = rows.filter(r => r.t), n = st => known.filter(r => r.t.status === st).length, alerts = known.filter(r => r.t.fresh), soon = known.filter(r => r.t.soon).length;
+  const f = S.filter || 'Watching', shown = rows.filter(r => f === 'All' || (r.t && r.t.status === f));
+  const upcoming = known.filter(r => r.t.next && !r.t.open).sort((x, y) => x.t.nextAt - y.t.nextAt);
+  const cont = known.filter(r => r.t.status === 'Watching').slice(0, 4);
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const svcName = r => r.x.svc || r.s.net || '';
+  const nextLine = t => !t.next ? 'All caught up' : t.open ? epLabel(t.next) + ' - Now Available!' : epLabel(t.next) + ' - ' + day(t.nextAt);
+  const tile = (cls, icon, label, big) => `<div class="tile ${cls}"><span class="ti">${icon}</span><span><small>${label}</small><b>${big}</b></span></div>`;
+  const poster = r => `<button class="pc" data-i="${reg(r.x)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : ''}<span class="sv">${esc(svcName(r))}</span><span class="pcname">${esc(r.s.name)}</span>
+    <span class="pcfoot"><span>${r.t.next ? epLabel(r.t.next) : ''}</span><span>${pct(r.t.seasonSeen, r.t.seasonTotal)}%</span></span><span class="thin"><i style="width:${pct(r.t.seasonSeen, r.t.seasonTotal)}%"></i></span><span class="thin b2"><i style="width:${pct(r.t.at, r.t.total)}%"></i></span></button>`;
+  const row = r => { const t = r.t, sel = S.sel && S.sel.key === r.x.key;
+    return `<div class="wl ${sel ? 'on' : ''}"><button class="wlart" data-i="${reg(r.x)}" aria-label="Pick ${esc(r.s.name)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : ''}<span class="wlname">${esc(r.s.name)}</span></button>
+      <button class="play" data-i="${reg(r.x)}" aria-label="Pick ${esc(r.s.name)}">▶</button><div class="wlt"><b>${esc(r.s.name)}</b><small>${esc(svcName(r))}</small></div>
+      ${t ? `<div class="bars">${bar('Season ' + t.season, t.seasonSeen, t.seasonTotal)}${bar('Series', t.at, t.total)}</div>
+      <div class="nu"><b>${t.next ? 'Next Up:' : 'Done'}</b><small class="${t.open ? 'av' : ''}">${esc(nextLine(t))}</small></div>
+      <div class="wlbtn"><button class="round" data-w="${r.s.id}" data-d="-1" aria-label="Back one episode">−</button><button class="round go" data-w="${r.s.id}" data-d="1" aria-label="Watched one episode" ${t.next ? '' : 'disabled'}>✓</button></div>` : '<div class="fine">Loading…</div>'}</div>`; };
+  const alertRow = r => `<button class="ar" data-i="${reg(r.x)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.s.name)}</b><small>${esc(epLabel(r.t.next))} - <em>Now Available!</em></small></span><span class="round go">▶</span></button>`;
+  const soonRow = r => `<button class="ar" data-i="${reg(r.x)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.s.name)}</b><small>${esc(epLabel(r.t.next))} - ${esc(day(r.t.nextAt))}</small></span><span class="round">📅</span></button>`;
+  const chips = [['All', 'All'], ['Watching', 'Watching'], ['Up Next', 'Up Next'], ['Completed', 'Completed']];
+  return `<div class="wh"><div class="whico">▶</div><div class="wht"><h1>My Watchlist &amp; Progress</h1><p>Track what you watch, where you are, and see when new episodes drop.</p></div>
+      <div class="whtabs"><button class="wtab ${f === 'Completed' ? '' : 'on'}" data-f="Watching">My Shows</button><button class="wtab" disabled title="Needs the paid feed">Movies</button><button class="wtab ${f === 'Completed' ? 'on' : ''}" data-f="Completed">Completed</button></div></div>
+    <div class="wgrid"><div class="wmain"><div class="tiles">
+      ${tile('blue', '▶', 'Watching', n('Watching') + (n('Watching') === 1 ? ' Show' : ' Shows'))}${tile('red', '🔔', 'New Episodes', alerts.length + ' Ready to Watch')}${tile('amber', '📅', 'Coming Soon', soon + ' This Week')}${tile('green', '✓', 'Completed', n('Completed') + (n('Completed') === 1 ? ' Show' : ' Shows'))}</div>
+      ${cont.length ? `<h2>Continue Watching</h2><div class="posters">${cont.map(poster).join('')}</div>` : ''}
+      <div class="wlhead"><h2>My Watchlist <small>(All Shows)</small></h2><div class="filters">${chips.map(([v, l]) => `<button class="chip ${v === f ? 'on' : ''}" data-f="${v}">${l}</button>`).join('')}</div></div>
+      <div class="wlbox">${S.list.length ? shown.map(row).join('') || '<p class="fine" style="padding:14px">Nothing here right now.</p>' : '<p class="fine" style="padding:14px">Nothing saved yet. Pick a show in Movies &amp; Shows and tap Save.</p>'}</div></div>
+    <aside class="wside"><section class="glow amber"><h3>🔔 New Episode Alerts <span class="badge">${alerts.length}</span></h3>${alerts.map(alertRow).join('')}${upcoming.slice(0, Math.max(0, 4 - alerts.length)).map(soonRow).join('')}${alerts.length || upcoming.length ? '' : '<p class="fine">Nothing new yet.</p>'}</section>
+      <section class="glow blue"><h3>📅 Upcoming Episodes</h3>${upcoming.length ? upcoming.map(r => `<div class="up"><span><b>${esc(r.s.name)}</b> - ${esc(epLabel(r.t.next))}</span><span>${esc(day(r.t.nextAt))}</span></div>`).join('') : '<p class="fine">No dates announced yet.</p>'}</section>
+      <section class="glow plain"><h3>⚙ Your Services</h3><div class="signphone">${signIn()}</div><div class="svcs">${SERVICES.map(s => `<label><input type="checkbox" data-svc="${esc(s)}" ${S.mine.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div></section></aside></div>${credit()}`;
+}
+async function loadEps() {
+  const need = S.list.filter(s => !S.eps[s.id]); if (!need.length) return;
+  await Promise.all(need.map(s => fetch(`https://api.tvmaze.com/shows/${s.id}?embed=episodes`).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; S.eps[s.id] = ((j._embedded && j._embedded.episodes) || []).filter(e => e.airstamp); if (j.image && j.image.original) s.img = j.image.original; }).catch(() => {})));
+  save('list', S.list);
+  if (S.tab === 3) draw();
+}
+function step(id, d) { const s = S.list.find(x => x.id === id); if (!s) return; const max = (S.eps[id] || []).length; s.at = Math.max(0, Math.min(max || Infinity, (s.at || 0) + d)); save('list', S.list); }
 // Free TV (Scott 11/08): launch buttons only. Their channel schedules need permission before they can appear in the guide.
 const FREE_TV = [['Pluto TV', 'https://pluto.tv/'], ['Tubi', 'https://tubitv.com/live'], ['The Roku Channel', 'https://therokuchannel.roku.com/'], ['Plex', 'https://watch.plex.tv/live-tv'], ['Xumo Play', 'https://play.xumo.com/'], ['Samsung TV Plus', 'https://www.samsung.com/us/televisions-home-theater/tvs/tvplus/']];
 const freeTv = () => `<h2>Free TV</h2><div class="svcs">${FREE_TV.map(([n, u]) => `<a class="btn alt" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a>`).join('')}</div>`;
+// Sign-in buttons (Scott 11/08: "logos need to be cliclable so we can sign in permently"). Each opens the service's OWN sign-in page: the
+// service keeps the person signed in on that device. Marvel Magic never sees or stores a password. Plain name tiles until there's permission to use their logos.
+const SIGN_IN = [['Netflix', 'https://www.netflix.com/login', '#E50914'], ['Prime Video', 'https://www.amazon.com/gp/video/storefront', '#00A8E1'], ['Disney+', 'https://www.disneyplus.com/login', '#1B3FA8'], ['Hulu', 'https://auth.hulu.com/web/login', '#128A4E'],
+  ['Apple TV', 'https://tv.apple.com/', '#3A3A3C'], ['HBO Max', 'https://auth.hbomax.com/login', '#4B2BD6'], ['Peacock', 'https://www.peacocktv.com/signin', '#26262B'], ['Paramount+', 'https://www.paramountplus.com/account/signin/', '#0B5FFF']];
+const signIn = () => `<p class="fine signhead">Sign in once. Each service keeps you signed in on this device.</p><div class="signgrid">${SIGN_IN.map(([n, u, c]) => `<a href="${esc(u)}" target="_blank" rel="noopener" style="background:${c}" aria-label="Sign in to ${esc(n)}">${esc(n)}</a>`).join('')}</div>`;
 const credit = () => `<p class="fine">TV listings from <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> (CC BY-SA). Test build. Service links may need adjusting.</p>`;
 
 async function loadGuide() {
@@ -187,22 +276,26 @@ async function loadGames() {
 }
 function openIt(x) {
   window.open(linkFor(x), '_blank', 'noopener');
-  save('pending', { title: x.title, series: x.series, url: linkFor(x), at: Date.now() });
+  save('pending', { title: x.title, series: x.series, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null });
 }
 function cameBack() {   // Scott 11/08: a series offers the next one or "done"; anything else just lands back here
   const p = load('pending', null), b = $('back'); if (!p || Date.now() - p.at < 15000 || b.open) return;
   save('pending', null); if (!p.series) return;
-  b.innerHTML = `<b>${esc(p.title)}</b><p>Welcome back. Watch the next episode?</p><div class="act"><button class="btn alt" data-done>I'm done</button><button class="btn" data-next>Next episode</button></div>`;
-  b.querySelector('[data-done]').onclick = () => b.close();
-  b.querySelector('[data-next]').onclick = () => { b.close(); window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
+  const finish = () => { if (p.id) { step(p.id, 1); if (S.tab === 3) draw(); } };
+  b.innerHTML = `<b>${esc(p.title)}</b><p>Welcome back. Watch the next episode?</p><div class="act"><button class="btn alt" data-done>I'm done</button><button class="btn" data-next>Next episode</button></div><button class="btn alt" data-not style="width:100%;margin-top:8px">Didn't finish it</button>`;
+  b.querySelector('[data-done]').onclick = () => { finish(); b.close(); };
+  b.querySelector('[data-not]').onclick = () => b.close();
+  b.querySelector('[data-next]').onclick = () => { finish(); b.close(); window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
   b.showModal();
 }
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return;
-  if (t.dataset.tab != null) { S.tab = Number(t.dataset.tab); save('tab', S.tab); S.sel = null; draw(); window.scrollTo(0, 0); }
+  if (t.dataset.tab != null) { S.tab = Number(t.dataset.tab); save('tab', S.tab); S.sel = null; draw(); window.scrollTo(0, 0); if (S.tab === 3) loadEps(); }
+  else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null) { S.sel = items[Number(t.dataset.i)]; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-open')) openIt(S.sel);
-  else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url }]; save('list', S.list); dock(); }
+  else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
 });
 document.addEventListener('change', e => { const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
@@ -212,7 +305,7 @@ document.addEventListener('submit', async e => {
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) cameBack(); });
 window.addEventListener('focus', cameBack);
-draw(); loadGuide(); loadGames();
+draw(); loadGuide(); loadGames(); loadEps();
 setInterval(loadGuide, 5 * 60000);   // the guide keeps itself current (Scott 11/08)
 setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
