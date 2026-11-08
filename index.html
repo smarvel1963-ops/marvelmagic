@@ -1,0 +1,221 @@
+<!doctype html>
+<!-- index.html | Save to: C:\MarvelApps\marvelmagic\index.html | Marvel Magic (working name, Scott 11/08) - test build for his PC and phone -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1020">
+<title>Marvel Magic</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0B1020;--panel:#111838;--cell:#1C2447;--off:#131831;--line:#2F3860;--text:#E8ECF8;--dim:#AEB6D2;--pick:#6B4DF0;--warn:#FFB86B;--live:#FF8A80}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.35 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input{font:inherit;color:inherit}
+button{border:0;cursor:pointer;background:none;text-align:left}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:1px}
+a{color:#B9A8FF}
+.app{min-height:100dvh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:20px;padding:14px 28px;background:#0F1530;position:sticky;top:0;z-index:5}
+.brand{font-weight:800;font-size:20px;white-space:nowrap}.brand b{color:#FFC24B}
+nav{display:flex;gap:6px}
+nav button{min-height:44px;padding:0 14px;border-radius:9px;font-weight:650;white-space:nowrap}
+nav button[aria-current=page]{background:var(--pick);color:#fff}
+main{flex:1;padding:20px 28px 110px;max-width:1500px;width:100%;margin:0 auto}
+h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
+.fine{font-size:14px;color:var(--dim)}
+.btn{min-height:44px;padding:0 18px;border-radius:9px;font-weight:700;background:#fff;color:var(--bg);text-align:center}
+.btn.alt{background:#2A3154;color:var(--text)}
+.btn:disabled{background:#2A3154;color:#C6CDE3;cursor:default}
+.times{display:flex;margin-left:190px;font-size:14px;font-weight:600;color:var(--dim)}.times div{flex:1}
+.row{display:flex;align-items:stretch;gap:6px;height:56px;margin-top:6px}
+.ch{width:184px;flex:none;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.ch b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ch small{font-size:13px;color:var(--dim)}.ch small.no{color:var(--warn)}
+.track{position:relative;flex:1;min-width:0}
+.cell{position:absolute;top:0;bottom:0;padding:0 10px;border-radius:7px;background:var(--cell);font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border:1px solid var(--bg)}
+.cell.off,.card.off{background:var(--off);color:var(--dim)}
+.cell.on,.card.on{background:var(--pick);color:#fff}
+.nowline{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--live);pointer-events:none}
+.phone{display:none}
+.card{display:flex;gap:12px;width:100%;padding:12px 14px;margin-top:8px;border-radius:11px;background:var(--cell);align-items:center;min-height:64px}
+.card .t{flex:1;min-width:0}.card b{display:block;overflow-wrap:anywhere}.card small{font-size:13px;display:block}
+.card img{width:52px;height:74px;object-fit:cover;border-radius:6px;flex:none;background:var(--off)}
+.score{font-size:22px;font-weight:800;white-space:nowrap}
+.tag{font-size:13px;font-weight:800;color:var(--dim)}.tag.live{color:var(--live)}.card.on .tag{color:#fff}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#161D3B;padding:12px 28px calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:14px;border-top:1px solid var(--line)}
+.dock .t{flex:1;min-width:0}.dock b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dock small{color:var(--dim)}.dock small.no{color:var(--warn)}
+.search{display:flex;gap:8px;max-width:560px}.search input{flex:1;min-width:0;height:44px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--off)}
+.svcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.svcs label{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 12px;border-radius:9px;background:var(--cell);cursor:pointer}
+dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
+@media (max-width:760px){
+ header{padding:10px 16px;gap:0}.brand{font-size:18px}
+ nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#0F1530;padding:0 0 env(safe-area-inset-bottom)}
+ nav button{flex:1;min-height:54px;padding:0 2px;font-size:13px;border-radius:0;text-align:center;white-space:normal;line-height:1.1}
+ main{padding:14px 16px 170px}.grid{display:none}.phone{display:block}
+ .dock{bottom:calc(54px + env(safe-area-inset-bottom));padding:10px 16px;gap:10px}.dock .btn{padding:0 12px;font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand">Marvel <b>Magic</b></div><nav id="nav" aria-label="Main"></nav></header>
+  <main id="view"></main>
+  <div class="dock" id="dock" hidden></div>
+</div>
+<dialog id="back"></dialog>
+<script>
+// Marvel Magic test build. Listings: TVmaze (free, credit required). Scores: ESPN's public scoreboard (personal test only, not for a paid release).
+// It opens each title on that service's own site or app; it never plays or stores a stream, and never holds a service's password.
+const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff'];
+const LEAGUES = [['NBA', 'basketball/nba'], ['College Basketball', 'basketball/mens-college-basketball'], ['NFL', 'football/nfl'], ['College Football', 'football/college-football'], ['NHL', 'hockey/nhl'], ['MLB', 'baseball/mlb']];
+const SERVICE_URL = {
+  Netflix: q => 'https://www.netflix.com/search?q=' + q, Hulu: q => 'https://www.hulu.com/search?q=' + q, 'Prime Video': q => 'https://www.amazon.com/s?i=instant-video&k=' + q,
+  'Disney+': () => 'https://www.disneyplus.com/', 'HBO Max': () => 'https://www.hbomax.com/', Peacock: () => 'https://www.peacocktv.com/', 'Paramount+': () => 'https://www.paramountplus.com/',
+  'Apple TV': q => 'https://tv.apple.com/search?term=' + q, ESPN: () => 'https://www.espn.com/watch/', 'YouTube TV': () => 'https://tv.youtube.com/', 'Fox One': () => 'https://www.fox.com/', 'Pluto TV': () => 'https://pluto.tv/'
+};
+const NETWORK_SERVICE = { NBC: 'Peacock', Bravo: 'Peacock', USA: 'Peacock', CBS: 'Paramount+', 'CBS Sports Network': 'Paramount+', ABC: 'Hulu', FX: 'Hulu', HBO: 'HBO Max', TNT: 'HBO Max', TBS: 'HBO Max', TLC: 'HBO Max', Discovery: 'HBO Max', FOX: 'Fox One', FS1: 'Fox One', ESPN: 'ESPN', ESPN2: 'ESPN', ESPNU: 'ESPN', 'SEC Network': 'ESPN', ACCN: 'ESPN', Netflix: 'Netflix', Hulu: 'Hulu', 'Prime Video': 'Prime Video', 'Disney+': 'Disney+', 'HBO Max': 'HBO Max', Peacock: 'Peacock', 'Paramount+': 'Paramount+', 'Apple TV+': 'Apple TV', 'Apple TV': 'Apple TV' };
+const SERVICES = Object.keys(SERVICE_URL);
+const SLOT = 30 * 60000, SLOTS = 6;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} };
+const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
+const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '' };
+const items = [];   // what each on-screen button points at (data-i)
+const hasIt = svc => !S.mine.length || S.mine.includes(svc);   // nothing ticked yet = show everything as available
+const slug = t => encodeURIComponent(t);
+function linkFor(x) { return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](slug(x.title)) : x.url; }
+const reg = x => (items.push(x), items.length - 1);
+
+function draw() {
+  items.length = 0;
+  $('nav').innerHTML = TABS.map((t, i) => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${esc(t)}</button>`).join('');
+  $('view').innerHTML = [guide, shows, sports, stuff][S.tab]();
+  dock();
+}
+function dock() {
+  const d = $('dock'), x = S.sel; d.hidden = !x; if (!x) return;
+  const ok = !x.svc || hasIt(x.svc);
+  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small></div>
+    ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
+    <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : 'Open'}</button>`;
+}
+function guide() {
+  if (S.err && !S.airings.length) return `<h1>Live TV Guide</h1><p>${esc(S.err)}</p>`;
+  if (!S.airings.length) return `<h1>Live TV Guide</h1><p class="fine">Loading tonight's listings…</p>`;
+  const now = Date.now(), t0 = Math.floor(now / SLOT) * SLOT, span = SLOT * SLOTS, t1 = t0 + span, by = {};
+  for (const a of S.airings) if (a.end > t0 && a.start < t1) (by[a.net] = by[a.net] || []).push(a);
+  const nets = Object.keys(by).sort((a, b) => Number(hasIt(NETWORK_SERVICE[b])) - Number(hasIt(NETWORK_SERVICE[a])) || a.localeCompare(b));
+  if (!nets.length) return `<h1>Live TV Guide</h1><p class="fine">Nothing listed for the next 3 hours.</p>`;
+  const nowPct = (now - t0) / span * 100;
+  const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
+  const rows = nets.map(n => {
+    const svc = NETWORK_SERVICE[n], ok = !svc || hasIt(svc);
+    const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
+      const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100);
+      return `<button class="cell ${S.sel && S.sel.key === a.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}">${esc(a.title)}</button>`;
+    }).join('');
+    return `<div class="row"><div class="ch"><b>${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
+  }).join('');
+  const list = nets.map(n => {
+    const sorted = by[n].sort((a, b) => a.start - b.start), cur = sorted.find(a => a.end > now) || sorted[0], next = sorted[sorted.indexOf(cur) + 1], ok = !cur.svc || hasIt(cur.svc);
+    return `<button class="card ${S.sel && S.sel.key === cur.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(cur)}"><span class="t"><small>${esc(n)}${cur.svc ? ' · ' + esc(cur.svc) : ''}</small><b>${esc(cur.title)}</b><small>${cur.start <= now ? 'On now' : esc(clock(new Date(cur.start)))}${next ? ' · Next: ' + esc(next.title) : ''}</small></span></button>`;
+  }).join('');
+  return `<h1>Live TV Guide</h1><div class="grid"><div class="times">${times}</div>${rows}</div><div class="phone">${list}</div>${freeTv()}${credit()}`;
+}
+const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
+function showItem(s) {
+  const net = (s.webChannel && s.webChannel.name) || (s.network && s.network.name) || '';
+  return { key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[net] || null, url: s.officialSite || s.url, note: [net, (s.genres || []).slice(0, 2).join(', ')].filter(Boolean).join(' · '), series: true, img: s.image && s.image.medium, show: { id: s.id, name: s.name, net, img: s.image && s.image.medium, url: s.officialSite || s.url, genres: s.genres || [] } };
+}
+function shows() {
+  const seen = new Set(), tonight = S.airings.filter(a => a.show && !seen.has(a.show.id) && seen.add(a.show.id)).sort((a, b) => (b.show.weight || 0) - (a.show.weight || 0)).slice(0, 20).map(a => showItem(a.show));
+  const res = S.results;
+  return `<h1>Movies &amp; Shows</h1><form class="search" id="find"><input id="q" aria-label="Search shows" placeholder="Search shows" value="${esc(S.q || '')}"><button class="btn">Search</button></form>
+    <p class="fine">Shows only in this test. Movies need the paid listings feed.</p>
+    ${res ? `<h2>Results</h2>${res.length ? res.map(card).join('') : '<p class="fine">Nothing found.</p>'}` : ''}<h2>On today</h2>${tonight.map(card).join('')}${credit()}`;
+}
+function sports() {
+  if (!S.games.length) return `<h1>Sports</h1><p class="fine">${S.gamesDone ? 'No games listed today.' : 'Loading games…'}</p>`;
+  const rank = { in: 0, pre: 1, post: 2 }, gs = S.games.slice().sort((a, b) => rank[a.state] - rank[b.state] || a.when - b.when);
+  const row = g => `<button class="card ${S.sel && S.sel.key === g.key ? 'on' : !g.svc || hasIt(g.svc) ? '' : 'off'}" data-i="${reg(g)}"><span class="t"><span class="tag ${g.state === 'in' ? 'live' : ''}">${esc(g.state === 'in' ? 'LIVE · ' + g.detail : g.detail)}</span><b>${esc(g.title)}</b><small>${esc(g.note)}</small></span>${g.score ? `<span class="score">${esc(g.score)}</span>` : ''}</button>`;
+  const live = gs.filter(g => g.state === 'in'), up = gs.filter(g => g.state === 'pre'), done = gs.filter(g => g.state === 'post');
+  return `<h1>Sports</h1>${live.length ? `<h2>Live now</h2>${live.map(row).join('')}` : ''}${up.length ? `<h2>Coming up</h2>${up.map(row).join('')}` : ''}${done.length ? `<h2>Final</h2>${done.map(row).join('')}` : ''}<p class="fine">Scores from ESPN. Refreshes every minute.</p>`;
+}
+function stuff() {
+  const saved = S.list.map(s => ({ key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[s.net] || null, url: s.url, note: s.net, series: true, img: s.img, show: s }));
+  return `<h1>My Stuff</h1><h2>Your services</h2><p class="fine">Tick what you pay for. The guide puts these first and warns you about the rest.</p>
+    <div class="svcs">${SERVICES.map(s => `<label><input type="checkbox" data-svc="${esc(s)}" ${S.mine.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div>
+    <h2>Saved shows</h2>${saved.length ? saved.map(card).join('') : '<p class="fine">Nothing saved yet. Pick a show and tap Save.</p>'}${credit()}`;
+}
+// Free TV (Scott 11/08): launch buttons only. Their channel schedules need permission before they can appear in the guide.
+const FREE_TV = [['Pluto TV', 'https://pluto.tv/'], ['Tubi', 'https://tubitv.com/live'], ['The Roku Channel', 'https://therokuchannel.roku.com/'], ['Plex', 'https://watch.plex.tv/live-tv'], ['Xumo Play', 'https://play.xumo.com/'], ['Samsung TV Plus', 'https://www.samsung.com/us/televisions-home-theater/tvs/tvplus/']];
+const freeTv = () => `<h2>Free TV</h2><div class="svcs">${FREE_TV.map(([n, u]) => `<a class="btn alt" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a>`).join('')}</div>`;
+const credit = () => `<p class="fine">TV listings from <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> (CC BY-SA). Test build. Service links may need adjusting.</p>`;
+
+async function loadGuide() {
+  try {
+    const dates = [0, 1].map(n => { const d = new Date(Date.now() + n * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
+    const urls = dates.flatMap(d => [`https://api.tvmaze.com/schedule?country=US&date=${d}`, `https://api.tvmaze.com/schedule/web?country=US&date=${d}`]);
+    const lists = await Promise.all(urls.map(u => fetch(u).then(r => r.ok ? r.json() : [])));
+    const seen = new Set(), out = [];
+    for (const e of lists.flat()) {
+      const show = e.show || (e._embedded && e._embedded.show); if (!show || !e.airstamp || seen.has(e.id)) continue; seen.add(e.id);
+      const net = (show.network && show.network.name) || (show.webChannel && show.webChannel.name); if (!net) continue;
+      const start = Date.parse(e.airstamp), mins = e.runtime || show.runtime || show.averageRuntime || 30;
+      out.push({ key: 'e' + e.id, title: show.name, net, start, end: start + mins * 60000, svc: NETWORK_SERVICE[net] || null, url: show.officialSite || show.url, series: true, show, note: `${net} · ${clock(new Date(start))}${e.season && e.number ? ` · S${e.season} E${e.number}` : ''}` });
+    }
+    S.airings = out; S.err = '';
+  } catch { S.err = "Couldn't load listings. Check your connection."; }
+  if (S.tab < 2) draw();
+}
+async function loadGames() {
+  const lists = await Promise.all(LEAGUES.map(([name, path]) => fetch(`https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard`).then(r => r.ok ? r.json() : { events: [] }).then(j => (j.events || []).map(e => [name, e])).catch(() => [])));
+  S.games = lists.flat().map(([league, e]) => {
+    const c = e.competitions[0], st = e.status.type, home = c.competitors.find(t => t.homeAway === 'home'), away = c.competitors.find(t => t.homeAway === 'away');
+    const tv = [...new Set([...(c.broadcasts || []).flatMap(b => b.names || []), ...(c.geoBroadcasts || []).map(g => g.media && g.media.shortName)].filter(Boolean))], net = tv.find(t => NETWORK_SERVICE[t]) || tv[0] || '';
+    const started = st.state !== 'pre';
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', svc: NETWORK_SERVICE[net] || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true };
+  });
+  S.gamesDone = true; if (S.tab === 2) draw();
+}
+function openIt(x) {
+  window.open(linkFor(x), '_blank', 'noopener');
+  save('pending', { title: x.title, series: x.series, url: linkFor(x), at: Date.now() });
+}
+function cameBack() {   // Scott 11/08: a series offers the next one or "done"; anything else just lands back here
+  const p = load('pending', null), b = $('back'); if (!p || Date.now() - p.at < 15000 || b.open) return;
+  save('pending', null); if (!p.series) return;
+  b.innerHTML = `<b>${esc(p.title)}</b><p>Welcome back. Watch the next episode?</p><div class="act"><button class="btn alt" data-done>I'm done</button><button class="btn" data-next>Next episode</button></div>`;
+  b.querySelector('[data-done]').onclick = () => b.close();
+  b.querySelector('[data-next]').onclick = () => { b.close(); window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
+  b.showModal();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.tab != null) { S.tab = Number(t.dataset.tab); save('tab', S.tab); S.sel = null; draw(); window.scrollTo(0, 0); }
+  else if (t.dataset.i != null) { S.sel = items[Number(t.dataset.i)]; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.hasAttribute('data-open')) openIt(S.sel);
+  else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url }]; save('list', S.list); dock(); }
+});
+document.addEventListener('change', e => { const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'find') return; e.preventDefault(); S.q = $('q').value.trim(); if (!S.q) { S.results = null; return draw(); }
+  try { S.results = (await fetch('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(S.q)).then(r => r.json())).map(r => showItem(r.show)); } catch { S.results = []; }
+  draw();
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden) cameBack(); });
+window.addEventListener('focus', cameBack);
+draw(); loadGuide(); loadGames();
+setInterval(loadGuide, 5 * 60000);   // the guide keeps itself current (Scott 11/08)
+setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
