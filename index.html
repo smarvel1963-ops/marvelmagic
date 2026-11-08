@@ -91,6 +91,8 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .signin{display:none;margin-top:auto}.signhead{margin:0 0 8px}.signphone{margin-bottom:12px}
 .signgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.signgrid a{min-height:44px;padding:2px;border-radius:8px;border:1px solid rgba(255,255,255,.25);color:#fff;text-decoration:none;font-size:11px;font-weight:800;line-height:1.1;display:flex;align-items:center;justify-content:center;text-align:center}
 @media (min-width:1000px){.signin{display:block}.signphone{display:none}}
+.acct{min-height:44px;padding:0 12px;border-radius:9px;background:#1E6FE0;color:#fff;font-weight:700;text-align:center;font-size:14px;margin-left:auto}
+@media (min-width:1000px){.acct{margin-left:0}}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
@@ -104,11 +106,14 @@ dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 </head>
 <body>
 <div class="app">
-  <header><img class="logo" src="logo.png" alt="Marvel Magic"><div class="brand">Marvel <b>Magic</b></div><nav id="nav" aria-label="Main"></nav><div id="signside" class="signin"></div></header>
+  <header><img class="logo" src="logo.png" alt="Marvel Magic"><div class="brand">Marvel <b>Magic</b></div><button id="acct" class="acct" hidden></button><nav id="nav" aria-label="Main"></nav><div id="signside" class="signin"></div></header>
   <main id="view"></main>
   <div class="dock" id="dock" hidden></div>
 </div>
 <dialog id="back"></dialog>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 // Marvel Magic test build. Listings: TVmaze (free, credit required). Scores: ESPN's public scoreboard (personal test only, not for a paid release).
 // It opens each title on that service's own site or app; it never plays or stores a stream, and never holds a service's password.
@@ -125,7 +130,7 @@ const SLOT = 30 * 60000, SLOTS = 6;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (k === 'mine' || k === 'list') queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
 const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {} };
 const items = [];   // what each on-screen button points at (data-i)
@@ -140,6 +145,7 @@ function draw() {
   $('nav').innerHTML = TABS.map((t, i) => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${esc(t)}</button>`).join('');
   $('view').innerHTML = [guide, shows, sports, stuff][S.tab]();
   $('signside').innerHTML = signIn();
+  drawAcct();
   dock();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
@@ -297,6 +303,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key && (!x.svc || hasIt(x.svc))) { openIt(x); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.id === 'acct') acctPress();
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
 });
@@ -350,7 +357,47 @@ document.addEventListener('keydown', e => {
 function showTab(n) { S.tab = n; save('tab', n); S.sel = null; draw(); window.scrollTo(0, 0); if (n === 3) loadEps(); }
 window.addEventListener('popstate', e => showTab(e.state && e.state.tab != null ? e.state.tab : 0));
 history.replaceState({ tab: S.tab }, '');
-draw(); loadGuide(); loadGames(); loadEps();
+// ACCOUNT + SYNC (Scott 11/08: "these should all run independently to just the owner of account"). One Google sign-in per person. Their services, watchlist and
+// progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
+const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
+let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list });
+function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
+async function acctPress() {
+  if (me) { auth.signOut(); return; }
+  const p = new firebase.auth.GoogleAuthProvider();
+  try { await auth.signInWithPopup(p); }
+  catch (e) { if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) auth.signInWithRedirect(p); }
+}
+function mergeLists(cloud, local) {   // first sign-in on a device: keep shows from both, and the furthest progress on each
+  const out = new Map(cloud.map(x => [x.id, x]));
+  for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
+  return [...out.values()];
+}
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); } catch {} }
+function startAccount() {
+  if (typeof firebase === 'undefined') return;
+  try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
+  auth.onAuthStateChanged(async u => {
+    if (stopWatch) { stopWatch(); stopWatch = null; }
+    me = u;
+    if (u) {
+      const ref = db.collection('users').doc(u.uid);
+      try { const d = await ref.get(), c = d.exists ? d.data() : null;
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); storeLocal(); }
+        pushCloud();
+      } catch {}
+      stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
+        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [] }); if (j === lastCloud) return;
+        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; storeLocal(); draw(); loadEps();
+      }, () => {});
+    }
+    draw(); loadEps();
+  });
+}
+draw(); loadGuide(); loadGames(); loadEps(); startAccount();
 setInterval(loadGuide, 5 * 60000);   // the guide keeps itself current (Scott 11/08)
 setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
