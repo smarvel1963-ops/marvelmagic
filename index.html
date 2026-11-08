@@ -138,7 +138,31 @@ const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []),
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
-function linkFor(x) { return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](slug(x.title)) : x.url; }
+function linkFor(x) { if (x.exact) return x.exact; return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](slug(x.title)) : x.url; }
+const RELAY = 'https://script.google.com/macros/s/AKfycbzDFfE1Z_I8ZTYyQkCpMS45l2V8c7HTcm6-uwNxxgnUbX8VGSDw2-5t4_tqZiPcqW2zQQ/exec';
+const relay = q => fetch(RELAY + '?' + new URLSearchParams(q)).then(r => r.json());
+function svcOf(n) {
+  const t = String(n).toLowerCase();
+  if (/via (amazon|apple|hulu)|channel/.test(t)) return null;   // add-on versions come after the service's own app
+  return /netflix/.test(t) ? 'Netflix' : /hulu/.test(t) ? 'Hulu' : /prime video/.test(t) ? 'Prime Video' : /disney/.test(t) ? 'Disney+' : /hbo max|^max$/.test(t) ? 'HBO Max' : /peacock/.test(t) ? 'Peacock' : /paramount/.test(t) ? 'Paramount+' : /^apple ?tv/.test(t) ? 'Apple TV' : /youtube tv/.test(t) ? 'YouTube TV' : /pluto/.test(t) ? 'Pluto TV' : /espn/.test(t) ? 'ESPN' : null;
+}
+async function enrich(x) {
+  if (x.looked || x.sport) return; x.looked = true;
+  try {
+    let id = x.wmId;
+    if (!id) {
+      const f = await relay({ a: 'find', q: x.title }), want = x.title.toLowerCase(), rows = f.results || [];
+      const hit = rows.find(r => r.name.toLowerCase() === want && /^tv/.test(r.type)) || rows.find(r => r.name.toLowerCase() === want); if (!hit) return; id = hit.id;
+    }
+    const w = await relay({ a: 'where', id }); if (!w.sources || !w.sources.length) return;
+    const rows = w.sources.filter(r => r.web).map(r => ({ ...r, svc: svcOf(r.name) }));
+    const seen = new Set(), own = rows.filter(r => r.svc && !seen.has(r.svc) && seen.add(r.svc)).sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)) || Number(b.type === 'sub') - Number(a.type === 'sub'));
+    const best = own[0] || rows[0]; if (!best) return;
+    x.exact = best.web; x.svc = best.svc; x.place = best.name;
+    x.also = own.filter(r => r !== best).map(r => r.svc);
+    if (S.sel === x) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  } catch {}
+}
 const reg = x => (items.push(x), items.length - 1);
 
 function draw() {
@@ -154,9 +178,9 @@ function draw() {
 function dock() {
   const d = $('dock'), x = S.sel; d.hidden = !x; if (!x) return;
   const ok = !x.svc || hasIt(x.svc);
-  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small></div>
+  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${x.also && x.also.length ? ' · Also on ' + esc(x.also.join(', ')) : ''}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small></div>
     ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
-    <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : 'Open'}</button>`;
+    <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
 }
 function guide() {
   if (S.err && !S.airings.length) return `<h1>Live TV Guide</h1><p>${esc(S.err)}</p>`;
@@ -189,9 +213,9 @@ function showItem(s) {
 function shows() {
   const seen = new Set(), tonight = S.airings.filter(a => a.show && !seen.has(a.show.id) && seen.add(a.show.id)).sort((a, b) => (b.show.weight || 0) - (a.show.weight || 0)).slice(0, 20).map(a => showItem(a.show));
   const res = S.results;
-  return `<h1>Movies &amp; Shows</h1><form class="search" id="find"><input id="q" aria-label="Search shows" placeholder="Search shows" value="${esc(S.q || '')}"><button class="btn">Search</button></form>
-    <p class="fine">Shows only in this test. Movies need the paid listings feed.</p>
-    ${res ? `<h2>Results</h2>${res.length ? res.map(card).join('') : '<p class="fine">Nothing found.</p>'}` : ''}<h2>On today</h2>${tonight.map(card).join('')}${credit()}`;
+  return `<h1>Movies &amp; Shows</h1><form class="search" id="find"><input id="q" aria-label="Search movies and shows" placeholder="Search movies and shows" value="${esc(S.q || '')}"><button class="btn">Search</button></form>
+    
+    ${res ? `${S.movies && S.movies.length ? `<h2>Movies</h2>${S.movies.map(card).join('')}` : ''}<h2>Shows</h2>${res.length ? res.map(card).join('') : '<p class="fine">No shows found.</p>'}` : ''}<h2>On today</h2>${tonight.map(card).join('')}${credit()}`;
 }
 function sports() {
   if (!S.games.length) return `<h1>Sports</h1><p class="fine">${S.gamesDone ? 'No games listed today.' : 'Loading games…'}</p>`;
@@ -318,7 +342,7 @@ document.addEventListener('click', e => {
   if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); }
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
-  else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key && (!x.svc || hasIt(x.svc))) { openIt(x); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key) { if (!S.sel.svc || hasIt(S.sel.svc)) openIt(S.sel); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); enrich(x); }
   else if (t.id === 'acct') acctPress();
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
@@ -326,7 +350,11 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'find') return; e.preventDefault(); S.q = $('q').value.trim(); if (!S.q) { S.results = null; return draw(); }
-  try { S.results = (await fetch('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(S.q)).then(r => r.json())).map(r => showItem(r.show)); } catch { S.results = []; }
+  const q = S.q;
+  const [shows, movies] = await Promise.all([
+    fetch('https://api.tvmaze.com/search/shows?q=' + encodeURIComponent(q)).then(r => r.json()).then(j => j.map(r => showItem(r.show))).catch(() => []),
+    relay({ a: 'find', q }).then(j => (j.results || []).filter(r => r.type === 'movie').map(r => ({ key: 'm' + r.id, wmId: r.id, title: r.name, note: 'Movie' + (r.year ? ' · ' + r.year : ''), img: r.img, series: false, url: 'https://www.google.com/search?q=' + encodeURIComponent(r.name + ' watch') }))).catch(() => [])]);
+  S.results = shows; S.movies = movies;
   draw();
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) cameBack(); });
