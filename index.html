@@ -93,6 +93,8 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 @media (min-width:1000px){.signin{display:block}.signphone{display:none}}
 .acct{min-height:44px;padding:0 12px;border-radius:9px;background:#1E6FE0;color:#fff;font-weight:700;text-align:center;font-size:14px;margin-left:auto}
 @media (min-width:1000px){.acct{margin-left:0}}
+.signgrid a{position:relative}.donechk{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#2FD07F;color:#06281A;font-size:12px;display:flex;align-items:center;justify-content:center}
+.setrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.setrow span{flex:1;font-weight:600}.setrow .ok{color:#3DE08A;font-size:14px}.setrow .btn{display:flex;align-items:center;text-decoration:none}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
@@ -130,9 +132,9 @@ const SLOT = 30 * 60000, SLOTS = 6;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (k === 'mine' || k === 'list') queueSync(); };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (k === 'mine' || k === 'list' || k === 'setup') queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {} };
+const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -238,7 +240,7 @@ function stuff() {
       <div class="wlbox">${S.list.length ? shown.map(row).join('') || '<p class="fine" style="padding:14px">Nothing here right now.</p>' : '<p class="fine" style="padding:14px">Nothing saved yet. Pick a show in Movies &amp; Shows and tap Save.</p>'}</div></div>
     <aside class="wside"><section class="glow amber"><h3>🔔 New Episode Alerts <span class="badge">${alerts.length}</span></h3>${alerts.map(alertRow).join('')}${upcoming.slice(0, Math.max(0, 4 - alerts.length)).map(soonRow).join('')}${alerts.length || upcoming.length ? '' : '<p class="fine">Nothing new yet.</p>'}</section>
       <section class="glow blue"><h3>📅 Upcoming Episodes</h3>${upcoming.length ? upcoming.map(r => `<div class="up"><span><b>${esc(r.s.name)}</b> - ${esc(epLabel(r.t.next))}</span><span>${esc(day(r.t.nextAt))}</span></div>`).join('') : '<p class="fine">No dates announced yet.</p>'}</section>
-      <section class="glow plain"><h3>⚙ Your Services</h3><div class="signphone">${signIn()}</div><div class="svcs">${SERVICES.map(s => `<label><input type="checkbox" data-svc="${esc(s)}" ${S.mine.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div></section></aside></div>${credit()}`;
+      <section class="glow plain">${setupList()}</section><section class="glow plain"><h3>⚙ Your Services</h3><div class="signphone">${signIn()}</div><div class="svcs">${SERVICES.map(s => `<label><input type="checkbox" data-svc="${esc(s)}" ${S.mine.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div></section></aside></div>${credit()}`;
 }
 async function loadEps() {
   const need = S.list.filter(s => !S.eps[s.id]); if (!need.length) return;
@@ -254,7 +256,9 @@ const freeTv = () => `<h2>Free TV</h2><div class="svcs">${FREE_TV.map(([n, u]) =
 // service keeps the person signed in on that device. Marvel Magic never sees or stores a password. Plain name tiles until there's permission to use their logos.
 const SIGN_IN = [['Netflix', 'https://www.netflix.com/login', '#E50914'], ['Prime Video', 'https://www.amazon.com/gp/video/storefront', '#00739E'], ['Disney+', 'https://www.disneyplus.com/login', '#1B3FA8'], ['Hulu', 'https://auth.hulu.com/web/login', '#128A4E'],
   ['Apple TV', 'https://tv.apple.com/', '#3A3A3C'], ['HBO Max', 'https://auth.hbomax.com/login', '#4B2BD6'], ['Peacock', 'https://www.peacocktv.com/signin', '#26262B'], ['Para- mount+', 'https://www.paramountplus.com/account/signin/', '#0B5FFF']];
-const signIn = () => `<p class="fine signhead">Sign in once. Each service keeps you signed in on this device.</p><div class="signgrid">${SIGN_IN.map(([n, u, c]) => `<a href="${esc(u)}" target="_blank" rel="noopener" style="background:${c}" aria-label="Sign in to ${esc(n)}">${esc(n)}</a>`).join('')}</div>`;
+const signIn = () => `<p class="fine signhead">Sign in once. Each service keeps you signed in on this device.</p><div class="signgrid">${SIGN_IN.map(([n, u, c]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n.replace('- ', ''))}" style="background:${c}" aria-label="Set up ${esc(n.replace('- ', ''))}">${S.setup.includes(n.replace('- ', '')) ? '<span class="donechk">✓</span>' : ''}${esc(n)}</a>`).join('')}</div>`;
+const setupList = () => `<h3>🔑 Set Up Your Accounts</h3><p class="fine">Sign in on each service's own page and let Chrome save the password. Marvel Magic never sees it.</p>${SIGN_IN.map(([raw, u]) => { const n = raw.replace('- ', ''), ok = S.setup.includes(n); return `<div class="setrow"><span>${esc(n)}</span>${ok ? '<b class="ok">✓ Set up</b>' : ''}<a class="btn ${ok ? 'alt' : ''}" href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n)}">${ok ? 'Open' : 'Set up'}</a></div>`; }).join('')}`;
+function armFull() { document.title = 'Marvel Magic*'; setTimeout(() => { document.title = 'Marvel Magic'; }, 4000); }   // tells the PC helper a service window is coming: make it full-screen
 const credit = () => `<p class="fine">TV listings from <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> (CC BY-SA). Test build. Service links may need adjusting.</p>`;
 
 async function loadGuide() {
@@ -284,20 +288,32 @@ async function loadGames() {
   S.gamesDone = true; if (S.tab === 2) draw();
 }
 function openIt(x) {
+  armFull();
   window.open(linkFor(x), '_blank', 'noopener');
   save('pending', { title: x.title, series: x.series, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null });
 }
-function cameBack() {   // Scott 11/08: a series offers the next one or "done"; anything else just lands back here
+function askSetup() {
+  const p = load('pendingSetup', null), b = $('back'); if (!p || Date.now() - p.at < 5000 || b.open) return false;
+  save('pendingSetup', null);
+  b.innerHTML = `<b>${esc(p.name)}</b><p>Did you get signed in?</p><div class="act"><button class="btn alt" data-no>Not yet</button><button class="btn" data-yes>Yes, signed in</button></div>`;
+  const set = on => { S.setup = on ? [...new Set([...S.setup, p.name])] : S.setup.filter(x => x !== p.name); save('setup', S.setup); b.close(); draw(); };
+  b.querySelector('[data-no]').onclick = () => set(false); b.querySelector('[data-yes]').onclick = () => set(true);
+  b.showModal(); return true;
+}
+function cameBack() {
+  if (askSetup()) return;   // Scott 11/08: a series offers the next one or "done"; anything else just lands back here
   const p = load('pending', null), b = $('back'); if (!p || Date.now() - p.at < 15000 || b.open) return;
   save('pending', null); if (!p.series) return;
   const finish = () => { if (p.id) { step(p.id, 1); if (S.tab === 3) draw(); } };
   b.innerHTML = `<b>${esc(p.title)}</b><p>Welcome back. Watch the next episode?</p><div class="act"><button class="btn alt" data-done>I'm done</button><button class="btn" data-next>Next episode</button></div><button class="btn alt" data-not style="width:100%;margin-top:8px">Didn't finish it</button>`;
   b.querySelector('[data-done]').onclick = () => { finish(); b.close(); };
   b.querySelector('[data-not]').onclick = () => b.close();
-  b.querySelector('[data-next]').onclick = () => { finish(); b.close(); window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
+  b.querySelector('[data-next]').onclick = () => { finish(); b.close(); armFull(); window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
   b.showModal();
 }
 document.addEventListener('click', e => {
+  const link = e.target.closest('a[target=_blank]');
+  if (link) { armFull(); if (link.dataset.setup) save('pendingSetup', { name: link.dataset.setup, at: Date.now() }); return; }
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); }
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -361,9 +377,9 @@ history.replaceState({ tab: S.tab }, '');
 // progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
 const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
-const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list });
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup });
 function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
@@ -376,7 +392,7 @@ function mergeLists(cloud, local) {   // first sign-in on a device: keep shows f
   for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
   return [...out.values()];
 }
-function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); } catch {} }
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); } catch {} }
 function startAccount() {
   if (typeof firebase === 'undefined') return;
   try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
@@ -386,12 +402,12 @@ function startAccount() {
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
-        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); storeLocal(); }
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; storeLocal(); }
         pushCloud();
       } catch {}
       stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
-        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [] }); if (j === lastCloud) return;
-        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; storeLocal(); draw(); loadEps();
+        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [] }); if (j === lastCloud) return;
+        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; storeLocal(); draw(); loadEps();
       }, () => {});
     }
     draw(); loadEps();
