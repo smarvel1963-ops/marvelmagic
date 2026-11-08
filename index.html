@@ -296,7 +296,7 @@ function askSetup() {
   const p = load('pendingSetup', null), b = $('back'); if (!p || Date.now() - p.at < 5000 || b.open) return false;
   save('pendingSetup', null);
   b.innerHTML = `<b>${esc(p.name)}</b><p>Did you get signed in?</p><div class="act"><button class="btn alt" data-no>Not yet</button><button class="btn" data-yes>Yes, signed in</button></div>`;
-  const set = on => { S.setup = on ? [...new Set([...S.setup, p.name])] : S.setup.filter(x => x !== p.name); save('setup', S.setup); b.close(); draw(); };
+  const set = on => { S.setup = on ? [...new Set([...S.setup, p.name])] : S.setup.filter(x => x !== p.name); save('setup', S.setup); if (on && !S.mine.includes(p.name)) { S.mine = [...S.mine, p.name]; save('mine', S.mine); } b.close(); draw(); };
   b.querySelector('[data-no]').onclick = () => set(false); b.querySelector('[data-yes]').onclick = () => set(true);
   b.showModal(); return true;
 }
