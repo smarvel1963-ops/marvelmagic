@@ -16,7 +16,8 @@
 html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.35 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 button,input{font:inherit;color:inherit}
 button{border:0;cursor:pointer;background:none;text-align:left}
-button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:1px}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 16px 3px rgba(255,255,255,.55);position:relative;z-index:3}
+.cell:focus-visible{position:absolute}.pc:focus-visible{position:relative}
 a{color:#B9A8FF}
 .app{min-height:100dvh;display:flex;flex-direction:column}
 header{display:flex;align-items:center;gap:20px;padding:14px 28px;background:#0F1530;position:sticky;top:0;z-index:5}
@@ -134,11 +135,13 @@ function linkFor(x) { return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](sl
 const reg = x => (items.push(x), items.length - 1);
 
 function draw() {
+  const had = focusables().indexOf(document.activeElement);
   items.length = 0;
   $('nav').innerHTML = TABS.map((t, i) => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${esc(t)}</button>`).join('');
   $('view').innerHTML = [guide, shows, sports, stuff][S.tab]();
   $('signside').innerHTML = signIn();
   dock();
+  if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
 function dock() {
   const d = $('dock'), x = S.sel; d.hidden = !x; if (!x) return;
@@ -290,10 +293,10 @@ function cameBack() {   // Scott 11/08: a series offers the next one or "done"; 
 }
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return;
-  if (t.dataset.tab != null) { S.tab = Number(t.dataset.tab); save('tab', S.tab); S.sel = null; draw(); window.scrollTo(0, 0); if (S.tab === 3) loadEps(); }
+  if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); }
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
-  else if (t.dataset.i != null) { S.sel = items[Number(t.dataset.i)]; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key && (!x.svc || hasIt(x.svc))) { openIt(x); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
 });
@@ -305,6 +308,48 @@ document.addEventListener('submit', async e => {
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) cameBack(); });
 window.addEventListener('focus', cameBack);
+// REMOTE (Scott 11/08: "design everything around remote left right up down forward and back buttons, mouse click on pc and touch on phone")
+function focusables() {
+  const box = $('back').open ? $('back') : document;
+  return [...box.querySelectorAll('button:not([disabled]),a[href],input,select')].filter(e => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
+}
+function moveFocus(dir) {
+  const all = focusables(), cur = document.activeElement;
+  if (!all.includes(cur)) { const start = document.querySelector('main button:not([disabled]),main a[href],main input') || all[0]; if (start) start.focus(); return; }
+  const r = cur.getBoundingClientRect(); let best = null, bestScore = Infinity;
+  for (const e of all) {
+    if (e === cur) continue;
+    const c = e.getBoundingClientRect();
+    const gap = dir === 'right' ? c.left - r.right : dir === 'left' ? r.left - c.right : dir === 'down' ? c.top - r.bottom : r.top - c.bottom;
+    if (gap < -3) continue;
+    const across = dir === 'left' || dir === 'right' ? Math.max(0, c.top - r.bottom, r.top - c.bottom) : Math.max(0, c.left - r.right, r.left - c.right);
+    const side = x => x.closest('.wmain') ? 1 : x.closest('.wside') ? 2 : 0, ca = side(cur), cb = side(e);
+    const score = Math.max(0, gap) + across * 4 + ((dir === 'up' || dir === 'down') && ca && cb && ca !== cb ? 5000 : 0);
+    if (score < bestScore) { bestScore = score; best = e; }
+  }
+  if (!best) return;
+  best.focus({ preventScroll: true });
+  if (best.closest('main')) best.scrollIntoView({ block: 'center', inline: 'nearest' });
+}
+function goBack() {
+  if ($('back').open) { $('back').close(); return; }
+  if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); return; }
+  history.back();
+}
+const KEY_DIR = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+document.addEventListener('keydown', e => {
+  const typing = e.target.matches && e.target.matches('input:not([type=checkbox])');
+  if (KEY_DIR[e.key]) {
+    if (typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return;
+    e.preventDefault(); moveFocus(KEY_DIR[e.key]); return;
+  }
+  if (e.key === 'Enter' && e.target.matches && e.target.matches('input[type=checkbox]')) { e.preventDefault(); e.target.click(); return; }
+  if (['Escape', 'GoBack', 'BrowserBack', 'MediaRewind'].includes(e.key) || e.keyCode === 461 || (e.key === 'Backspace' && !typing)) { e.preventDefault(); goBack(); return; }
+  if (['GoForward', 'BrowserForward', 'MediaFastForward'].includes(e.key)) { e.preventDefault(); history.forward(); }
+});
+function showTab(n) { S.tab = n; save('tab', n); S.sel = null; draw(); window.scrollTo(0, 0); if (n === 3) loadEps(); }
+window.addEventListener('popstate', e => showTab(e.state && e.state.tab != null ? e.state.tab : 0));
+history.replaceState({ tab: S.tab }, '');
 draw(); loadGuide(); loadGames(); loadEps();
 setInterval(loadGuide, 5 * 60000);   // the guide keeps itself current (Scott 11/08)
 setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
