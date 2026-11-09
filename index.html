@@ -369,7 +369,7 @@ function rankedSvcs() {
 }
 function ratingsPage() {
   const all = Object.entries(S.ratings).sort((a, b) => b[1].score - a[1].score || b[1].at - a[1].at), top = all.slice(0, 10), more = all.slice(10);
-  const row = ([k, r], i) => `<div class="rrow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind)}</small></span><span class="rscore">${r.score}<small>/10</small></span><button class="round" data-unrate="${esc(k)}" aria-label="Remove rating">✕</button></div>`;
+  const row = ([k, r], i) => `<div class="rrow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind)}${r.review ? ' · “' + esc(r.review) + '”' : ''}</small></span><span class="rscore">${r.score}<small>/10</small></span><button class="round" data-unrate="${esc(k)}" aria-label="Remove rating">✕</button></div>`;
   const svcs = rankedSvcs(), maxOpen = Math.max(1, ...svcs.map(n => S.opens[n] || 0));
   const svc = (n, i) => `<div class="rrow"><span class="rnum">${i + 1}</span><span class="t"><b>${esc(n)}</b><small>Opened ${S.opens[n] || 0} time${S.opens[n] === 1 ? '' : 's'}${FREE_SVC.has(n) ? ' · Free' : ''}</small><div class="bar"><i style="width:${Math.round((S.opens[n] || 0) / maxOpen * 100)}%"></i></div></span><button class="round" data-mv="${esc(n)}|-1" aria-label="Move ${esc(n)} up" ${i ? '' : 'disabled'}>▲</button><button class="round" data-mv="${esc(n)}|1" aria-label="Move ${esc(n)} down" ${i < svcs.length - 1 ? '' : 'disabled'}>▼</button></div>`;
   return `<h1>My Ratings</h1><div class="wgrid"><div class="wmain"><h2>My Top 10</h2>${top.length ? top.map(row).join('') : '<p class="fine">Nothing rated yet. Pick any show or movie and tap a number from 1 to 10 at the bottom of the screen.</p>'}${more.length ? `<h2>Everything Else I Rated</h2>${more.map((r, i) => row(r, i + 10)).join('')}` : ''}</div>
@@ -408,7 +408,7 @@ function openIt(x) {
   countOpen(x.svc);
   logPick(x);
   window.open(linkFor(x), '_blank', 'noopener');
-  save('pending', { title: x.title, series: x.series, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null });
+  save('pending', { title: x.title, series: x.series, sport: !!x.sport, rk: rateKey(x), img: x.img || null, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null });
 }
 function askSetup() {
   const p = load('pendingSetup', null), b = $('back'); if (!p || Date.now() - p.at < 5000 || b.open) return false;
@@ -418,20 +418,30 @@ function askSetup() {
   b.querySelector('[data-no]').onclick = () => set(false); b.querySelector('[data-yes]').onclick = () => set(true);
   b.showModal(); return true;
 }
+// REVIEWS (Scott 11/08: "they ask for reviews"): asked when someone comes back, always skippable, private to their account.
+function askReview(p) {
+  const b = $('back'); if (b.open || !p.rk) return;
+  const had = S.ratings[p.rk] || {}; let pick = had.score || 0;
+  b.innerHTML = `<b>How was ${esc(p.title)}?</b><div class="where rate" style="flex-wrap:wrap">${Array.from({ length: 10 }, (_, i) => `<button data-r="${i + 1}" class="${pick === i + 1 ? 'on' : ''}" aria-label="${i + 1} of 10">${i + 1}</button>`).join('')}</div><input id="rvw" maxlength="280" aria-label="Short review" placeholder="Short review (optional)" value="${esc(had.review || '')}" style="width:100%;height:44px;margin-top:10px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--off)"><div class="act"><button class="btn alt" data-skip>Skip</button><button class="btn" data-keep>Save</button></div>`;
+  b.querySelectorAll('[data-r]').forEach(x => x.onclick = () => { pick = Number(x.dataset.r); b.querySelectorAll('[data-r]').forEach(y => y.classList.toggle('on', y === x)); });
+  b.querySelector('[data-skip]').onclick = () => b.close();
+  b.querySelector('[data-keep]').onclick = () => { if (!pick) { b.querySelector('[data-r]').focus(); return; } S.ratings[p.rk] = { title: p.title, img: p.img || had.img || null, kind: p.series ? 'Show' : 'Movie', score: pick, review: b.querySelector('#rvw').value.trim().slice(0, 280), at: Date.now() }; save('ratings', S.ratings); b.close(); draw(); };
+  b.showModal();
+}
 function cameBack() {
   if (askSetup()) return;   // Scott 11/08: a series offers the next one or "done"; anything else just lands back here
   const p = load('pending', null), b = $('back'); if (!p || Date.now() - p.at < 15000 || b.open) return;
-  save('pending', null); if (!p.series) return;
+  save('pending', null); if (!p.series) { if (!p.sport) askReview(p); return; }
   const finish = () => { if (p.id) { step(p.id, 1); if (S.tab === 3 || S.tab === 6) draw(); } else logWatch({ k: 't' + p.title + '-' + dayKey(Date.now()), title: p.title, kind: 'Show', svc: '', img: null }); };
   b.innerHTML = `<b>${esc(p.title)}</b><p>Welcome back. Watch the next episode?</p><div class="act"><button class="btn alt" data-done>I'm done</button><button class="btn" data-next>Next episode</button></div><button class="btn alt" data-not style="width:100%;margin-top:8px">Didn't finish it</button>`;
-  b.querySelector('[data-done]').onclick = () => { finish(); b.close(); };
+  b.querySelector('[data-done]').onclick = () => { finish(); b.close(); askReview(p); };
   b.querySelector('[data-not]').onclick = () => b.close();
   b.querySelector('[data-next]').onclick = () => { finish(); b.close(); armFull(); window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
   b.showModal();
 }
 document.addEventListener('click', e => {
   const link = e.target.closest('a[target=_blank]');
-  if (link && link.hasAttribute('data-opt') && S.sel) save('pending', { title: S.sel.title, series: S.sel.series, url: link.href, at: Date.now(), id: S.sel.show && S.list.some(s => s.id === S.sel.show.id) ? S.sel.show.id : null });
+  if (link && link.hasAttribute('data-opt') && S.sel) save('pending', { title: S.sel.title, series: S.sel.series, sport: !!S.sel.sport, rk: rateKey(S.sel), img: S.sel.img || null, url: link.href, at: Date.now(), id: S.sel.show && S.list.some(s => s.id === S.sel.show.id) ? S.sel.show.id : null });
   if (link && link.hasAttribute('data-opt')) { countOpen(link.textContent.replace(' ✓', '')); logPick(S.sel); }
   if (link && link.dataset.free) countOpen(link.dataset.free);
   if (link) { armFull(); if (link.dataset.setup) save('pendingSetup', { name: link.dataset.setup, at: Date.now() }); return; }
