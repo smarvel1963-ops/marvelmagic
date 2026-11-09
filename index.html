@@ -103,6 +103,8 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .teamhits{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.chip:disabled{opacity:.6;cursor:default}#teamfind+.filters,.teamhits+.filters{margin:10px 0}
 @media (max-width:760px){nav{overflow-x:auto}nav button{flex:0 0 76px}}
 .grid{overflow-x:auto;padding-bottom:8px}.grid .times,.grid .row{min-width:2270px}.grid .ch{position:sticky;left:0;z-index:2;background:var(--bg)}
+a.cell.freecell{display:flex;align-items:center;color:var(--text);text-decoration:none;background:#2A2150;line-height:normal}a.freecard{color:var(--text);text-decoration:none}
+@media (min-width:1000px){header{overflow-y:auto}}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
@@ -223,7 +225,10 @@ function guide() {
   if (!S.mine.length) return `<h1>Live TV Guide</h1><p>Your guide shows only the channels you can watch. Set up your streaming accounts to fill it in.</p><button class="btn" data-tab="3">Set up my accounts</button>`;
   const canSee = n => S.mine.includes('YouTube TV') || (!['ABC', 'FX'].includes(n) && S.mine.includes(NETWORK_SERVICE[n]));   // plain Hulu has these on demand, not live
   const nets = Object.keys(by).filter(canSee).sort((a, b) => a.localeCompare(b));
-  if (!nets.length) return `<h1>Live TV Guide</h1><p class="fine">None of your services have channel listings in the next 8 hours.</p>`;
+  const freeSet = FREE_TV.filter(([n]) => S.setup.includes(n));
+  const freeRows = freeSet.map(([n, u]) => `<div class="row"><div class="ch"><b>${esc(n)}</b><small>Free</small></div><div class="track"><a class="cell freecell" data-free="${esc(n)}" href="${esc(u)}" target="_blank" rel="noopener" style="left:0;width:100%">Open ${esc(n)} live guide</a></div></div>`).join('');
+  const freeCards = freeSet.map(([n, u]) => `<a class="card freecard" data-free="${esc(n)}" href="${esc(u)}" target="_blank" rel="noopener"><span class="t"><small>Free</small><b>${esc(n)}</b><small>Open its live guide</small></span></a>`).join('');
+  if (!nets.length && !freeSet.length) return `<h1>Live TV Guide</h1><p class="fine">None of your services have channel listings in the next 8 hours.</p>`;
   const nowPct = (now - t0) / span * 100;
   const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
   const rows = nets.map(n => {
@@ -238,7 +243,7 @@ function guide() {
     const sorted = by[n].sort((a, b) => a.start - b.start), cur = sorted.find(a => a.end > now) || sorted[0], next = sorted[sorted.indexOf(cur) + 1], ok = !cur.svc || hasIt(cur.svc);
     return `<button class="card ${S.sel && S.sel.key === cur.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(cur)}"><span class="t"><small>${esc(n)}${cur.svc ? ' · ' + esc(cur.svc) : ''}</small><b>${esc(cur.title)}</b><small>${cur.start <= now ? 'On now' : esc(clock(new Date(cur.start)))}${next ? ' · Next: ' + esc(next.title) : ''}</small></span></button>`;
   }).join('');
-  return `<h1>Live TV Guide</h1><div class="grid"><div class="times">${times}</div>${rows}</div><div class="phone">${list}</div>${freeTv()}${credit()}`;
+  return `<h1>Live TV Guide</h1><div class="grid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>${freeTv()}${credit()}`;
 }
 const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
 function showItem(s) {
@@ -341,7 +346,8 @@ const freeTv = () => `<h2>Free TV</h2><div class="svcs">${FREE_TV.map(([n, u]) =
 // Sign-in buttons (Scott 11/08: "logos need to be cliclable so we can sign in permently"). Each opens the service's OWN sign-in page: the
 // service keeps the person signed in on that device. Marvel Magic never sees or stores a password. Plain name tiles until there's permission to use their logos.
 const SIGN_IN = [['Netflix', 'https://www.netflix.com/login', '#E50914'], ['Prime Video', 'https://www.amazon.com/gp/video/storefront', '#00739E'], ['Disney+', 'https://www.disneyplus.com/login', '#1B3FA8'], ['Hulu', 'https://auth.hulu.com/web/login', '#128A4E'],
-  ['Apple TV', 'https://tv.apple.com/', '#3A3A3C'], ['HBO Max', 'https://auth.hbomax.com/login', '#4B2BD6'], ['Peacock', 'https://www.peacocktv.com/signin', '#26262B'], ['Para- mount+', 'https://www.paramountplus.com/account/signin/', '#0B5FFF']];
+  ['Apple TV', 'https://tv.apple.com/', '#3A3A3C'], ['HBO Max', 'https://auth.hbomax.com/login', '#4B2BD6'], ['Peacock', 'https://www.peacocktv.com/signin', '#26262B'], ['Para- mount+', 'https://www.paramountplus.com/account/signin/', '#0B5FFF'],
+  ['Pluto TV', 'https://pluto.tv/', '#7A3FF2'], ['Tubi', 'https://tubitv.com/login', '#E8552B'], ['The Roku Channel', 'https://therokuchannel.roku.com/', '#6C3AA6'], ['Plex', 'https://app.plex.tv/auth', '#B9770E'], ['Xumo Play', 'https://play.xumo.com/', '#0E7C86'], ['Samsung TV Plus', 'https://www.samsung.com/us/televisions-home-theater/tvs/tvplus/', '#1B4FB8']];
 const signIn = () => `<p class="fine signhead">Sign in once. Each service keeps you signed in on this device.</p><div class="signgrid">${SIGN_IN.map(([n, u, c]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n.replace('- ', ''))}" style="background:${c}" aria-label="Set up ${esc(n.replace('- ', ''))}">${S.setup.includes(n.replace('- ', '')) ? '<span class="donechk">✓</span>' : ''}${esc(n)}</a>`).join('')}</div>`;
 const setupList = () => `<h3>🔑 Set Up Your Accounts</h3><p class="fine">Sign in on each service's own page and let Chrome save the password. Marvel Magic never sees it.</p>${SIGN_IN.map(([raw, u]) => { const n = raw.replace('- ', ''), ok = S.setup.includes(n); return `<div class="setrow"><span>${esc(n)}</span>${ok ? '<b class="ok">✓ Set up</b>' : ''}<a class="btn ${ok ? 'alt' : ''}" href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n)}">${ok ? 'Open' : 'Set up'}</a></div>`; }).join('')}`;
 function armFull() { document.title = 'Marvel Magic*'; setTimeout(() => { document.title = 'Marvel Magic'; }, 4000); }   // tells the PC helper a service window is coming: make it full-screen
