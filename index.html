@@ -261,7 +261,8 @@ function sports() {
 }
 async function loadAllTeams() {
   if (S.allTeams) return S.allTeams;
-  const lists = await Promise.all(LEAGUES.map(([league, path]) => fetch(`https://site.api.espn.com/apis/site/v2/sports/${path}/teams?limit=1000`).then(r => r.json()).then(j => j.sports[0].leagues[0].teams.map(x => ({ id: x.team.id, name: x.team.displayName, league, path }))).catch(() => [])));
+  const j = await fetch('teams.json').then(r => r.json()).catch(() => ({}));   // ESPN doesn't let browsers read its team lists, so the list ships with the app
+  const lists = Object.entries(j).map(([league, v]) => v.teams.map(([id, name]) => ({ id, name, league, path: v.path })));
   return (S.allTeams = lists.flat());
 }
 async function loadTeamGames() {
