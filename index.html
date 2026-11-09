@@ -25,7 +25,7 @@ header{display:flex;align-items:center;gap:20px;padding:14px 28px;background:#0F
 nav{display:flex;gap:6px}
 nav button{min-height:44px;padding:0 14px;border-radius:9px;font-weight:650;white-space:nowrap}
 nav button[aria-current=page]{background:var(--pick);color:#fff}
-main{flex:1;padding:20px 28px 110px;max-width:1500px;width:100%;margin:0 auto}
+main{flex:1;padding:20px 28px 150px;max-width:1500px;width:100%;margin:0 auto}
 h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .fine{font-size:14px;color:var(--dim)}
 .btn{min-height:44px;padding:0 18px;border-radius:9px;font-weight:700;background:#fff;color:var(--bg);text-align:center}
@@ -83,7 +83,7 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
  header{position:fixed;left:0;top:0;bottom:0;width:270px;flex-direction:column;align-items:stretch;padding:12px 14px;gap:14px;background:rgba(10,15,44,.95);border-right:1px solid #3050C0;box-shadow:2px 0 18px rgba(50,90,255,.3)}
  .brand{display:none}.logo{display:block;width:100%}
  nav{flex-direction:column}nav button{min-height:52px;font-size:20px;padding:0 18px}nav button[aria-current=page]{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);box-shadow:0 0 14px rgba(120,80,255,.7)}
- main{margin-left:270px;width:auto;max-width:none;padding:18px 24px 100px}.dock{left:270px}
+ main{margin-left:270px;width:auto;max-width:none;padding:18px 24px 150px}.dock{left:270px}
 }
 @media (max-width:1250px){.wgrid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1500px) and (min-width:1251px){.wl{grid-template-columns:120px 44px minmax(100px,1fr) minmax(130px,1.1fr) auto}.nu{display:none}.wgrid{grid-template-columns:minmax(0,1fr) 340px}}
@@ -95,13 +95,14 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 @media (min-width:1000px){.acct{margin-left:0}}
 .signgrid a{position:relative}.donechk{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#2FD07F;color:#06281A;font-size:12px;display:flex;align-items:center;justify-content:center}
 .setrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.setrow span{flex:1;font-weight:600}.setrow .ok{color:#3DE08A;font-size:14px}.setrow .btn{display:flex;align-items:center;text-decoration:none}
+.where{display:flex;gap:6px;align-items:center;margin-top:6px;overflow-x:auto;white-space:nowrap}.where span{font-size:13px;color:var(--dim)}.where a{min-height:36px;padding:0 12px;border-radius:8px;display:inline-flex;align-items:center;font-size:13px;font-weight:700;text-decoration:none}.where a.yours{background:#167A4A;color:#fff}.where a.notyours{background:#2A3154;color:#C6CDE3}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
  header{padding:10px 16px;gap:0}.brand{font-size:18px}
  nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#0F1530;padding:0 0 env(safe-area-inset-bottom)}
  nav button{flex:1;min-height:54px;padding:0 2px;font-size:13px;border-radius:0;text-align:center;white-space:normal;line-height:1.1}
- main{padding:14px 16px 170px}.grid{display:none}.phone{display:block}
+ main{padding:14px 16px 210px}.grid{display:none}.phone{display:block}
  .dock{bottom:calc(54px + env(safe-area-inset-bottom));padding:10px 16px;gap:10px}.dock .btn{padding:0 12px;font-size:14px}
 }
 </style>
@@ -129,6 +130,10 @@ const SERVICE_URL = {
 // Free services need no account, so they always count as yours (Scott 11/08: "plus all free one")
 const FREE_SVC = new Set(['Pluto TV', 'Tubi', 'Plex', 'Xumo Play', 'The Roku Channel']);
 const NETWORK_SERVICE = { NBC: 'Peacock', Bravo: 'Peacock', USA: 'Peacock', CBS: 'Paramount+', 'CBS Sports Network': 'Paramount+', ABC: 'Hulu', FX: 'Hulu', HBO: 'HBO Max', TNT: 'HBO Max', TBS: 'HBO Max', TLC: 'HBO Max', Discovery: 'HBO Max', FOX: 'Fox One', FS1: 'Fox One', ESPN: 'ESPN', ESPN2: 'ESPN', ESPNU: 'ESPN', 'SEC Network': 'ESPN', ACCN: 'ESPN', Netflix: 'Netflix', Hulu: 'Hulu', 'Prime Video': 'Prime Video', 'Disney+': 'Disney+', 'HBO Max': 'HBO Max', Peacock: 'Peacock', 'Paramount+': 'Paramount+', 'Apple TV+': 'Apple TV', 'Apple TV': 'Apple TV' };
+// Where a TV network's live games can be streamed (Scott 11/08: "show where all can be watched based on your accounts"). Claude's general knowledge, not a data feed: carriage can vary by area.
+const YT = 'YouTube TV';
+const NET_OPTS = { CBS: ['Paramount+', YT], CBSSN: ['Paramount+', YT], FOX: ['Fox One', YT], FS1: ['Fox One', YT], FS2: ['Fox One', YT], BTN: ['Fox One', YT], NBC: ['Peacock', YT], USA: ['Peacock', YT], PEACOCK: ['Peacock'], ABC: ['ESPN', YT], ESPN: ['ESPN', YT], ESPN2: ['ESPN', YT], ESPNU: ['ESPN', YT], SECN: ['ESPN', YT], ACCN: ['ESPN', YT], 'ESPN+': ['ESPN'], TNT: ['HBO Max', YT], TBS: ['HBO Max', YT], TRUTV: ['HBO Max', YT], 'PRIME VIDEO': ['Prime Video'], 'APPLE TV': ['Apple TV'], 'NBA TV': [YT], 'NFL NET': [YT], 'NHL NET': [YT], 'MLB NET': [YT] };
+const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase()] || (NETWORK_SERVICE[n] ? [NETWORK_SERVICE[n]] : [])))].map(svc => ({ svc, url: SERVICE_URL[svc]('') }));
 const SERVICES = Object.keys(SERVICE_URL).filter(n => !FREE_SVC.has(n));
 const SLOT = 30 * 60000, SLOTS = 6;
 const $ = id => document.getElementById(id);
@@ -163,7 +168,7 @@ async function enrich(x) {
     const seen = new Set(), own = rows.filter(r => r.svc && !seen.has(r.svc) && seen.add(r.svc)).sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)) || Number(b.type === 'sub') - Number(a.type === 'sub'));
     const best = own[0] || rows[0]; if (!best) return;
     x.exact = best.web; x.svc = best.svc; x.place = best.name;
-    x.also = own.filter(r => r !== best).map(r => r.svc);
+    x.options = own.map(r => ({ svc: r.svc, url: r.web }));
     if (S.sel === x) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
   } catch {}
 }
@@ -179,10 +184,15 @@ function draw() {
   dock();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
+function whereRow(x) {
+  if (!x.options || !x.options.length) return '';
+  const o = x.options.slice().sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)));
+  return `<div class="where"><span>Watch on:</span>${o.map(p => `<a class="${hasIt(p.svc) ? 'yours' : 'notyours'}" data-opt href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.svc)}${hasIt(p.svc) ? ' ✓' : ''}</a>`).join('')}</div>`;
+}
 function dock() {
   const d = $('dock'), x = S.sel; d.hidden = !x; if (!x) return;
   const ok = !x.svc || hasIt(x.svc);
-  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${x.also && x.also.length ? ' · Also on ' + esc(x.also.join(', ')) : ''}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small></div>
+  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small>${whereRow(x)}</div>
     ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
     <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
 }
@@ -311,7 +321,7 @@ async function loadGames() {
     const c = e.competitions[0], st = e.status.type, home = c.competitors.find(t => t.homeAway === 'home'), away = c.competitors.find(t => t.homeAway === 'away');
     const tv = [...new Set([...(c.broadcasts || []).flatMap(b => b.names || []), ...(c.geoBroadcasts || []).map(g => g.media && g.media.shortName)].filter(Boolean))], net = tv.find(t => NETWORK_SERVICE[t]) || tv[0] || '';
     const started = st.state !== 'pre';
-    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', svc: NETWORK_SERVICE[net] || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true };
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', options: optsFor(tv), svc: (optsFor(tv).find(o => hasIt(o.svc)) || optsFor(tv)[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true };
   });
   S.gamesDone = true; if (S.tab === 2) draw();
 }
@@ -341,6 +351,7 @@ function cameBack() {
 }
 document.addEventListener('click', e => {
   const link = e.target.closest('a[target=_blank]');
+  if (link && link.hasAttribute('data-opt') && S.sel) save('pending', { title: S.sel.title, series: S.sel.series, url: link.href, at: Date.now(), id: S.sel.show && S.list.some(s => s.id === S.sel.show.id) ? S.sel.show.id : null });
   if (link) { armFull(); if (link.dataset.setup) save('pendingSetup', { name: link.dataset.setup, at: Date.now() }); return; }
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); }
