@@ -100,6 +100,7 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .freegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.freegrid a{min-height:150px;border-radius:14px;padding:18px;color:#fff;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}.freegrid b{font-size:24px}.freegrid span{font-size:14px}
 .rrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.rrow .t{flex:1;min-width:0}.rrow b{display:block}.rrow small{font-size:13px;color:var(--dim)}.rrow img,.rrow .noimg{width:44px;height:64px;object-fit:cover;border-radius:6px;flex:none;background:var(--off)}.rnum{width:30px;font-size:20px;font-weight:800;color:#FFC24B;text-align:center;flex:none}.rscore{font-size:24px;font-weight:800}
 @media (max-width:760px){nav button{font-size:11px}}
+.teamhits{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.chip:disabled{opacity:.6;cursor:default}#teamfind+.filters,.teamhits+.filters{margin:10px 0}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
@@ -143,9 +144,9 @@ const SLOT = 30 * 60000, SLOTS = 6;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens'].includes(k)) queueSync(); };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}) };
+const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -242,12 +243,35 @@ function shows() {
     
     ${res ? `${S.movies && S.movies.length ? `<h2>Movies</h2>${S.movies.map(card).join('')}` : ''}<h2>Shows</h2>${res.length ? res.map(card).join('') : '<p class="fine">No shows found.</p>'}` : ''}<h2>On today</h2>${tonight.map(card).join('')}${credit()}`;
 }
+// WHERE CAN I WATCH MY TEAM (Scott 11/08 "yes"): pick teams; each upcoming game shows its channel and where it can be streamed, your accounts first.
 function sports() {
-  if (!S.games.length) return `<h1>Sports</h1><p class="fine">${S.gamesDone ? 'No games listed today.' : 'Loading games…'}</p>`;
-  const rank = { in: 0, pre: 1, post: 2 }, gs = S.games.slice().sort((a, b) => rank[a.state] - rank[b.state] || a.when - b.when);
   const row = g => `<button class="card ${S.sel && S.sel.key === g.key ? 'on' : !g.svc || hasIt(g.svc) ? '' : 'off'}" data-i="${reg(g)}"><span class="t"><span class="tag ${g.state === 'in' ? 'live' : ''}">${esc(g.state === 'in' ? 'LIVE · ' + g.detail : g.detail)}</span><b>${esc(g.title)}</b><small>${esc(g.note)}</small></span>${g.score ? `<span class="score">${esc(g.score)}</span>` : ''}</button>`;
+  const mine = t => S.teams.some(x => x.path === t.path && x.id === t.id);
+  const hits = S.teamHits ? `<div class="teamhits">${S.teamHits.length ? S.teamHits.map((t, i) => `<button class="chip" data-team="${i}" ${mine(t) ? 'disabled' : ''}>${esc(t.name)} · ${esc(t.league)}${mine(t) ? ' ✓' : ''}</button>`).join('') : '<p class="fine">No team found.</p>'}</div>` : '';
+  const chips = S.teams.length ? `<div class="filters">${S.teams.map(t => `<button class="chip on" data-rmteam="${esc(t.path + '|' + t.id)}" aria-label="Remove ${esc(t.name)}">${esc(t.name)} ✕</button>`).join('')}</div>` : '';
+  const next = S.teamGames.slice().sort((x, y) => x.when - y.when).slice(0, 12);
+  const teamBox = `<h1>Sports</h1><h2>Where Can I Watch My Team?</h2><form class="search" id="teamfind"><input id="tq" aria-label="Find a team" placeholder="Find a team, like Razorbacks or Chiefs" value="${esc(S.tq || '')}"><button class="btn">Find</button></form>${hits}${chips}
+    ${S.teams.length ? (next.length ? next.map(row).join('') : '<p class="fine">Looking up upcoming games…</p>') : '<p class="fine">Add your teams and their next games show here with where to watch.</p>'}`;
+  if (!S.games.length) return teamBox + `<p class="fine">${S.gamesDone ? 'No games listed today.' : 'Loading games…'}</p>`;
+  const only = S.onlyTeams && S.teams.length, shown = only ? S.games.filter(g => S.teams.some(t => t.path === g.path && g.teams.includes(t.id))) : S.games;
+  const rank = { in: 0, pre: 1, post: 2 }, gs = shown.slice().sort((x, y) => rank[x.state] - rank[y.state] || x.when - y.when);
   const live = gs.filter(g => g.state === 'in'), up = gs.filter(g => g.state === 'pre'), done = gs.filter(g => g.state === 'post');
-  return `<h1>Sports</h1>${live.length ? `<h2>Live now</h2>${live.map(row).join('')}` : ''}${up.length ? `<h2>Coming up</h2>${up.map(row).join('')}` : ''}${done.length ? `<h2>Final</h2>${done.map(row).join('')}` : ''}<p class="fine">Scores from ESPN. Refreshes every minute.</p>`;
+  return teamBox + (S.teams.length ? `<div class="filters" style="margin-top:14px"><button class="chip ${only ? '' : 'on'}" data-only="0">All games today</button><button class="chip ${only ? 'on' : ''}" data-only="1">Only my teams</button></div>` : '') +
+    `${live.length ? `<h2>Live now</h2>${live.map(row).join('')}` : ''}${up.length ? `<h2>Coming up today</h2>${up.map(row).join('')}` : ''}${done.length ? `<h2>Final</h2>${done.map(row).join('')}` : ''}${!gs.length ? '<p class="fine">None of your teams play today.</p>' : ''}<p class="fine">Scores and game channels from ESPN. Streaming options can vary by area.</p>`;
+}
+async function loadAllTeams() {
+  if (S.allTeams) return S.allTeams;
+  const lists = await Promise.all(LEAGUES.map(([league, path]) => fetch(`https://site.api.espn.com/apis/site/v2/sports/${path}/teams?limit=1000`).then(r => r.json()).then(j => j.sports[0].leagues[0].teams.map(x => ({ id: x.team.id, name: x.team.displayName, league, path }))).catch(() => [])));
+  return (S.allTeams = lists.flat());
+}
+async function loadTeamGames() {
+  const now = Date.now(), out = await Promise.all(S.teams.map(t => fetch(`https://site.api.espn.com/apis/site/v2/sports/${t.path}/teams/${t.id}/schedule`).then(r => r.json()).then(j => (j.events || []).filter(e => Date.parse(e.date) > now - 3 * 3600000).slice(0, 6).map(e => {
+    const c = e.competitions[0], home = c.competitors.find(x => x.homeAway === 'home'), away = c.competitors.find(x => x.homeAway === 'away'), when = Date.parse(e.date);
+    const tv = [...new Set((c.broadcasts || []).map(b => b.media && b.media.shortName).filter(Boolean))], options = optsFor(tv);
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, state: 'pre', detail: new Date(when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + clock(new Date(when)), when, score: '', options, svc: (options.find(o => hasIt(o.svc)) || options[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [t.league, tv.join(', ') || 'Channel not announced yet'].join(' · '), series: false, sport: true };
+  })).catch(() => [])));
+  const seen = new Set(); S.teamGames = out.flat().filter(g => !seen.has(g.key) && seen.add(g.key));
+  if (S.tab === 2) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
 // WATCHLIST (Scott 11/08 design + "maybe progress in both 2 bars"): where you are is kept by Marvel Magic; services don't share it.
 const epLabel = e => `S${e.season} E${e.number}`, day = t => new Date(t).toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -348,7 +372,7 @@ async function loadGames() {
     const c = e.competitions[0], st = e.status.type, home = c.competitors.find(t => t.homeAway === 'home'), away = c.competitors.find(t => t.homeAway === 'away');
     const tv = [...new Set([...(c.broadcasts || []).flatMap(b => b.names || []), ...(c.geoBroadcasts || []).map(g => g.media && g.media.shortName)].filter(Boolean))], net = tv.find(t => NETWORK_SERVICE[t]) || tv[0] || '';
     const started = st.state !== 'pre';
-    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', options: optsFor(tv), svc: (optsFor(tv).find(o => hasIt(o.svc)) || optsFor(tv)[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true };
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', teams: [home.team.id, away.team.id], path: LEAGUES.find(l => l[0] === league)[1], options: optsFor(tv), svc: (optsFor(tv).find(o => hasIt(o.svc)) || optsFor(tv)[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true };
   });
   S.gamesDone = true; if (S.tab === 2) draw();
 }
@@ -391,12 +415,16 @@ document.addEventListener('click', e => {
   else if (t.dataset.rate) { const x = S.sel, k = rateKey(x), n = Number(t.dataset.rate); if (S.ratings[k] && S.ratings[k].score === n) delete S.ratings[k]; else S.ratings[k] = { title: x.title, img: x.img || (x.show && (x.show.img || (x.show.image && x.show.image.medium))) || null, kind: x.series ? 'Show' : 'Movie', score: n, at: Date.now() }; save('ratings', S.ratings); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.unrate) { delete S.ratings[t.dataset.unrate]; save('ratings', S.ratings); draw(); }
   else if (t.dataset.mv) { const [n, d] = t.dataset.mv.split('|'), a = rankedSvcs(), i = a.indexOf(n), j = i + Number(d); if (j >= 0 && j < a.length) { [a[i], a[j]] = [a[j], a[i]]; S.rank = a; save('rank', S.rank); const y = window.scrollY; draw(); window.scrollTo(0, y); } }
+  else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
+  else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
+  else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.id === 'acct') acctPress();
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
 });
 document.addEventListener('change', e => { const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
+  if (e.target.id === 'teamfind') { e.preventDefault(); S.tq = $('tq').value.trim(); const w = S.tq.toLowerCase(); if (!w) { S.teamHits = null; return draw(); } const all = await loadAllTeams(); S.teamHits = all.filter(t => t.name.toLowerCase().includes(w)).slice(0, 12); return draw(); }
   if (e.target.id !== 'find') return; e.preventDefault(); S.q = $('q').value.trim(); if (!S.q) { S.results = null; return draw(); }
   const q = S.q;
   const [shows, movies] = await Promise.all([
@@ -453,9 +481,9 @@ history.replaceState({ tab: S.tab }, '');
 // progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
 const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
-const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens });
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams });
 function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
@@ -468,7 +496,7 @@ function mergeLists(cloud, local) {   // first sign-in on a device: keep shows f
   for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
   return [...out.values()];
 }
-function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); } catch {} }
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); } catch {} }
 function startAccount() {
   if (typeof firebase === 'undefined') return;
   try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
@@ -478,18 +506,19 @@ function startAccount() {
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
-        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); storeLocal(); }
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; storeLocal(); }
         pushCloud();
       } catch {}
       stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
-        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [], ratings: c.ratings || {}, rank: c.rank || [], opens: c.opens || {} }); if (j === lastCloud) return;
-        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; S.ratings = c.ratings || {}; S.rank = c.rank || []; S.opens = c.opens || {}; storeLocal(); draw(); loadEps();
+        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [], ratings: c.ratings || {}, rank: c.rank || [], opens: c.opens || {}, teams: c.teams || [] }); if (j === lastCloud) return;
+        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; S.ratings = c.ratings || {}; S.rank = c.rank || []; S.opens = c.opens || {}; S.teams = c.teams || []; storeLocal(); draw(); loadEps(); loadTeamGames();
       }, () => {});
     }
     draw(); loadEps();
   });
 }
-draw(); loadGuide(); loadGames(); loadEps(); startAccount();
+draw(); loadGuide(); loadGames(); loadEps(); loadTeamGames(); startAccount();
+setInterval(loadTeamGames, 15 * 60000);
 setInterval(loadGuide, 5 * 60000);   // the guide keeps itself current (Scott 11/08)
 setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
