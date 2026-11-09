@@ -25,7 +25,7 @@ header{display:flex;align-items:center;gap:20px;padding:14px 28px;background:#0F
 nav{display:flex;gap:6px}
 nav button{min-height:44px;padding:0 14px;border-radius:9px;font-weight:650;white-space:nowrap}
 nav button[aria-current=page]{background:var(--pick);color:#fff}
-main{flex:1;padding:20px 28px 150px;max-width:1500px;width:100%;margin:0 auto}
+main{flex:1;padding:20px 28px 190px;max-width:1500px;width:100%;margin:0 auto}
 h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .fine{font-size:14px;color:var(--dim)}
 .btn{min-height:44px;padding:0 18px;border-radius:9px;font-weight:700;background:#fff;color:var(--bg);text-align:center}
@@ -83,7 +83,7 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
  header{position:fixed;left:0;top:0;bottom:0;width:270px;flex-direction:column;align-items:stretch;padding:12px 14px;gap:14px;background:rgba(10,15,44,.95);border-right:1px solid #3050C0;box-shadow:2px 0 18px rgba(50,90,255,.3)}
  .brand{display:none}.logo{display:block;width:100%}
  nav{flex-direction:column}nav button{min-height:52px;font-size:20px;padding:0 18px}nav button[aria-current=page]{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);box-shadow:0 0 14px rgba(120,80,255,.7)}
- main{margin-left:270px;width:auto;max-width:none;padding:18px 24px 150px}.dock{left:270px}
+ main{margin-left:270px;margin-right:0;width:auto;max-width:none;padding:18px 24px 190px}.dock{left:270px}
 }
 @media (max-width:1250px){.wgrid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1500px) and (min-width:1251px){.wl{grid-template-columns:120px 44px minmax(100px,1fr) minmax(130px,1.1fr) auto}.nu{display:none}.wgrid{grid-template-columns:minmax(0,1fr) 340px}}
@@ -96,13 +96,17 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .signgrid a{position:relative}.donechk{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#2FD07F;color:#06281A;font-size:12px;display:flex;align-items:center;justify-content:center}
 .setrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.setrow span{flex:1;font-weight:600}.setrow .ok{color:#3DE08A;font-size:14px}.setrow .btn{display:flex;align-items:center;text-decoration:none}
 .where{display:flex;gap:6px;align-items:center;margin-top:6px;overflow-x:auto;white-space:nowrap}.where span{font-size:13px;color:var(--dim)}.where a{min-height:36px;padding:0 12px;border-radius:8px;display:inline-flex;align-items:center;font-size:13px;font-weight:700;text-decoration:none}.where a.yours{background:#167A4A;color:#fff}.where a.notyours{background:#2A3154;color:#C6CDE3}
+.where.rate button{min-width:36px;height:36px;border-radius:8px;background:#2A3154;text-align:center;font-weight:700;font-size:13px;flex:none}.where.rate button.on{background:#FFC24B;color:#0B1020}
+.freegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.freegrid a{min-height:150px;border-radius:14px;padding:18px;color:#fff;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}.freegrid b{font-size:24px}.freegrid span{font-size:14px}
+.rrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.rrow .t{flex:1;min-width:0}.rrow b{display:block}.rrow small{font-size:13px;color:var(--dim)}.rrow img,.rrow .noimg{width:44px;height:64px;object-fit:cover;border-radius:6px;flex:none;background:var(--off)}.rnum{width:30px;font-size:20px;font-weight:800;color:#FFC24B;text-align:center;flex:none}.rscore{font-size:24px;font-weight:800}
+@media (max-width:760px){nav button{font-size:11px}}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
  header{padding:10px 16px;gap:0}.brand{font-size:18px}
  nav{position:fixed;left:0;right:0;bottom:0;z-index:7;background:#0F1530;padding:0 0 env(safe-area-inset-bottom)}
  nav button{flex:1;min-height:54px;padding:0 2px;font-size:13px;border-radius:0;text-align:center;white-space:normal;line-height:1.1}
- main{padding:14px 16px 210px}.grid{display:none}.phone{display:block}
+ main{padding:14px 16px 250px}.grid{display:none}.phone{display:block}
  .dock{bottom:calc(54px + env(safe-area-inset-bottom));padding:10px 16px;gap:10px}.dock .btn{padding:0 12px;font-size:14px}
 }
 </style>
@@ -120,7 +124,7 @@ dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 <script>
 // Marvel Magic test build. Listings: TVmaze (free, credit required). Scores: ESPN's public scoreboard (personal test only, not for a paid release).
 // It opens each title on that service's own site or app; it never plays or stores a stream, and never holds a service's password.
-const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff'];
+const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings'];
 const LEAGUES = [['NBA', 'basketball/nba'], ['College Basketball', 'basketball/mens-college-basketball'], ['NFL', 'football/nfl'], ['College Football', 'football/college-football'], ['NHL', 'hockey/nhl'], ['MLB', 'baseball/mlb']];
 const SERVICE_URL = {
   Netflix: q => 'https://www.netflix.com/search?q=' + q, Hulu: q => 'https://www.hulu.com/search?q=' + q, 'Prime Video': q => 'https://www.amazon.com/s?i=instant-video&k=' + q,
@@ -139,9 +143,9 @@ const SLOT = 30 * 60000, SLOTS = 6;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (k === 'mine' || k === 'list' || k === 'setup') queueSync(); };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []) };
+const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -178,12 +182,19 @@ function draw() {
   const had = focusables().indexOf(document.activeElement);
   items.length = 0;
   $('nav').innerHTML = TABS.map((t, i) => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${esc(t)}</button>`).join('');
-  $('view').innerHTML = [guide, shows, sports, stuff][S.tab]();
+  $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage][S.tab]();
   $('signside').innerHTML = signIn();
   drawAcct();
   dock();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
+const rateKey = x => x.show ? 's' + x.show.id : x.key;
+function rateRow(x) {
+  if (x.sport) return '';
+  const cur = (S.ratings[rateKey(x)] || {}).score;
+  return `<div class="where rate"><span>My rating:</span>${Array.from({ length: 10 }, (_, i) => `<button class="${cur === i + 1 ? 'on' : ''}" data-rate="${i + 1}" aria-label="Rate ${i + 1} of 10">${i + 1}</button>`).join('')}</div>`;
+}
+function countOpen(svc) { if (!svc) return; S.opens[svc] = (S.opens[svc] || 0) + 1; save('opens', S.opens); }
 function whereRow(x) {
   if (!x.options || !x.options.length) return '';
   const o = x.options.slice().sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)));
@@ -192,7 +203,7 @@ function whereRow(x) {
 function dock() {
   const d = $('dock'), x = S.sel; d.hidden = !x; if (!x) return;
   const ok = !x.svc || hasIt(x.svc);
-  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small>${whereRow(x)}</div>
+  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small>${whereRow(x)}${rateRow(x)}</div>
     ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
     <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
 }
@@ -297,6 +308,22 @@ const SIGN_IN = [['Netflix', 'https://www.netflix.com/login', '#E50914'], ['Prim
 const signIn = () => `<p class="fine signhead">Sign in once. Each service keeps you signed in on this device.</p><div class="signgrid">${SIGN_IN.map(([n, u, c]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n.replace('- ', ''))}" style="background:${c}" aria-label="Set up ${esc(n.replace('- ', ''))}">${S.setup.includes(n.replace('- ', '')) ? '<span class="donechk">✓</span>' : ''}${esc(n)}</a>`).join('')}</div>`;
 const setupList = () => `<h3>🔑 Set Up Your Accounts</h3><p class="fine">Sign in on each service's own page and let Chrome save the password. Marvel Magic never sees it.</p>${SIGN_IN.map(([raw, u]) => { const n = raw.replace('- ', ''), ok = S.setup.includes(n); return `<div class="setrow"><span>${esc(n)}</span>${ok ? '<b class="ok">✓ Set up</b>' : ''}<a class="btn ${ok ? 'alt' : ''}" href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n)}">${ok ? 'Open' : 'Set up'}</a></div>`; }).join('')}`;
 function armFull() { document.title = 'Marvel Magic*'; setTimeout(() => { document.title = 'Marvel Magic'; }, 4000); }   // tells the PC helper a service window is coming: make it full-screen
+const FREE_LOOK = { 'Pluto TV': '#7A3FF2', Tubi: '#E8552B', 'The Roku Channel': '#6C3AA6', Plex: '#B9770E', 'Xumo Play': '#0E7C86', 'Samsung TV Plus': '#1B4FB8' };
+function freePage() {
+  return `<h1>Free TV</h1><p class="fine">Free live channels and movies. No subscription needed, though some services ask you to make a free account.</p><div class="freegrid">${FREE_TV.map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-free="${esc(n)}" style="background:${FREE_LOOK[n] || '#2A3154'}"><b>${esc(n)}</b><span>Open live guide</span></a>`).join('')}</div>`;
+}
+function rankedSvcs() {
+  const have = S.mine.length ? S.mine.filter(n => SERVICE_URL[n]) : S.setup.filter(n => SERVICE_URL[n]), all = [...new Set([...S.rank, ...have, ...FREE_SVC])];
+  return all.filter(n => have.includes(n) || FREE_SVC.has(n));
+}
+function ratingsPage() {
+  const all = Object.entries(S.ratings).sort((a, b) => b[1].score - a[1].score || b[1].at - a[1].at), top = all.slice(0, 10), more = all.slice(10);
+  const row = ([k, r], i) => `<div class="rrow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind)}</small></span><span class="rscore">${r.score}<small>/10</small></span><button class="round" data-unrate="${esc(k)}" aria-label="Remove rating">✕</button></div>`;
+  const svcs = rankedSvcs(), maxOpen = Math.max(1, ...svcs.map(n => S.opens[n] || 0));
+  const svc = (n, i) => `<div class="rrow"><span class="rnum">${i + 1}</span><span class="t"><b>${esc(n)}</b><small>Opened ${S.opens[n] || 0} time${S.opens[n] === 1 ? '' : 's'}${FREE_SVC.has(n) ? ' · Free' : ''}</small><div class="bar"><i style="width:${Math.round((S.opens[n] || 0) / maxOpen * 100)}%"></i></div></span><button class="round" data-mv="${esc(n)}|-1" aria-label="Move ${esc(n)} up" ${i ? '' : 'disabled'}>▲</button><button class="round" data-mv="${esc(n)}|1" aria-label="Move ${esc(n)} down" ${i < svcs.length - 1 ? '' : 'disabled'}>▼</button></div>`;
+  return `<h1>My Ratings</h1><div class="wgrid"><div class="wmain"><h2>My Top 10</h2>${top.length ? top.map(row).join('') : '<p class="fine">Nothing rated yet. Pick any show or movie and tap a number from 1 to 10 at the bottom of the screen.</p>'}${more.length ? `<h2>Everything Else I Rated</h2>${more.map((r, i) => row(r, i + 10)).join('')}` : ''}</div>
+    <aside class="wside"><section class="glow plain"><h3>My Streaming Services</h3><p class="fine">Put them in your own order. The counts show which ones you actually use from Marvel Magic.</p>${svcs.map(svc).join('')}</section></aside></div><p class="fine">Your ratings are private to your account.</p>`;
+}
 const credit = () => `<p class="fine">TV listings from <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> (CC BY-SA). Test build. Service links may need adjusting.</p>`;
 
 async function loadGuide() {
@@ -327,6 +354,7 @@ async function loadGames() {
 }
 function openIt(x) {
   armFull();
+  countOpen(x.svc);
   window.open(linkFor(x), '_blank', 'noopener');
   save('pending', { title: x.title, series: x.series, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null });
 }
@@ -352,12 +380,17 @@ function cameBack() {
 document.addEventListener('click', e => {
   const link = e.target.closest('a[target=_blank]');
   if (link && link.hasAttribute('data-opt') && S.sel) save('pending', { title: S.sel.title, series: S.sel.series, url: link.href, at: Date.now(), id: S.sel.show && S.list.some(s => s.id === S.sel.show.id) ? S.sel.show.id : null });
+  if (link && link.hasAttribute('data-opt')) countOpen(link.textContent.replace(' ✓', ''));
+  if (link && link.dataset.free) countOpen(link.dataset.free);
   if (link) { armFull(); if (link.dataset.setup) save('pendingSetup', { name: link.dataset.setup, at: Date.now() }); return; }
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); }
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key) { if (!S.sel.svc || hasIt(S.sel.svc)) openIt(S.sel); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); enrich(x); }
+  else if (t.dataset.rate) { const x = S.sel, k = rateKey(x), n = Number(t.dataset.rate); if (S.ratings[k] && S.ratings[k].score === n) delete S.ratings[k]; else S.ratings[k] = { title: x.title, img: x.img || (x.show && (x.show.img || (x.show.image && x.show.image.medium))) || null, kind: x.series ? 'Show' : 'Movie', score: n, at: Date.now() }; save('ratings', S.ratings); const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.unrate) { delete S.ratings[t.dataset.unrate]; save('ratings', S.ratings); draw(); }
+  else if (t.dataset.mv) { const [n, d] = t.dataset.mv.split('|'), a = rankedSvcs(), i = a.indexOf(n), j = i + Number(d); if (j >= 0 && j < a.length) { [a[i], a[j]] = [a[j], a[i]]; S.rank = a; save('rank', S.rank); const y = window.scrollY; draw(); window.scrollTo(0, y); } }
   else if (t.id === 'acct') acctPress();
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
@@ -420,9 +453,9 @@ history.replaceState({ tab: S.tab }, '');
 // progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
 const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
-const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup });
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens });
 function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
@@ -435,7 +468,7 @@ function mergeLists(cloud, local) {   // first sign-in on a device: keep shows f
   for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
   return [...out.values()];
 }
-function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); } catch {} }
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); } catch {} }
 function startAccount() {
   if (typeof firebase === 'undefined') return;
   try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
@@ -445,12 +478,12 @@ function startAccount() {
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
-        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; storeLocal(); }
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); storeLocal(); }
         pushCloud();
       } catch {}
       stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
-        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [] }); if (j === lastCloud) return;
-        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; storeLocal(); draw(); loadEps();
+        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [], ratings: c.ratings || {}, rank: c.rank || [], opens: c.opens || {} }); if (j === lastCloud) return;
+        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; S.ratings = c.ratings || {}; S.rank = c.rank || []; S.opens = c.opens || {}; storeLocal(); draw(); loadEps();
       }, () => {});
     }
     draw(); loadEps();
