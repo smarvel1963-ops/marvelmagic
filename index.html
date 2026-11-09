@@ -101,6 +101,8 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .rrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.rrow .t{flex:1;min-width:0}.rrow b{display:block}.rrow small{font-size:13px;color:var(--dim)}.rrow img,.rrow .noimg{width:44px;height:64px;object-fit:cover;border-radius:6px;flex:none;background:var(--off)}.rnum{width:30px;font-size:20px;font-weight:800;color:#FFC24B;text-align:center;flex:none}.rscore{font-size:24px;font-weight:800}
 @media (max-width:760px){nav button{font-size:11px}}
 .teamhits{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.chip:disabled{opacity:.6;cursor:default}#teamfind+.filters,.teamhits+.filters{margin:10px 0}
+@media (max-width:760px){nav{overflow-x:auto}nav button{flex:0 0 76px}}
+.grid{overflow-x:auto;padding-bottom:8px}.grid .times,.grid .row{min-width:2270px}.grid .ch{position:sticky;left:0;z-index:2;background:var(--bg)}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 @media (max-width:760px){
@@ -125,7 +127,7 @@ dialog .act{display:flex;gap:8px;margin-top:14px}dialog .btn{flex:1}
 <script>
 // Marvel Magic test build. Listings: TVmaze (free, credit required). Scores: ESPN's public scoreboard (personal test only, not for a paid release).
 // It opens each title on that service's own site or app; it never plays or stores a stream, and never holds a service's password.
-const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings'];
+const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings', 'Watched'];
 const LEAGUES = [['NBA', 'basketball/nba'], ['College Basketball', 'basketball/mens-college-basketball'], ['NFL', 'football/nfl'], ['College Football', 'football/college-football'], ['NHL', 'hockey/nhl'], ['MLB', 'baseball/mlb']];
 const SERVICE_URL = {
   Netflix: q => 'https://www.netflix.com/search?q=' + q, Hulu: q => 'https://www.hulu.com/search?q=' + q, 'Prime Video': q => 'https://www.amazon.com/s?i=instant-video&k=' + q,
@@ -140,13 +142,13 @@ const YT = 'YouTube TV';
 const NET_OPTS = { CBS: ['Paramount+', YT], CBSSN: ['Paramount+', YT], FOX: ['Fox One', YT], FS1: ['Fox One', YT], FS2: ['Fox One', YT], BTN: ['Fox One', YT], NBC: ['Peacock', YT], USA: ['Peacock', YT], PEACOCK: ['Peacock'], ABC: ['ESPN', YT], ESPN: ['ESPN', YT], ESPN2: ['ESPN', YT], ESPNU: ['ESPN', YT], SECN: ['ESPN', YT], ACCN: ['ESPN', YT], 'ESPN+': ['ESPN'], 'SECN+': ['ESPN'], ACCNX: ['ESPN'], TNT: ['HBO Max', YT], TBS: ['HBO Max', YT], TRUTV: ['HBO Max', YT], 'PRIME VIDEO': ['Prime Video'], 'APPLE TV': ['Apple TV'], 'NBA TV': [YT], 'NFL NET': [YT], 'NHL NET': [YT], 'MLB NET': [YT] };
 const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase()] || (NETWORK_SERVICE[n] ? [NETWORK_SERVICE[n]] : [])))].map(svc => ({ svc, url: SERVICE_URL[svc]('') }));
 const SERVICES = Object.keys(SERVICE_URL).filter(n => !FREE_SVC.has(n));
-const SLOT = 30 * 60000, SLOTS = 6;
+const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams'].includes(k)) queueSync(); };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null };
+const S = { tab: load('tab', 0), mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -183,7 +185,7 @@ function draw() {
   const had = focusables().indexOf(document.activeElement);
   items.length = 0;
   $('nav').innerHTML = TABS.map((t, i) => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${esc(t)}</button>`).join('');
-  $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage][S.tab]();
+  $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage][S.tab]();
   $('signside').innerHTML = signIn();
   drawAcct();
   dock();
@@ -195,6 +197,10 @@ function rateRow(x) {
   const cur = (S.ratings[rateKey(x)] || {}).score;
   return `<div class="where rate"><span>My rating:</span>${Array.from({ length: 10 }, (_, i) => `<button class="${cur === i + 1 ? 'on' : ''}" data-rate="${i + 1}" aria-label="Rate ${i + 1} of 10">${i + 1}</button>`).join('')}</div>`;
 }
+// TRACKER (Scott 11/08: "a tracker on all things watched by me"). Services don't report viewing, so this logs what's opened or marked in Marvel Magic; anything wrong can be removed.
+const dayKey = t => new Date(t).toDateString();
+function logWatch(e) { const at = Date.now(); S.history = [{ ...e, at }, ...S.history.filter(h => h.k !== e.k)].slice(0, 1500); save('history', S.history); }
+function logPick(x) { if (!x || x.series) return; logWatch({ k: rateKey(x) + '-' + dayKey(Date.now()), title: x.title, kind: x.sport ? 'Sports' : 'Movie', svc: x.svc || x.place || '', img: x.img || null }); }
 function countOpen(svc) { if (!svc) return; S.opens[svc] = (S.opens[svc] || 0) + 1; save('opens', S.opens); }
 function whereRow(x) {
   if (!x.options || !x.options.length) return '';
@@ -214,7 +220,7 @@ function guide() {
   const now = Date.now(), t0 = Math.floor(now / SLOT) * SLOT, span = SLOT * SLOTS, t1 = t0 + span, by = {};
   for (const a of S.airings) if (a.end > t0 && a.start < t1) (by[a.net] = by[a.net] || []).push(a);
   const nets = Object.keys(by).sort((a, b) => Number(hasIt(NETWORK_SERVICE[b])) - Number(hasIt(NETWORK_SERVICE[a])) || a.localeCompare(b));
-  if (!nets.length) return `<h1>Live TV Guide</h1><p class="fine">Nothing listed for the next 3 hours.</p>`;
+  if (!nets.length) return `<h1>Live TV Guide</h1><p class="fine">Nothing listed for the next 8 hours.</p>`;
   const nowPct = (now - t0) / span * 100;
   const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
   const rows = nets.map(n => {
@@ -322,7 +328,10 @@ async function loadEps() {
   save('list', S.list);
   if (S.tab === 3) draw();
 }
-function step(id, d) { const s = S.list.find(x => x.id === id); if (!s) return; const max = (S.eps[id] || []).length; s.at = Math.max(0, Math.min(max || Infinity, (s.at || 0) + d)); save('list', S.list); }
+function step(id, d) { const s = S.list.find(x => x.id === id); if (!s) return; const eps = S.eps[id] || [], max = eps.length;
+  const ep = eps[d > 0 ? (s.at || 0) : (s.at || 0) - 1];
+  if (ep) { const k = 's' + id + '-' + ep.season + '-' + ep.number; if (d > 0) logWatch({ k, title: s.name, kind: 'Show', ep: 'S' + ep.season + ' E' + ep.number + (ep.name ? ' · ' + ep.name : ''), svc: NETWORK_SERVICE[s.net] || s.net || '', img: s.img || null }); else { S.history = S.history.filter(h => h.k !== k); save('history', S.history); } }
+  s.at = Math.max(0, Math.min(max || Infinity, (s.at || 0) + d)); save('list', S.list); }
 // Free TV (Scott 11/08): launch buttons only. Their channel schedules need permission before they can appear in the guide.
 const FREE_TV = [['Pluto TV', 'https://pluto.tv/'], ['Tubi', 'https://tubitv.com/live'], ['The Roku Channel', 'https://therokuchannel.roku.com/'], ['Plex', 'https://watch.plex.tv/live-tv'], ['Xumo Play', 'https://play.xumo.com/'], ['Samsung TV Plus', 'https://www.samsung.com/us/televisions-home-theater/tvs/tvplus/']];
 const freeTv = () => `<h2>Free TV</h2><div class="svcs">${FREE_TV.map(([n, u]) => `<a class="btn alt" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a>`).join('')}</div>`;
@@ -336,6 +345,20 @@ function armFull() { document.title = 'Marvel Magic*'; setTimeout(() => { docume
 const FREE_LOOK = { 'Pluto TV': '#7A3FF2', Tubi: '#E8552B', 'The Roku Channel': '#6C3AA6', Plex: '#B9770E', 'Xumo Play': '#0E7C86', 'Samsung TV Plus': '#1B4FB8' };
 function freePage() {
   return `<h1>Free TV</h1><p class="fine">Free live channels and movies. No subscription needed, though some services ask you to make a free account.</p><div class="freegrid">${FREE_TV.map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-free="${esc(n)}" style="background:${FREE_LOOK[n] || '#2A3154'}"><b>${esc(n)}</b><span>Open live guide</span></a>`).join('')}</div>`;
+}
+function watchedPage() {
+  const now = Date.now(), week = now - 7 * 86400000, H = S.history, n = f => H.filter(f).length, f = S.wf || 'All', shown = H.filter(h => f === 'All' || h.kind === f).slice(0, 300);
+  const by = {}; for (const h of H) if (h.svc) by[h.svc] = (by[h.svc] || 0) + 1;
+  const top = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 8), maxS = Math.max(1, ...top.map(t => t[1]));
+  const label = t => { const d = new Date(t), today = dayKey(now), y = dayKey(now - 86400000); return dayKey(t) === today ? 'Today' : dayKey(t) === y ? 'Yesterday' : d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }); };
+  let last = '', rows = '';
+  for (const h of shown) { const l = label(h.at); if (l !== last) { rows += `<h2>${esc(l)}</h2>`; last = l; }
+    rows += `<div class="rrow">${h.img ? `<img src="${esc(h.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(h.title)}</b><small>${esc([h.ep, h.kind, h.svc, clock(new Date(h.at))].filter(Boolean).join(' · '))}</small></span><button class="round" data-unwatch="${esc(h.k)}" aria-label="Remove from tracker">✕</button></div>`; }
+  const tile = (cls, big, small) => `<div class="tile ${cls}"><span><small>${small}</small><b>${big}</b></span></div>`;
+  return `<h1>Watched</h1><div class="tiles">${tile('blue', H.length, 'All Time')}${tile('green', n(h => h.at > week), 'This Week')}${tile('amber', n(h => h.kind === 'Show'), 'Episodes')}${tile('red', n(h => h.kind === 'Movie') + ' / ' + n(h => h.kind === 'Sports'), 'Movies / Games')}</div>
+    <div class="wgrid"><div class="wmain"><div class="filters" style="margin-top:16px">${[['All', 'All'], ['Show', 'Shows'], ['Movie', 'Movies'], ['Sports', 'Sports']].map(([v, l]) => `<button class="chip ${f === v ? 'on' : ''}" data-wf="${v}">${l}</button>`).join('')}</div>${rows || '<p class="fine">Nothing yet. Open a movie or game, or mark an episode watched, and it shows up here.</p>'}</div>
+    <aside class="wside" style="margin-top:16px"><section class="glow plain"><h3>Most Watched On</h3>${top.length ? top.map(([n, c]) => `<div class="prog" style="margin-bottom:10px"><span>${esc(n)}: ${c}</span><div class="bar"><i style="width:${Math.round(c / maxS * 100)}%"></i></div></div>`).join('') : '<p class="fine">No services yet.</p>'}</section></aside></div>
+    <p class="fine">Streaming services don't share what you watch, so this tracks what you open or mark here. Tap ✕ to remove anything you didn't actually watch.</p>`;
 }
 function rankedSvcs() {
   const have = S.mine.length ? S.mine.filter(n => SERVICE_URL[n]) : S.setup.filter(n => SERVICE_URL[n]), all = [...new Set([...S.rank, ...have, ...FREE_SVC])];
@@ -380,6 +403,7 @@ async function loadGames() {
 function openIt(x) {
   armFull();
   countOpen(x.svc);
+  logPick(x);
   window.open(linkFor(x), '_blank', 'noopener');
   save('pending', { title: x.title, series: x.series, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null });
 }
@@ -395,7 +419,7 @@ function cameBack() {
   if (askSetup()) return;   // Scott 11/08: a series offers the next one or "done"; anything else just lands back here
   const p = load('pending', null), b = $('back'); if (!p || Date.now() - p.at < 15000 || b.open) return;
   save('pending', null); if (!p.series) return;
-  const finish = () => { if (p.id) { step(p.id, 1); if (S.tab === 3) draw(); } };
+  const finish = () => { if (p.id) { step(p.id, 1); if (S.tab === 3 || S.tab === 6) draw(); } else logWatch({ k: 't' + p.title + '-' + dayKey(Date.now()), title: p.title, kind: 'Show', svc: '', img: null }); };
   b.innerHTML = `<b>${esc(p.title)}</b><p>Welcome back. Watch the next episode?</p><div class="act"><button class="btn alt" data-done>I'm done</button><button class="btn" data-next>Next episode</button></div><button class="btn alt" data-not style="width:100%;margin-top:8px">Didn't finish it</button>`;
   b.querySelector('[data-done]').onclick = () => { finish(); b.close(); };
   b.querySelector('[data-not]').onclick = () => b.close();
@@ -405,7 +429,7 @@ function cameBack() {
 document.addEventListener('click', e => {
   const link = e.target.closest('a[target=_blank]');
   if (link && link.hasAttribute('data-opt') && S.sel) save('pending', { title: S.sel.title, series: S.sel.series, url: link.href, at: Date.now(), id: S.sel.show && S.list.some(s => s.id === S.sel.show.id) ? S.sel.show.id : null });
-  if (link && link.hasAttribute('data-opt')) countOpen(link.textContent.replace(' ✓', ''));
+  if (link && link.hasAttribute('data-opt')) { countOpen(link.textContent.replace(' ✓', '')); logPick(S.sel); }
   if (link && link.dataset.free) countOpen(link.dataset.free);
   if (link) { armFull(); if (link.dataset.setup) save('pendingSetup', { name: link.dataset.setup, at: Date.now() }); return; }
   const t = e.target.closest('button'); if (!t) return;
@@ -419,6 +443,8 @@ document.addEventListener('click', e => {
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.wf) { S.wf = t.dataset.wf; draw(); }
+  else if (t.dataset.unwatch) { S.history = S.history.filter(h => h.k !== t.dataset.unwatch); save('history', S.history); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.id === 'acct') acctPress();
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
@@ -482,9 +508,9 @@ history.replaceState({ tab: S.tab }, '');
 // progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
 const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
-const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams });
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history });
 function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
@@ -497,7 +523,7 @@ function mergeLists(cloud, local) {   // first sign-in on a device: keep shows f
   for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
   return [...out.values()];
 }
-function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); } catch {} }
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); localStorage.setItem('mm_history', JSON.stringify(S.history)); } catch {} }
 function startAccount() {
   if (typeof firebase === 'undefined') return;
   try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
@@ -507,12 +533,12 @@ function startAccount() {
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
-        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; storeLocal(); }
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; const hk = new Set((c.history || []).map(h => h.k)); S.history = [...(c.history || []), ...S.history.filter(h => !hk.has(h.k))].sort((a, b) => b.at - a.at); storeLocal(); }
         pushCloud();
       } catch {}
       stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
-        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [], ratings: c.ratings || {}, rank: c.rank || [], opens: c.opens || {}, teams: c.teams || [] }); if (j === lastCloud) return;
-        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; S.ratings = c.ratings || {}; S.rank = c.rank || []; S.opens = c.opens || {}; S.teams = c.teams || []; storeLocal(); draw(); loadEps(); loadTeamGames();
+        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [], ratings: c.ratings || {}, rank: c.rank || [], opens: c.opens || {}, teams: c.teams || [], history: c.history || [] }); if (j === lastCloud) return;
+        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; S.ratings = c.ratings || {}; S.rank = c.rank || []; S.opens = c.opens || {}; S.teams = c.teams || []; S.history = c.history || []; storeLocal(); draw(); loadEps(); loadTeamGames();
       }, () => {});
     }
     draw(); loadEps();
