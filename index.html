@@ -221,7 +221,7 @@ function guide() {
   for (const a of S.airings) if (a.end > t0 && a.start < t1) (by[a.net] = by[a.net] || []).push(a);
   // Only channels this account can reach (Scott 11/08). YouTube TV is a live bundle, so it opens every network; nothing set up yet = ask them to set up.
   if (!S.mine.length) return `<h1>Live TV Guide</h1><p>Your guide shows only the channels you can watch. Set up your streaming accounts to fill it in.</p><button class="btn" data-tab="3">Set up my accounts</button>`;
-  const canSee = n => S.mine.includes('YouTube TV') || S.mine.includes(NETWORK_SERVICE[n]);
+  const canSee = n => S.mine.includes('YouTube TV') || (!['ABC', 'FX'].includes(n) && S.mine.includes(NETWORK_SERVICE[n]));   // plain Hulu has these on demand, not live
   const nets = Object.keys(by).filter(canSee).sort((a, b) => a.localeCompare(b));
   if (!nets.length) return `<h1>Live TV Guide</h1><p class="fine">None of your services have channel listings in the next 8 hours.</p>`;
   const nowPct = (now - t0) / span * 100;
