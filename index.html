@@ -236,7 +236,7 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 .phero .lk{color:#7FF0CF}.phero .hott{color:#E4FFF6;text-shadow:0 0 22px rgba(40,220,170,.45)}
 .phero.prate{border-color:#8A6A2A;background:radial-gradient(700px 240px at 90% 0,rgba(255,190,60,.3),transparent),linear-gradient(135deg,#2A200C,#141026)}.phero.prate .lk{color:#FFD36B}.phero.prate .hott{color:#FFF1D0;text-shadow:0 0 22px rgba(255,180,60,.5)}
 .phero.pwatch{border-color:#3A5AB0;background:radial-gradient(700px 240px at 90% 0,rgba(80,140,255,.3),transparent),linear-gradient(135deg,#0E1A3A,#0B1020)}.phero.pwatch .lk{color:#9CC2FF}.phero.pwatch .hott{color:#E6EEFF;text-shadow:0 0 22px rgba(80,140,255,.5)}
-.ftrow.big .ft{min-height:170px}.ftrow.big .ft b{font-size:28px}
+.catsv{margin:4px 0 14px}.ftrow.big .ft{min-height:170px}.ftrow.big .ft b{font-size:28px}
 .rc{position:relative;aspect-ratio:2/3;border-radius:14px;overflow:hidden;background:#24142F;border:1px solid #6A5A2A}.rc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.rc::after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(transparent,rgba(12,6,20,.95))}
 .rcn{position:absolute;z-index:1;top:8px;left:8px;padding:2px 9px;border-radius:7px;background:rgba(5,8,22,.85);font-weight:900}.rcs{position:absolute;z-index:1;top:8px;right:8px;padding:2px 10px;border-radius:9px;background:linear-gradient(180deg,#FFD36B,#FFA62E);color:#1A1030;font-size:22px;font-weight:900}.rcs small{font-size:12px}
 .rc .lpt{bottom:52px}.rcx{position:absolute;z-index:1;right:8px;bottom:8px;width:36px;height:36px}
@@ -281,7 +281,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}) };
+const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {} };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -418,6 +418,35 @@ function showItem(s) {
   const net = (s.webChannel && s.webChannel.name) || (s.network && s.network.name) || '';
   return { key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[net] || null, url: s.officialSite || s.url, note: [net, (s.genres || []).slice(0, 2).join(', ')].filter(Boolean).join(' · '), series: true, img: s.image && s.image.medium, show: { id: s.id, name: s.name, net, img: s.image && s.image.medium, url: s.officialSite || s.url, genres: s.genres || [] } };
 }
+// ON YOUR SERVICES (Scott 11/14: "pull movie list from ... each streaming service so can be on guides for shows or movie list"; a service the person
+// doesn't have "shouldnt show"). Popular movies + shows per service from TMDB through the relay ('cat'); free services count as yours.
+const TMDB_G = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Science-Fiction', 53: 'Thriller', 10752: 'War', 37: 'Western', 10759: 'Action', 10762: 'Children', 10765: 'Science-Fiction', 10768: 'War', 10764: 'Reality', 10767: 'Talk Show', 10763: 'News', 10766: 'Soap' };
+const LIVE_ONLY = new Set(['YouTube TV', 'ESPN', 'Fox One']);   // live channel bundles: they're in the Live TV Guide, not a movie catalog
+const catSvcs = () => S.mine.length ? [...new Set([...S.mine.filter(n => !LIVE_ONLY.has(n) && !FREE_SVC.has(n)), ...FREE_SVC])] : [];
+const catItem = (r, svc, kind, kid) => ({ key: 't' + kind[0] + r.id, title: r.t, svc, note: [r.y, kind === 'tv' ? 'Series' : 'Movie', svc].filter(Boolean).join(' · '), series: kind === 'tv', img: r.p ? 'https://image.tmdb.org/t/p/w342' + r.p : null, big: r.p ? 'https://image.tmdb.org/t/p/w342' + r.p : null, sum: r.o, genres: (r.g || []).map(g => TMDB_G[g]).filter(Boolean), kid, show: null });
+function loadCat(svc, kind) {
+  const kid = kidsOn(), k = svc + '|' + kind + '|' + (kid ? 1 : 0); if (S.cat[k]) return;
+  S.cat[k] = { busy: true };
+  relay({ a: 'cat', svc, kind, kids: kid ? '1' : '0' })
+    .then(j => { S.cat[k] = j.error ? { error: j.error } : { items: (j.items || []).map(r => catItem(r, svc, kind, kid)) }; })
+    .catch(() => { S.cat[k] = { error: 'net' }; })
+    .then(() => { if (S.tab === 1 || S.tab === 9) { const y = window.scrollY; draw(); window.scrollTo(0, y); } });
+}
+function catSection() {
+  const svcs = catSvcs();
+  if (!svcs.length) return `<div class="hh" style="margin-top:22px"><h2>On Your Services</h2></div><div class="hbox" style="padding:16px"><p class="fine" style="margin:0 0 10px">Pick the services you have and their movies and shows show up here.</p><button class="btn" data-tab="3">Set up my services</button></div>`;
+  const svc = svcs.includes(S.catSvc) ? S.catSvc : svcs[0], kind = S.catKind || 'movie', k = svc + '|' + kind + '|' + (kidsOn() ? 1 : 0);
+  loadCat(svc, kind);
+  const c = S.cat[k] || { busy: true };
+  const body = c.busy ? '<p class="fine">Loading…</p>'
+    : (c.error === 'nokey' || c.error === 'unknown') ? '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">Service catalogs switch on once the movie database key is added to the Marvel Magic relay.</p></div>'
+    : c.error === 'noservice' ? `<p class="fine">No catalog listed for ${esc(svc)} yet.</p>`
+    : c.error ? '<p class="fine">Couldn’t load right now. Try again in a bit.</p>'
+    : c.items.length ? `<div class="lgrid">${c.items.map(x => lposter(x)).join('')}</div>` : '<p class="fine">Nothing listed.</p>';
+  return `<div class="hh" style="margin-top:22px"><h2>On Your Services</h2><div class="filters"><button class="chip ${kind === 'movie' ? 'on' : ''}" data-catk="movie">Movies</button><button class="chip ${kind === 'tv' ? 'on' : ''}" data-catk="tv">Shows</button></div></div>
+    <div class="filters catsv">${svcs.map(n => `<button class="chip ${n === svc ? 'on' : ''}" data-cats="${esc(n)}">${esc(n)}${FREE_SVC.has(n) ? ' · Free' : ''}</button>`).join('')}</div>${body}
+    <p class="fine">Popular titles from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>, where-to-watch by JustWatch. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>`;
+}
 // MOVIES & SHOWS = THE LOUNGE (Scott 11/14 board): Movie Night hero, Find Tonight's Pick, big poster cards. Picks lean on the genres of the shows you saved.
 function tasteOf() { const c = {}; for (const s of S.list) for (const g of (s.genres || [])) c[g] = (c[g] || 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]); }
 function todayShows() {
@@ -439,7 +468,7 @@ function shows() {
       <div class="ltaste">${taste.length ? `<b>Your taste:</b>${taste.map(g => `<span>${esc(g)}</span>`).join('')}` : '<span class="fine">Save a few shows and Marvel Magic learns your taste.</span>'}</div></div></section>
     ${found}
     <div class="hh" style="margin-top:18px"><h2>${taste.length ? 'Picked for Your Lounge' : 'Popular Tonight'}</h2></div>${picks.length ? `<div class="lgrid four">${picks.map(x => lposter(x, true)).join('')}</div>` : `<p class="fine">${S.airings.length ? 'Nothing with artwork on tonight.' : 'Loading tonight’s shows…'}</p>`}
-    ${rest.length ? `<div class="hh" style="margin-top:18px"><h2>On Today</h2><button class="more" data-tab="0">Guide ›</button></div><div class="lgrid">${rest.map(x => lposter(x)).join('')}</div>` : ''}${credit()}`;
+    ${catSection()}${rest.length ? `<div class="hh" style="margin-top:18px"><h2>On Today</h2><button class="more" data-tab="0">Guide ›</button></div><div class="lgrid">${rest.map(x => lposter(x)).join('')}</div>` : ''}${credit()}`;
 }
 // SPORTS = WHERE'S MY GAME (Scott 11/14 board; "Where Can I Watch My Team?" 11/08). Team names + team colors from ESPN, no team logos (trademarks).
 // Prices are approximate monthly prices as of 11/2026, Claude's general knowledge, not a feed - services change them, so the page says "about" and "check".
@@ -685,11 +714,13 @@ const GENRES = ['Drama', 'Comedy', 'Crime', 'Thriller', 'Action', 'Adventure', '
 function forYouPage() {
   const likes = S.likes, auto = tasteOf(), want = [...new Set([...likes, ...auto])];
   const saved = new Set(S.list.map(s => s.id));
-  const seen = new Set(), cands = [...(S.pool || []).map(poolItem), ...todayShows().map(x => ({ ...x, img: x.big || x.img }))].filter(x => x.show && !saved.has(x.show.id) && !seen.has(x.show.id) && seen.add(x.show.id)).filter(kidOk);
-  const score = x => (x.show.genres || []).reduce((n, g) => n + (likes.includes(g) ? 3 : auto.includes(g) ? 1 : 0), 0) * 40 + (yours(x) ? 60 : 0) + (x.w || 0) / 5;
+  catSvcs().slice(0, 3).forEach(n => { loadCat(n, 'movie'); loadCat(n, 'tv'); });
+  const gen = x => (x.show ? x.show.genres : x.genres) || [];
+  const seen = new Set(), cands = [...(S.pool || []).map(poolItem), ...todayShows().map(x => ({ ...x, img: x.big || x.img })), ...Object.values(S.cat).flatMap(c => c.items || [])].filter(x => !(x.show && saved.has(x.show.id)) && !seen.has(x.key) && seen.add(x.key)).filter(kidOk);
+  const score = x => gen(x).reduce((n, g) => n + (likes.includes(g) ? 3 : auto.includes(g) ? 1 : 0), 0) * 40 + (yours(x) ? 60 : 0) + (x.w || 0) / 5;
   const ranked = cands.filter(x => x.img).map(x => ({ x, s: score(x) })).sort((a, b) => b.s - a.s).map(r => r.x);
   const top = ranked.slice(0, 8), used = new Set(top.map(x => x.key));
-  const rows = want.slice(0, 3).map(g => { const r = ranked.filter(x => !used.has(x.key) && (x.show.genres || []).includes(g) && yours(x)).slice(0, 6); r.forEach(x => used.add(x.key)); return [g, r]; }).filter(r => r[1].length);
+  const rows = want.slice(0, 3).map(g => { const r = ranked.filter(x => !used.has(x.key) && gen(x).includes(g) && yours(x)).slice(0, 6); r.forEach(x => used.add(x.key)); return [g, r]; }).filter(r => r[1].length);
   const fp = x => x.prem ? hposter(x) : lposter(x);
   return `<section class="fyhero"><div class="lk" style="color:#B9A8FF">✨ FOR YOU</div><h1 class="hott" style="color:#E9E2FF">Made for You</h1><p class="lsub2">Tell Marvel Magic what you like. Picks come from your services first.</p>
       <div class="fyg">${GENRES.filter(g => !kidsOn() || ['Family', 'Children', 'Anime', 'Nature', 'Food', 'Music', 'Comedy', 'Adventure'].includes(g)).map(g => `<button class="chip ${likes.includes(g) ? 'on' : ''}" data-like="${esc(g)}">${likes.includes(g) ? '✓ ' : ''}${esc(g)}</button>`).join('')}</div>
@@ -706,6 +737,7 @@ const KID_G = ['Children'];   // not 'Family': TVmaze tags The Simpsons and Funn
 const kidsOn = () => !!(S.kids && S.kids.on);
 function kidOk(x) {
   if (!kidsOn()) return true;
+  if (x.kid) return true;   // fetched with TMDB's kids filter (rated G/PG or Kids TV)
   const g = (x.show && x.show.genres) || x.genres || [], n = x.net || x.chan || (x.show && x.show.net) || '';
   return KIDS_NETS.has(n) || g.some(v => KID_G.includes(v));
 }
@@ -816,6 +848,8 @@ document.addEventListener('click', e => {
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.cats) { S.catSvc = t.dataset.cats; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.catk) { S.catKind = t.dataset.catk; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-refpool')) { S.pool = null; draw(); loadPool(true); }
   else if (t.dataset.like) { const g = t.dataset.like; S.likes = S.likes.includes(g) ? S.likes.filter(x => x !== g) : [...S.likes, g]; save('likes', S.likes); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-kids')) kidsPress();
