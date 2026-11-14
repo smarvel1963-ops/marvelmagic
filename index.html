@@ -949,8 +949,9 @@ const PERSONAL = ['list', 'ratings', 'history', 'likes', 'moods', 'later', 'orde
 const PDEF = { list: [], ratings: {}, history: [], likes: [], moods: [], later: [], order: [], teams: [], actors: [] };
 const pick = () => Object.fromEntries(PERSONAL.map(k => [k, S[k]]));
 const houseMember = id => ((S.house && S.house.members) || []).find(m => m.id === id) || null;
-const activeEasy = () => { const m = S.prof && houseMember(S.prof); return !!(m && m.easy); };
-const profName = () => { const m = S.prof && houseMember(S.prof); return m ? m.name : (firstName() || 'Me'); };
+const myMember = () => S.houseRole === 'member' && me && ((S.house && S.house.members) || []).find(m => m.email && m.email === String(me.email || '').toLowerCase()) || null;
+const activeEasy = () => { const m = S.prof ? houseMember(S.prof) : myMember(); return !!(m && m.easy); };
+const profName = () => { const m = S.prof ? houseMember(S.prof) : myMember(); return m ? m.name : (firstName() || 'Me'); };
 function switchProfile(id) {
   if ((S.prof || null) === (id || null)) return;
   S.profiles[S.prof || '__me'] = pick();
@@ -969,7 +970,7 @@ function easyHome() {
   return `<div class="ezhead"><h1>Hi ${esc(profName())} 👋</h1><span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
     <div class="ezgrid"><button class="ez" data-tab="0"><span>📺</span><b>Live TV</b></button><button class="ez" data-tab="4"><span>🆓</span><b>Free TV</b></button><button class="ez" data-tab="3"><span>⭐</span><b>My Shows</b></button><button class="ez" data-tab="2"><span>🏈</span><b>Sports</b></button></div>
     ${S.later.length ? `<h2 class="ezh2">⏰ Saved for Later</h2>${laterRow(6)}` : ''}
-    ${S.profLock ? '' : `<button class="ez back" data-whome>↩ Back to ${esc(firstName() || 'the main')} profile</button>`}`;
+    ${S.profLock || !S.prof ? '' : `<button class="ez back" data-whome>↩ Back to ${esc(firstName() || 'the main')} profile</button>`}`;
 }
 // HOUSEHOLD (Scott 11/14): "how many accounts ... owner can assign emails with profiles ... keep groups together but also replace people"
 const HOUSE_MAX = 6;   // owner + 5 (Netflix 5, Disney+ 7)
