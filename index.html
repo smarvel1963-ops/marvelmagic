@@ -251,6 +251,11 @@ button.ft{text-align:left}
 a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:linear-gradient(90deg,#2E1F66,#1C2447 60%)}a.cell.plcell b{color:#FFD36B}
 .gfree{margin-top:20px}.gfree .filters{flex:1}.gplut{max-height:560px;overflow-y:auto}.gplut .row{min-width:0!important}
 .grid .cell .ci{display:block;max-width:100%;overflow:hidden}.grid .cell .ci b,.grid .cell .ci small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* CAST TO TV (11/14) */
+.castbtn{position:fixed;top:12px;right:16px;z-index:8;min-height:42px;padding:0 16px;border-radius:21px;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);color:#fff;font-weight:800;box-shadow:0 0 14px rgba(120,80,255,.6);border:1px solid #B9A8FF}
+.castol{margin:10px 0;padding-left:22px;line-height:1.6}
+@media (min-width:1000px){.htop{padding-right:170px}.sph,.hothero,.fyhero,.phero,.lounge,.gpv{margin-top:44px}}
+@media (max-width:760px){.castbtn{top:auto;bottom:calc(66px + env(safe-area-inset-bottom));right:12px;min-height:40px;padding:0 14px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -259,6 +264,7 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
   <main id="view"></main>
   <div class="dock" id="dock" hidden></div>
 </div>
+<button id="castbtn" class="castbtn" aria-label="Cast Marvel Magic to your TV">📺 Cast to TV</button>
 <dialog id="back"></dialog>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -827,6 +833,17 @@ function pinBox(title, then) {
   b.querySelector('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
   b.showModal(); b.querySelector('#pin').focus();
 }
+// CAST TO TV (Scott 11/14): puts the Marvel Magic screen on the TV. Netflix etc. cast their own videos from their own apps.
+function castHelp() {
+  const b = $('back'); if (b.open) b.close();
+  const ua = navigator.userAgent, ios = /iPhone|iPad/.test(ua), android = /Android/.test(ua), chrome = /Chrome\//.test(ua) && !/Edg\//.test(ua);
+  const steps = ios ? ['Open Control Center (swipe down from the top-right corner).', 'Tap Screen Mirroring.', 'Pick your Apple TV or AirPlay TV.']
+    : android ? ['Open the Google Home app, or Chrome menu ⋮.', 'Tap Cast (in Google Home: your TV, then Cast my screen).', 'Pick your TV. Marvel Magic shows on the TV.']
+    : chrome ? ['Click the Chrome menu ⋮ at the top-right of the window.', 'Click Cast, save, and share → Cast…', 'Pick your TV. Under Sources choose Cast tab.']
+    : ['Open Marvel Magic in Google Chrome (casting is built into Chrome).', 'Click the Chrome menu ⋮ → Cast, save, and share → Cast…', 'Pick your TV.'];
+  b.innerHTML = `<b>📺 Put Marvel Magic on your TV</b><ol class="castol">${steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol><p class="fine">Works with Chromecast, Google TV and TVs with Chromecast built in${ios ? ', and AirPlay TVs from an iPhone' : ''}. You keep driving from this ${ios || android ? 'phone' : 'computer'}. When you open Netflix, Hulu or another service, use the Cast button inside that service to send its video.</p><div class="act"><button class="btn" data-castok>Got it</button></div>`;
+  b.querySelector('[data-castok]').onclick = () => b.close(); b.showModal();
+}
 function kidsPress() {
   if (kidsOn()) { pinBox('Enter the PIN to turn Kids Lock off', v => { if (v !== S.kids.pin) return false; S.kids = { ...S.kids, on: false }; save('kids', S.kids); draw(); }); return; }
   if (!S.kids.pin) { pinBox('Pick a 4-digit PIN for Kids Lock', v => { S.kids = { on: true, pin: v }; save('kids', S.kids); if (S.tab === 2) showTab(HOME); else draw(); }); return; }
@@ -948,6 +965,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.wf) { S.wf = t.dataset.wf; draw(); }
   else if (t.dataset.unwatch) { S.history = S.history.filter(h => h.k !== t.dataset.unwatch); save('history', S.history); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.id === 'acct') acctPress();
+  else if (t.id === 'castbtn') castHelp();
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { toggleList(S.sel.show); dock(); }
 });
