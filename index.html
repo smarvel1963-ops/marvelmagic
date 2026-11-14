@@ -324,6 +324,8 @@ body.easy{font-size:20px}body.easy nav button{min-height:64px;font-size:24px}bod
 .hearts{display:flex;gap:8px;margin:12px 0 4px}.hearts button{width:52px;height:52px;border-radius:12px;background:#2A3154;font-size:30px;color:#FF6B8A;text-align:center}.hearts button.on{background:#3A1A2E}
 .hearts.sm{margin:6px 0 0;gap:4px}.hearts.sm button{width:38px;height:36px;font-size:20px}.hearts.sm span{color:var(--dim);font-size:13px}
 .lp .lpt{padding-right:56px}
+/* thumbs on cards (11/14) */
+.pw>.cw,.pw>.pc,.pw>.flc{width:100%}.wlbtn .thumb{position:static;height:44px}.pw>.pc+.thumb{bottom:34px}.pw>.flc+.thumb{bottom:auto;top:calc(56.25% - 44px)}
 </style>
 </head>
 <body>
@@ -798,14 +800,14 @@ function stuff() {
   const svcName = r => r.x.svc || r.s.net || '';
   const nextLine = t => !t.next ? 'All caught up' : t.open ? epLabel(t.next) + ' - Now Available!' : epLabel(t.next) + ' - ' + day(t.nextAt);
   const tile = (cls, icon, label, big) => `<div class="tile ${cls}"><span class="ti">${icon}</span><span><small>${label}</small><b>${big}</b></span></div>`;
-  const poster = r => `<button class="pc" data-i="${reg(r.x)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : ''}<span class="sv">${esc(svcName(r))}</span><span class="pcname">${esc(r.s.name)}</span>
-    <span class="pcfoot"><span>${r.t.next ? epLabel(r.t.next) : ''}</span><span>${pct(r.t.seasonSeen, r.t.seasonTotal)}%</span></span><span class="thin"><i style="width:${pct(r.t.seasonSeen, r.t.seasonTotal)}%"></i></span><span class="thin b2"><i style="width:${pct(r.t.at, r.t.total)}%"></i></span></button>`;
+  const poster = r => `<div class="pw"><button class="pc" data-i="${reg(r.x)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : ''}<span class="sv">${esc(svcName(r))}</span><span class="pcname">${esc(r.s.name)}</span>
+    <span class="pcfoot"><span>${r.t.next ? epLabel(r.t.next) : ''}</span><span>${pct(r.t.seasonSeen, r.t.seasonTotal)}%</span></span><span class="thin"><i style="width:${pct(r.t.seasonSeen, r.t.seasonTotal)}%"></i></span><span class="thin b2"><i style="width:${pct(r.t.at, r.t.total)}%"></i></span></button>${thumbBtn(r.x)}</div>`;
   const row = r => { const t = r.t, sel = S.sel && S.sel.key === r.x.key;
     return `<div class="wl ${sel ? 'on' : ''}"><button class="wlart" data-i="${reg(r.x)}" aria-label="Pick ${esc(r.s.name)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : ''}<span class="wlname">${esc(r.s.name)}</span></button>
       <button class="play" data-i="${reg(r.x)}" aria-label="Pick ${esc(r.s.name)}">▶</button><div class="wlt"><b>${esc(r.s.name)}</b><small>${esc(svcName(r))}</small></div>
       ${t ? `<div class="bars">${bar('Season ' + t.season, t.seasonSeen, t.seasonTotal)}${bar('Series', t.at, t.total)}</div>
       <div class="nu"><b>${t.next ? 'Next Up:' : 'Done'}</b><small class="${t.open ? 'av' : ''}">${esc(nextLine(t))}</small></div>
-      <div class="wlbtn"><button class="round" data-w="${r.s.id}" data-d="-1" aria-label="Back one episode">−</button><button class="round go" data-w="${r.s.id}" data-d="1" aria-label="Watched one episode" ${t.next ? '' : 'disabled'}>✓</button></div>` : '<div class="fine">Loading…</div>'}</div>`; };
+      <div class="wlbtn">${thumbBtn(r.x)}<button class="round" data-w="${r.s.id}" data-d="-1" aria-label="Back one episode">−</button><button class="round go" data-w="${r.s.id}" data-d="1" aria-label="Watched one episode" ${t.next ? '' : 'disabled'}>✓</button></div>` : '<div class="fine">Loading…</div>'}</div>`; };
   const alertRow = r => `<button class="ar" data-i="${reg(r.x)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.s.name)}</b><small>${esc(epLabel(r.t.next))} - <em>Now Available!</em></small></span><span class="round go">▶</span></button>`;
   const soonRow = r => `<button class="ar" data-i="${reg(r.x)}">${r.s.img ? `<img src="${esc(r.s.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.s.name)}</b><small>${esc(epLabel(r.t.next))} - ${esc(day(r.t.nextAt))}</small></span><span class="round">📅</span></button>`;
   const chips = [['All', 'All'], ['Watching', 'Watching'], ['Up Next', 'Up Next'], ['Completed', 'Completed']];
@@ -863,7 +865,7 @@ function freePage() {
   const score = x => (wantCats.includes(x.r.g) ? 100 : 0) + (seenT.has(x.q[2].toLowerCase()) ? 250 : 0) + (x.q[5] ? 30 : 0) + x.r.p.length * 5;
   const item = ({ r, q }) => ({ key: 'f' + r.n + q[0], title: q[2], net: r.n, start: q[0] * 1000, end: q[1] * 1000, svc: r.p[0][0], exact: r.p[0][1], options: r.p.map(z => ({ svc: z[0], url: z[1] })), series: false, img: q[5] || '', logo: r.l });
   const card = x => { const it = item(x), left = Math.max(0, Math.round((it.end - now) / 60000)), pct = Math.min(100, Math.round((now - it.start) / (it.end - it.start) * 100));
-    return `<button class="flc${S.sel && S.sel.key === it.key ? ' on' : ''}" data-i="${reg(it)}"><span class="flart">${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}${it.logo ? `<img class="fllogo" src="${esc(it.logo)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="flive">● LIVE · FREE</span></span><span class="flbar"><i style="width:${pct}%"></i></span><span class="flt"><b>${esc(it.title)}</b><small>${esc(x.r.n)} · ${left} min left</small><small class="flsv">${esc(it.svc)}${x.r.p.length > 1 ? ' +' + (x.r.p.length - 1) : ''}</small></span></button>`; };
+    return `<div class="pw"><button class="flc${S.sel && S.sel.key === it.key ? ' on' : ''}" data-i="${reg(it)}"><span class="flart">${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}${it.logo ? `<img class="fllogo" src="${esc(it.logo)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="flive">● LIVE · FREE</span></span><span class="flbar"><i style="width:${pct}%"></i></span><span class="flt"><b>${esc(it.title)}</b><small>${esc(x.r.n)} · ${left} min left</small><small class="flsv">${esc(it.svc)}${x.r.p.length > 1 ? ' +' + (x.r.p.length - 1) : ''}</small></span></button>${thumbBtn({ ...it, series: true })}</div>`; };
   const ranked = live.slice().sort((a, b) => score(b) - score(a));
   const used = new Set(), top = ranked.filter(x => x.q[5]).slice(0, 8); top.forEach(x => used.add(x.r.n));
   const catRows = (wantCats.length ? wantCats : ['Movies', 'Comedy', 'Crime']).slice(0, 4).map(c => { const r = ranked.filter(x => x.r.g === c && !used.has(x.r.n)).slice(0, 8); r.forEach(x => used.add(x.r.n)); return [c, r]; }).filter(z => z[1].length);
@@ -1050,7 +1052,7 @@ function home() {
   const order = { Watching: 0, 'Up Next': 1 }, cont = rows.filter(r => r.t.status in order && kidOk({ genres: r.s.genres || [], net: r.s.net })).sort((a, b) => order[a.t.status] - order[b.t.status]).slice(0, 3);
   const fresh = rows.filter(r => r.t.fresh).length;
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-  const cw = r => `<button class="cw${sel(r.x)}" data-i="${reg(r.x)}"><span class="cwart">${r.s.img ? `<img src="${esc(r.s.img)}" alt="" loading="lazy">` : ''}${r.x.svc || r.s.net ? `<span class="sv">${esc(r.x.svc || r.s.net)}</span>` : ''}</span><span class="cwbar"><i style="width:${pct(r.t.seasonSeen, r.t.seasonTotal)}%"></i></span><span class="cwt"><b>${esc(r.s.name)}</b><small>${r.t.next ? esc(epLabel(r.t.next) + (r.t.next.name ? ' · ' + r.t.next.name : '')) : 'All caught up'}</small></span></button>`;
+  const cw = r => `<div class="pw"><button class="cw${sel(r.x)}" data-i="${reg(r.x)}"><span class="cwart">${r.s.img ? `<img src="${esc(r.s.img)}" alt="" loading="lazy">` : ''}${r.x.svc || r.s.net ? `<span class="sv">${esc(r.x.svc || r.s.net)}</span>` : ''}</span><span class="cwbar"><i style="width:${pct(r.t.seasonSeen, r.t.seasonTotal)}%"></i></span><span class="cwt"><b>${esc(r.s.name)}</b><small>${r.t.next ? esc(epLabel(r.t.next) + (r.t.next.name ? ' · ' + r.t.next.name : '')) : 'All caught up'}</small></span></button>${thumbBtn(r.x)}</div>`;
   const canSee = n => !S.mine.length || !!livePkgFor(n) || S.mine.includes(NETWORK_SERVICE[n]);
   const eod = new Date(); eod.setHours(23, 59, 59, 999);
   const seen = new Set(), tonight = S.airings.filter(a => a.end > now && a.start < eod.getTime() && canSee(a.net) && kidOk(a) && a.show && !seen.has(a.show.id) && seen.add(a.show.id)).sort((a, b) => (b.show.weight || 0) - (a.show.weight || 0)).slice(0, 4).sort((a, b) => a.start - b.start);
