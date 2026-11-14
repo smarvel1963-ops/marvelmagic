@@ -304,6 +304,8 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 .tlc{display:flex;align-items:center;gap:10px;width:100%;padding:8px 0;border-bottom:1px solid var(--line)}.tlc .t{flex:1;min-width:0}.tlc b{display:block}.tlc small{font-size:12px;color:var(--gold)}.tlimgs{display:flex}.tlimgs img{width:30px;height:44px;object-fit:cover;border-radius:4px;margin-right:-8px;border:2px solid var(--panel)}
 /* unused service reminder (11/14) */
 .unused{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}.uncard{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-radius:14px;border:1px solid #8A6A2A;background:linear-gradient(90deg,#2A200C,#141026 70%)}.unico{font-size:24px}.uncard .t{flex:1;min-width:220px}.uncard b{display:block}.uncard small{color:#F0DCCB}.uncard .btn{display:inline-flex;align-items:center;text-decoration:none}
+/* WATCH LATER (11/14) */
+.wlwrap{position:relative}.wlx{position:absolute;top:6px;left:6px;z-index:2;width:34px;height:34px;background:rgba(5,8,22,.8)}
 </style>
 </head>
 <body>
@@ -353,9 +355,9 @@ const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile', 'order', 'lastOpen', 'svcSince', 'svcSnooze', 'svcRemindOff'].includes(k)) queueSync(); };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile', 'order', 'lastOpen', 'svcSince', 'svcSnooze', 'svcRemindOff', 'later'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
+const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -430,6 +432,7 @@ function dock() {
   const ok = !x.svc || hasIt(x.svc);
   d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small>${whereRow(x)}${rateRow(x)}</div>
     ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
+    <button class="btn alt" data-later>${isLater(x) ? '✓ Watch Later' : '⏰ Watch Later'}</button>
     <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
 }
 // GUIDE DATA (Scott 11/14 "we need more usable data in it"): ESPN's channel names -> the guide's channel names, game lengths, channel types.
@@ -481,7 +484,7 @@ function preview(pv, now) {
     <div class="gpvk"><span class="chb">${esc(pv.net)}</span><span>${live ? 'Now Live' : 'Coming Up'} · ${esc(clock(new Date(pv.start)))} – ${esc(clock(new Date(pv.end)))}</span></div>
     <h1 class="gpvt">${esc(pv.title)}</h1>${pv.ep || pv.epName ? `<div class="gpve">${esc([pv.ep, pv.epName].filter(Boolean).join('  '))}</div>` : ''}
     ${short ? `<p class="gpvd">${esc(short)}</p>` : ''}${tags.length ? `<div class="gtags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
-    <div class="gpvb"><button class="btn watch" data-i="${reg(pv)}" data-go>▶ ${live ? 'Watch Live' : 'Open'} ↗</button>${pv.show ? `<button class="pill" data-addlist="${reg(pv)}">${saved ? '✓ On My List' : '＋ My List'}</button>` : ''}</div>${whereRow(pv)}</div></section>`;
+    <div class="gpvb"><button class="pill" data-laterx="${reg(pv)}">${isLater(pv) ? '✓ Watch Later' : '⏰ Watch Later'}</button><button class="btn watch" data-i="${reg(pv)}" data-go>▶ ${live ? 'Watch Live' : 'Open'} ↗</button>${pv.show ? `<button class="pill" data-addlist="${reg(pv)}">${saved ? '✓ On My List' : '＋ My List'}</button>` : ''}</div>${whereRow(pv)}</div></section>`;
 }
 function guide() {
   if (S.err && !S.airings.length) return `<h1>Live TV Guide</h1><p>${esc(S.err)}</p>`;
@@ -586,6 +589,7 @@ function catSection() {
 }
 // SETTINGS (Scott 11/14): profile, favorite teams, favorite actors, tick boxes for favorite movie + show types, moods, services, alerts, Kids Lock.
 // Synced to the person's account (Google sign-in) like the rest.
+const WHOP_MM = 'https://whop.com/commander-marvel-por-picks/marvel-magic';   // Scott 11/14: $4.99/mo, 30-day free trial (prod_jXXGU9TnSIgHR)
 const MOODS = ['Funny', 'Action', 'Mystery', 'Romance', 'Scary', 'Feel-good', 'Family Night', 'True story'];
 function settingsPage() {
   if (kidsOn()) return `${pageHero('pwatch', '⚙ SETTINGS', 'Settings', 'Locked while Kids Lock is on.')}<div style="margin-top:18px">${kidsSection()}</div>`;
@@ -596,6 +600,7 @@ function settingsPage() {
   const notif = !('Notification' in window) ? 'Not supported on this device.' : Notification.permission === 'granted' ? '✓ On. New episodes and game reminders pop up while Marvel Magic is open.' : Notification.permission === 'denied' ? 'Blocked in this browser\'s site settings.' : '<button class="btn" data-alerts>Turn on alerts</button>';
   return `${pageHero('pwatch', '⚙ SETTINGS', 'My Settings', 'Tell Marvel Magic what you like. It shapes For You, picks, Sports and alerts.')}
     <div class="stgrid">
+    ${box('⭐ Marvel Magic Membership', `<p style="margin:0 0 8px"><b>30 days free, then $4.99 a month</b> for the whole household. Cancel any time.</p><p class="fine" style="margin:0 0 10px">Have a code? Enter it at checkout.</p><a class="btn gold" href="${WHOP_MM}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Start my 30 days free ›</a>`, 'amber')}
     ${box('👤 Profile', `<label class="stlab">Your name<input id="pfname" class="stin" maxlength="40" value="${esc(S.profile.name || firstName() || '')}" placeholder="Your name"></label><button class="btn alt" data-pfsave style="margin-top:8px">Save name</button>
       <p class="fine" style="margin:12px 0 6px">${me ? '✓ Signed in as ' + esc(me.email || me.displayName || '') + '. Your settings follow you to every device.' : 'Sign in with Google and your settings follow you to every device.'}</p><button class="btn ${me ? 'alt' : ''}" data-acct2>${me ? 'Sign out' : 'Sign in with Google'}</button>`)}
     ${box('🏈 Favorite Teams', `${S.teams.length ? S.teams.map(t => `<div class="spmy"><span>★</span><b>${esc(t.name)}</b><small>${esc(t.league)}</small><button class="round" data-rmteam="${esc(t.path + '|' + t.id)}" aria-label="Remove ${esc(t.name)}">✕</button></div>`).join('') : '<p class="fine">No teams yet.</p>'}
@@ -629,6 +634,20 @@ function plutoBlock() {
     <div class="filters catsv">${cats.map(c => `<button class="chip ${c === cat ? 'on' : ''}" data-plcat="${esc(c)}">${esc(c)}</button>`).join('')}</div>
     <div class="plgrid">${list.map(c => `<a class="plc" href="${esc(plutoUrl(c[1]))}" target="_blank" rel="noopener" data-free="Pluto TV"><span class="pln">${c[2] || ''}</span><b>${esc(c[0])}</b><span class="plw">Watch ↗</span></a>`).join('')}</div>
     <p class="fine">Opens the channel playing on Pluto TV (free, no account needed). Channel lineup from Pluto TV.</p>`;
+}
+// WATCH LATER (Scott 11/14): anything can be saved for later; each entry keeps where it can be watched
+const laterKey = x => tkey(x);
+const isLater = x => !!x && S.later.some(l => l.k === laterKey(x));
+function toggleLater(x) {
+  if (!x) return; const k = laterKey(x);
+  if (S.later.some(l => l.k === k)) S.later = S.later.filter(l => l.k !== k);
+  else S.later = [{ k, title: x.title, img: x.big || x.img || (x.show && x.show.img) || null, svc: x.svc || null, exact: x.exact || null, url: x.url || null, series: !!x.series, options: (x.options || []).slice(0, 8), when: x.start || x.when || null, at: Date.now() }, ...S.later].slice(0, 200);
+  save('later', S.later);
+}
+const laterItem = l => ({ key: 'WL' + l.k, title: l.title, img: l.img, big: l.img, svc: l.svc, exact: l.exact, url: l.url || 'https://www.google.com/search?q=' + encodeURIComponent(l.title + ' watch'), series: l.series, options: l.options, note: l.svc || '' });
+function laterRow(max) {
+  const its = S.later.slice(0, max || 12); if (!its.length) return '';
+  return `<div class="lgrid six">${its.map(l => { const x = laterItem(l); return `<div class="wlwrap">${lposter(x)}<button class="round wlx" data-unlater="${esc(l.k)}" aria-label="Remove ${esc(l.title)} from Watch Later">✕</button></div>`; }).join('')}</div>`;
 }
 // ONE CARD PER TITLE: the same movie or show from several places becomes one card; options = every place, the ones you have first.
 const tkey = x => String(x.title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() + '|' + (x.series ? 'tv' : 'm');
@@ -773,6 +792,7 @@ function stuff() {
       <div class="whtabs"><button class="wtab ${f === 'Completed' ? '' : 'on'}" data-f="Watching">My Shows</button><button class="wtab" disabled title="Needs the paid feed">Movies</button><button class="wtab ${f === 'Completed' ? 'on' : ''}" data-f="Completed">Completed</button></div></div>
     <div class="wgrid"><div class="wmain"><div class="tiles">
       ${tile('blue', '▶', 'Watching', n('Watching') + (n('Watching') === 1 ? ' Show' : ' Shows'))}${tile('red', '🔔', 'New Episodes', alerts.length + ' Ready to Watch')}${tile('amber', '📅', 'Coming Soon', soon + ' This Week')}${tile('green', '✓', 'Completed', n('Completed') + (n('Completed') === 1 ? ' Show' : ' Shows'))}</div>
+      <div class="wlhead"><h2>⏰ Watch Later <small>(${S.later.length})</small></h2></div>${S.later.length ? laterRow(60) : '<p class="fine">Nothing saved yet. Pick anything and tap ⏰ Watch Later.</p>'}
       ${cont.length ? `<h2>Continue Watching</h2><div class="posters">${cont.map(poster).join('')}</div>` : ''}
       <div class="wlhead"><h2>My Watchlist <small>(All Shows)</small></h2><div class="filters">${chips.map(([v, l]) => `<button class="chip ${v === f ? 'on' : ''}" data-f="${v}">${l}</button>`).join('')}</div></div>
       <div class="wlbox">${S.list.length ? shown.map(row).join('') || '<p class="fine" style="padding:14px">Nothing here right now.</p>' : '<p class="fine" style="padding:14px">Nothing saved yet. Pick a show in Movies &amp; Shows and tap Save.</p>'}</div></div>
@@ -963,6 +983,7 @@ function home() {
       const nFree = FREE_G && FREE_G.ch && FREE_G.ch.length ? FREE_G.ch.length.toLocaleString() : '1,500+';
       return `<section><div class="hh" style="margin-top:22px"><h2>${hot.length ? '🔥 Coming This Week on Your Services' : '🔥 Popular Tonight'}</h2><button class="more" data-tab="${hot.length ? 8 : 1}">See all ›</button></div>
         ${hot.length || alt.length ? `<div class="lgrid six">${hot.length ? hot.map(hposter).join('') : alt.map(x => lposter(x)).join('')}</div>` : `<p class="fine">${S.poolBusy ? 'Finding this week’s premieres…' : 'Loading…'}</p>`}</section>
+        ${S.later.length ? `<section><div class="hh" style="margin-top:22px"><h2>⏰ Watch Later</h2><button class="more" data-tab="3">See all ›</button></div>${laterRow(6)}</section>` : ''}
         <button class="freebar" data-tab="0"><span class="fbi">📺</span><span class="t"><b>${nFree} free channels with schedules are in your Live TV Guide</b><small>Pluto TV · Samsung TV Plus · Plex · Roku Channel. No subscription.</small></span><span class="fbgo">Open guide ›</span></button>`;
     })()}
     <div class="hfoot"><p class="fine">Watch buttons open the official service in its own window or app. Marvel Magic doesn't play video itself.</p><div class="svchips"><b>Your services:</b>${paid.length ? paid.slice(0, 4).map(n => `<span>${esc(n)} ✓</span>`).join('') + (paid.length > 4 ? `<span>+${paid.length - 4} more</span>` : '') : '<button class="pill" data-tab="3">Set them up</button>'}</div></div>${credit()}`;
@@ -1216,6 +1237,9 @@ document.addEventListener('click', e => {
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.hasAttribute('data-later')) { toggleLater(S.sel); dock(); if (S.tab === HOME || S.tab === 3) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }
+  else if (t.dataset.laterx != null) { toggleLater(items[Number(t.dataset.laterx)]); const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.unlater) { S.later = S.later.filter(l => l.k !== t.dataset.unlater); save('later', S.later); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.unkeep) { const u = unusedSvcs().find(x => x.n === t.dataset.unkeep); S.svcSnooze[t.dataset.unkeep] = u ? u.step : 1; save('svcSnooze', S.svcSnooze); draw(); }
   else if (t.dataset.rkind) { S.rkind = t.dataset.rkind; draw(); }
   else if (t.dataset.rtab) { S.rtab = t.dataset.rtab; draw(); }
@@ -1310,9 +1334,9 @@ history.replaceState({ tab: S.tab }, '');
 // progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
 const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
-const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff });
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later });
 function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
@@ -1325,7 +1349,7 @@ function mergeLists(cloud, local) {   // first sign-in on a device: keep shows f
   for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
   return [...out.values()];
 }
-function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); localStorage.setItem('mm_history', JSON.stringify(S.history)); localStorage.setItem('mm_likes', JSON.stringify(S.likes)); localStorage.setItem('mm_actors', JSON.stringify(S.actors)); localStorage.setItem('mm_moods', JSON.stringify(S.moods)); localStorage.setItem('mm_profile', JSON.stringify(S.profile)); localStorage.setItem('mm_order', JSON.stringify(S.order)); localStorage.setItem('mm_lastOpen', JSON.stringify(S.lastOpen)); localStorage.setItem('mm_svcSince', JSON.stringify(S.svcSince)); localStorage.setItem('mm_svcSnooze', JSON.stringify(S.svcSnooze)); localStorage.setItem('mm_svcRemindOff', JSON.stringify(S.svcRemindOff)); } catch {} }
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); localStorage.setItem('mm_history', JSON.stringify(S.history)); localStorage.setItem('mm_likes', JSON.stringify(S.likes)); localStorage.setItem('mm_actors', JSON.stringify(S.actors)); localStorage.setItem('mm_moods', JSON.stringify(S.moods)); localStorage.setItem('mm_profile', JSON.stringify(S.profile)); localStorage.setItem('mm_order', JSON.stringify(S.order)); localStorage.setItem('mm_lastOpen', JSON.stringify(S.lastOpen)); localStorage.setItem('mm_svcSince', JSON.stringify(S.svcSince)); localStorage.setItem('mm_svcSnooze', JSON.stringify(S.svcSnooze)); localStorage.setItem('mm_svcRemindOff', JSON.stringify(S.svcRemindOff)); localStorage.setItem('mm_later', JSON.stringify(S.later)); } catch {} }
 function startAccount() {
   if (typeof firebase === 'undefined') return;
   try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
@@ -1335,7 +1359,7 @@ function startAccount() {
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
-        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; const hk = new Set((c.history || []).map(h => h.k)); S.history = [...(c.history || []), ...S.history.filter(h => !hk.has(h.k))].sort((a, b) => b.at - a.at); S.likes = [...new Set([...(c.likes || []), ...S.likes])]; S.actors = [...new Set([...(c.actors || []), ...S.actors])]; S.moods = [...new Set([...(c.moods || []), ...S.moods])]; S.profile = { ...S.profile, ...(c.profile || {}) }; if (c.order && c.order.length) S.order = c.order; for (const [k, v] of Object.entries(c.lastOpen || {})) S.lastOpen[k] = Math.max(S.lastOpen[k] || 0, v); S.svcSince = { ...(c.svcSince || {}), ...S.svcSince }; S.svcSnooze = { ...S.svcSnooze, ...(c.svcSnooze || {}) }; if (typeof c.svcRemindOff === 'boolean') S.svcRemindOff = c.svcRemindOff; storeLocal(); }
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; const hk = new Set((c.history || []).map(h => h.k)); S.history = [...(c.history || []), ...S.history.filter(h => !hk.has(h.k))].sort((a, b) => b.at - a.at); S.likes = [...new Set([...(c.likes || []), ...S.likes])]; S.actors = [...new Set([...(c.actors || []), ...S.actors])]; S.moods = [...new Set([...(c.moods || []), ...S.moods])]; S.profile = { ...S.profile, ...(c.profile || {}) }; if (c.order && c.order.length) S.order = c.order; for (const [k, v] of Object.entries(c.lastOpen || {})) S.lastOpen[k] = Math.max(S.lastOpen[k] || 0, v); S.svcSince = { ...(c.svcSince || {}), ...S.svcSince }; S.svcSnooze = { ...S.svcSnooze, ...(c.svcSnooze || {}) }; if (typeof c.svcRemindOff === 'boolean') S.svcRemindOff = c.svcRemindOff; const lk = new Set((c.later || []).map(l => l.k)); S.later = [...(c.later || []), ...S.later.filter(l => !lk.has(l.k))].slice(0, 200); storeLocal(); }
         pushCloud();
       } catch {}
       stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
