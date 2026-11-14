@@ -859,8 +859,15 @@ function topKeys() {
   const rest = keys.filter(k => !inOrder.includes(k)).sort((a, b) => S.ratings[b].score - S.ratings[a].score || S.ratings[b].at - S.ratings[a].at);
   return [...inOrder, ...rest];
 }
-function moveTop(k, d) { const a = topKeys(), i = a.indexOf(k), j = i + d; if (i < 0 || j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; S.order = a; save('order', S.order); shareRefresh(); }
-const listItems = () => topKeys().slice(0, 50).map(k => { const r = S.ratings[k]; return { k, title: r.title, img: r.img || null, kind: r.kind || '', score: r.score }; });
+// Scott 11/14 "ranking on movies and another list on shows": two lists, each in its own order
+const kindOf = r => r.kind === 'Show' ? 'Show' : 'Movie';
+const topKeysK = kd => topKeys().filter(k => kindOf(S.ratings[k]) === kd);
+function moveTop(k, d) {
+  const full = topKeys(), kd = kindOf(S.ratings[k]), sub = full.filter(x => kindOf(S.ratings[x]) === kd), i = sub.indexOf(k), j = i + d;
+  if (i < 0 || j < 0 || j >= sub.length) return; [sub[i], sub[j]] = [sub[j], sub[i]];
+  let n = 0; S.order = full.map(x => kindOf(S.ratings[x]) === kd ? sub[n++] : x); save('order', S.order); shareRefresh();
+}
+const listItems = () => ['Movie', 'Show'].flatMap(kd => topKeysK(kd).slice(0, 50)).map(k => { const r = S.ratings[k]; return { k, title: r.title, img: r.img || null, kind: kindOf(r), score: r.score }; });
 let shareTimer = null;
 function shareRefresh() { if (!S.shared || !me || !db) return; clearTimeout(shareTimer); shareTimer = setTimeout(publishList, 1500); }
 function publishList() {
@@ -885,19 +892,21 @@ function scoreList(uid, item) {   // someone opened a title from another viewer'
 // how many lists it's on, and how much those lists get watched from
 function mmTop50() {
   const pts = {};
-  for (const l of (S.lists || [])) (l.items || []).forEach((it, i) => { const k = String(it.title || '').toLowerCase(); if (!k) return; const e = pts[k] || (pts[k] = { title: it.title, img: it.img, kind: it.kind, pts: 0, lists: 0, sum: 0 }); e.pts += (51 - i) * (1 + Math.min(l.score || 0, 100) / 50); e.lists += 1; e.sum += it.score || 0; if (!e.img && it.img) e.img = it.img; });
+  const kd = S.rkind || 'Movie';
+  for (const l of (S.lists || [])) (l.items || []).filter(it => (it.kind === 'Show' ? 'Show' : 'Movie') === kd).forEach((it, i) => { const k = String(it.title || '').toLowerCase(); if (!k) return; const e = pts[k] || (pts[k] = { title: it.title, img: it.img, kind: it.kind, pts: 0, lists: 0, sum: 0 }); e.pts += (51 - i) * (1 + Math.min(l.score || 0, 100) / 50); e.lists += 1; e.sum += it.score || 0; if (!e.img && it.img) e.img = it.img; });
   return Object.values(pts).sort((a, b) => b.pts - a.pts).slice(0, 50);
 }
 function ratingsPage() {
   if (db) loadLists();
-  const keys = topKeys(), top = keys.slice(0, 50), more = keys.slice(50);
+  const KD = S.rkind || 'Movie', keys = topKeysK(KD), top = keys.slice(0, 50), more = keys.slice(50), KW = KD === 'Show' ? 'Shows' : 'Movies';
   const rrow = (k, i) => { const r = S.ratings[k]; return `<div class="trow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind || '')}${r.review ? ' · “' + esc(r.review) + '”' : ''}</small></span><span class="rscore">${r.score}<small>/10</small></span>
     <button class="round" data-tmv="${esc(k)}|-1" aria-label="Move ${esc(r.title)} up" ${i ? '' : 'disabled'}>▲</button><button class="round" data-tmv="${esc(k)}|1" aria-label="Move ${esc(r.title)} down" ${i < keys.length - 1 ? '' : 'disabled'}>▼</button><button class="round" data-unrate="${esc(k)}" aria-label="Remove ${esc(r.title)}">✕</button></div>`; };
   const v = S.viewList;
+  const kchips = `<div class="filters" style="margin:12px 0 0"><button class="chip ${KD === 'Movie' ? 'on' : ''}" data-rkind="Movie">🎬 Movies</button><button class="chip ${KD === 'Show' ? 'on' : ''}" data-rkind="Show">📺 Shows</button></div>`;
   if (v) {   // viewing someone's shared list
-    const its = v.items || [];
-    return `${pageHero('prate', '🏆 TOP LIST', v.loading ? 'Loading list…' : v.missing ? 'List not found' : esc(v.name || 'Viewer') + '’s Top ' + its.length, v.loading || v.missing ? '' : `⭐ ${v.score || 0} points · each time someone watches from this list it earns a point.`)}
-      <div style="margin-top:14px"><button class="pill" data-closelist>‹ Back to my Top 50</button></div>
+    const its = (v.items || []).filter(it => (it.kind === 'Show' ? 'Show' : 'Movie') === KD);
+    return `${pageHero('prate', '🏆 TOP LIST', v.loading ? 'Loading list…' : v.missing ? 'List not found' : esc(v.name || 'Viewer') + '’s Top ' + its.length + ' ' + KW, v.loading || v.missing ? '' : `⭐ ${v.score || 0} points · each time someone watches from this list it earns a point.`)}
+      <div style="margin-top:14px"><button class="pill" data-closelist>‹ Back to my Top 50</button></div>${kchips}
       <div class="tlist" style="margin-top:12px">${its.map((it, i) => { const x = { key: 'L' + v.id + i, title: it.title, img: it.img, series: it.kind === 'Show', fromList: v.id, url: 'https://www.google.com/search?q=' + encodeURIComponent(it.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(it.title)}</b><small>${esc(it.kind || '')}</small></span><span class="rscore">${it.score}<small>/10</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>`;
   }
   const lists = S.lists || [];
@@ -906,10 +915,10 @@ function ratingsPage() {
   const svcs = rankedSvcs(), maxOpen = Math.max(1, ...svcs.map(n => S.opens[n] || 0));
   const svc = (n, i) => `<div class="rrow"><span class="rnum">${i + 1}</span><span class="t"><b>${esc(n)}</b><small>Opened ${S.opens[n] || 0} time${S.opens[n] === 1 ? '' : 's'}${FREE_SVC.has(n) ? ' · Free' : ''}</small><div class="bar"><i style="width:${Math.round((S.opens[n] || 0) / maxOpen * 100)}%"></i></div></span><button class="round" data-mv="${esc(n)}|-1" aria-label="Move ${esc(n)} up" ${i ? '' : 'disabled'}>▲</button><button class="round" data-mv="${esc(n)}|1" aria-label="Move ${esc(n)} down" ${i < svcs.length - 1 ? '' : 'disabled'}>▼</button></div>`;
   const mmTab = S.rtab === 'mm', chart = mmTop50();
-  const tabs = `<div class="whtabs" style="margin:16px 0 4px"><button class="wtab ${mmTab ? '' : 'on'}" data-rtab="me">⭐ My Top 50</button><button class="wtab ${mmTab ? 'on' : ''}" data-rtab="mm">🏆 Marvel Magic Top 50</button></div>`;
+  const tabs = `<div class="whtabs" style="margin:16px 0 4px"><button class="wtab ${mmTab ? '' : 'on'}" data-rtab="me">⭐ My Top 50</button><button class="wtab ${mmTab ? 'on' : ''}" data-rtab="mm">🏆 Marvel Magic Top 50</button></div>${kchips}`;
   const chartHtml = !db || S.lists === null ? '<p class="fine">Loading…</p>' : S.listsErr ? '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">The Marvel Magic Top 50 switches on once the database allows shared lists.</p></div>' : chart.length ? `<div class="tlist">${chart.map((c, i) => { const x = { key: 'MM' + i, title: c.title, img: c.img, series: c.kind === 'Show', url: 'https://www.google.com/search?q=' + encodeURIComponent(c.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(c.title)}</b><small>On ${c.lists} list${c.lists === 1 ? '' : 's'} · avg ${(c.sum / c.lists).toFixed(1)}/10</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>` : '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">No shared lists yet. Share yours and it starts the chart.</p></div>';
-  return `${pageHero('prate', '⭐ MY RATINGS', mmTab ? 'Marvel Magic Top 50' : 'My Marvel Magic Top 50', mmTab ? 'The chart from every viewer’s shared list: ranked high, on many lists, and watched from.' : 'Put what you’ve rated in your own order: what ranks above what. Share it if you want.')}${tabs}
-    <div class="wgrid" style="margin-top:12px"><div class="wmain">${mmTab ? chartHtml : top.length ? `<div class="tlist">${top.map(rrow).join('')}</div>` : '<div class="hbox" style="padding:18px"><p style="margin:0 0 10px">Nothing rated yet.</p><p class="fine" style="margin:0 0 12px">Rate any show or movie 1 to 10 (bottom of the screen, or when you come back from watching). It lands here and you can move it up or down.</p><button class="btn gold" data-tab="1">Find something to rate</button></div>'}
+  return `${pageHero('prate', '⭐ MY RATINGS', mmTab ? 'Marvel Magic Top 50 ' + KW : 'My Top 50 ' + KW, mmTab ? 'The chart from every viewer’s shared list: ranked high, on many lists, and watched from.' : 'Put what you’ve rated in your own order: what ranks above what. Share it if you want.')}${tabs}
+    <div class="wgrid" style="margin-top:12px"><div class="wmain">${mmTab ? chartHtml : top.length ? `<div class="tlist">${top.map(rrow).join('')}</div>` : '<div class="hbox" style="padding:18px"><p style="margin:0 0 10px">No ${KW.toLowerCase()} rated yet.</p><p class="fine" style="margin:0 0 12px">Rate any show or movie 1 to 10 (bottom of the screen, or when you come back from watching). It lands here and you can move it up or down.</p><button class="btn gold" data-tab="1">Find something to rate</button></div>'}
       ${!mmTab && more.length ? `<h2>Also Rated</h2><div class="tlist">${more.map((k, i) => rrow(k, i + 50)).join('')}</div>` : ''}</div>
     <aside class="wside">${shareBox}${listsBox}<section class="glow plain"><h3>My Streaming Services</h3><p class="fine">Your own order. Counts show what you open from Marvel Magic.</p>${svcs.map(svc).join('')}</section></aside></div>`;
 }
@@ -1158,6 +1167,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.rkind) { S.rkind = t.dataset.rkind; draw(); }
   else if (t.dataset.rtab) { S.rtab = t.dataset.rtab; draw(); }
   else if (t.dataset.tmv) { const [k, d] = t.dataset.tmv.split('|'); moveTop(k, Number(d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-sharelist')) { publishList().then(() => { S.shared = true; save('shared', true); S.lists = null; draw(); }).catch(() => { const b = $('back'); b.innerHTML = '<b>Couldn\'t share yet</b><p class="fine">Shared lists switch on once the database allows them.</p><div class="act"><button class="btn" data-castok>OK</button></div>'; b.querySelector('[data-castok]').onclick = () => b.close(); b.showModal(); }); }
