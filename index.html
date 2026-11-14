@@ -286,6 +286,18 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 /* sport buttons (11/14) */
 .spsports{margin:0 0 12px}.spsports .chip small{font-size:11px;color:var(--dim);margin-left:3px}.spsports .chip.on small{color:#fff}
 .chip.fav{border-color:var(--gold);color:#FFE3A0}.chip.fav.on{background:linear-gradient(135deg,#C98A1E,#FFA62E);color:#1A1030;border-color:#FFD36B}.chip.fav.on small{color:#3A2410}
+/* FREE TV picks (11/14) */
+.flgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.flc{display:flex;flex-direction:column;padding:0;border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--line);min-width:0}.flc.on{outline:3px solid var(--pick)}
+.flart{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#1C2A5E,#2A1450)}.flart img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.flart .fllogo{inset:auto;left:10px;bottom:10px;width:64px;height:40px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,.9))}
+.flart:not(:has(img:not(.fllogo))) .fllogo{left:50%;top:50%;bottom:auto;width:50%;height:50%;transform:translate(-50%,-50%)}
+.flive{position:absolute;top:8px;left:8px;padding:2px 8px;border-radius:6px;background:#E8293C;font-size:11px;font-weight:900}
+.flbar{height:4px;background:rgba(255,255,255,.12)}.flbar i{display:block;height:100%;background:var(--gold)}
+.flt{padding:10px 12px}.flt b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.flt small{display:block;font-size:12px;color:var(--dim)}.flt .flsv{color:#7FF0CF;font-weight:700}
+.frsv{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:22px;padding:12px 16px;border-radius:12px;background:rgba(14,22,56,.85);border:1px solid var(--line)}.frsv a{padding:5px 12px;border-radius:14px;background:#2A3154;color:var(--text);text-decoration:none;font-size:14px;font-weight:700}
+@media (max-width:1250px){.flgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){.flgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -549,7 +561,7 @@ function loadCat(svc, kind) {
   relay({ a: 'cat', svc, kind, kids: kid ? '1' : '0' })
     .then(j => { S.cat[k] = j.error ? { error: j.error } : { items: (j.items || []).map(r => catItem(r, svc, kind, kid)) }; })
     .catch(() => { S.cat[k] = { error: 'net' }; })
-    .then(() => { if (S.tab === 1 || S.tab === 9 || S.tab === 0) { const y = window.scrollY; draw(); window.scrollTo(0, y); } });
+    .then(() => { if (S.tab === 1 || S.tab === 9 || S.tab === 0 || S.tab === 4) { const y = window.scrollY; draw(); window.scrollTo(0, y); } });
 }
 function catSection() {
   const svcs = catSvcs();
@@ -594,7 +606,7 @@ function settingsPage() {
 // FREE CHANNEL GUIDE (Scott 11/14): free_guide.json is rebuilt every 3 hours by tools/build_free_guide.py (GitHub Actions) from the community
 // XMLTV mirror at i.mjh.nz - Pluto TV, Samsung TV Plus, Plex, Roku Channel. Test build only: not licensed; licensed data before selling.
 let FREE_G = null;
-function loadFreeGuide() { if (FREE_G) return; FREE_G = { ch: [] }; fetch('free_guide.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => { FREE_G = j; if (S.tab === 0) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
+function loadFreeGuide() { if (FREE_G) return; FREE_G = { ch: [] }; fetch('free_guide.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => { FREE_G = j; if (S.tab === 0 || S.tab === 4) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
 const FREE_ORDER = ['Movies', 'News', 'Sports', 'Drama', 'Comedy', 'Crime', 'Reality', 'Classic TV', 'Westerns', 'Sci-Fi', 'Kids', 'Food & Home', 'Nature & History', 'Music', 'En Español', 'Other'];
 // PLUTO CHANNELS (Scott 11/14): the channel list ships with the app (pluto_channels.json - name, slug, number, category; collected once from
 // Pluto's public lineup, no schedules). A tap opens that channel already playing on Pluto, never Pluto's own guide.
@@ -788,8 +800,36 @@ const setupList = () => `<h3>🔑 Set Up Your Accounts</h3><p class="fine">Sign 
 function armFull() { document.title = 'Marvel Magic*'; setTimeout(() => { document.title = 'Marvel Magic'; }, 4000); }   // tells the PC helper a service window is coming: make it full-screen
 const FREE_LOOK = { 'Pluto TV': '#7A3FF2', Tubi: '#E8552B', 'The Roku Channel': '#6C3AA6', Plex: '#B9770E', 'Xumo Play': '#0E7C86', 'Samsung TV Plus': '#1B4FB8' };
 const pageHero = (cls, kick, title, sub) => `<section class="phero ${cls}"><div class="lk">${kick}</div><h1 class="hott">${title}</h1><p class="lsub2">${sub}</p></section>`;
+// FREE TV (Scott 11/14): samples from the free services that match what you like and watch - live now (free_guide.json) + on demand (TMDB)
+const LIKE2CAT = { Drama: 'Drama', Comedy: 'Comedy', Crime: 'Crime', Mystery: 'Crime', Thriller: 'Crime', Legal: 'Crime', Action: 'Movies', Adventure: 'Movies', War: 'Movies', Romance: 'Movies', Horror: 'Movies',
+  'Science-Fiction': 'Sci-Fi', Fantasy: 'Sci-Fi', Supernatural: 'Sci-Fi', Western: 'Westerns', Family: 'Kids', Children: 'Kids', Anime: 'Kids', Food: 'Food & Home', Travel: 'Food & Home',
+  Nature: 'Nature & History', History: 'Nature & History', Music: 'Music', Sports: 'Sports', Reality: 'Reality', Medical: 'Drama' };
+const MOOD2CAT = { Funny: 'Comedy', Action: 'Movies', Mystery: 'Crime', Romance: 'Movies', Scary: 'Movies', 'Feel-good': 'Classic TV', 'Family Night': 'Kids', 'True story': 'Nature & History' };
+const FREE_OD = ['Tubi', 'Pluto TV', 'Plex', 'The Roku Channel', 'Xumo Play'];
 function freePage() {
-  return `${pageHero('pfree', '📺 FREE TV', 'Watch Free Tonight', 'Hundreds of free live channels and movies. No subscription. Some ask for a free account.')}<div class="ftrow big" style="margin-top:18px">${FREE_TV.map(([n, u]) => n === 'Pluto TV' ? `<button class="ft" data-plgo style="--c:${FREE_LOOK[n]}"><span class="fttag">Free</span><b>${esc(n)}</b><span class="ftgo">${PLUTO_CH && PLUTO_CH.length ? PLUTO_CH.length + ' channels below ↓' : 'Channels below ↓'}</span></button>` : `<a class="ft" href="${esc(u)}" target="_blank" rel="noopener" data-free="${esc(n)}" style="--c:${FREE_LOOK[n] || '#2A3154'}"><span class="fttag">Free</span><b>${esc(n)}</b><span class="ftgo">${S.setup.includes(n) ? '✓ In your guide · ' : ''}Open live guide ↗</span></a>`).join('')}</div><p class="fine" style="margin-top:14px">Set one up in My Stuff and it gets its own row in your Live TV Guide.</p>${plutoBlock()}`;
+  loadFreeGuide(); FREE_OD.forEach(n => { loadCat(n, 'movie'); loadCat(n, 'tv'); });
+  const now = Date.now(), likes = [...new Set([...S.likes, ...tasteOf()])];
+  const wantCats = [...new Set([...likes.map(g => LIKE2CAT[g]), ...S.moods.map(m => MOOD2CAT[m])].filter(Boolean))];
+  const seenT = new Set(S.history.map(h => String(h.title || '').toLowerCase()));
+  const all = (FREE_G && FREE_G.ch) || [];
+  const live = all.filter(r => !kidsOn() || r.g === 'Kids').map(r => ({ r, q: r.s.find(q => q[0] * 1000 <= now && q[1] * 1000 > now) })).filter(x => x.q && x.q[2]);
+  const score = x => (wantCats.includes(x.r.g) ? 100 : 0) + (seenT.has(x.q[2].toLowerCase()) ? 250 : 0) + (x.q[5] ? 30 : 0) + x.r.p.length * 5;
+  const item = ({ r, q }) => ({ key: 'f' + r.n + q[0], title: q[2], net: r.n, start: q[0] * 1000, end: q[1] * 1000, svc: r.p[0][0], exact: r.p[0][1], options: r.p.map(z => ({ svc: z[0], url: z[1] })), series: false, img: q[5] || '', logo: r.l });
+  const card = x => { const it = item(x), left = Math.max(0, Math.round((it.end - now) / 60000)), pct = Math.min(100, Math.round((now - it.start) / (it.end - it.start) * 100));
+    return `<button class="flc${S.sel && S.sel.key === it.key ? ' on' : ''}" data-i="${reg(it)}"><span class="flart">${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}${it.logo ? `<img class="fllogo" src="${esc(it.logo)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="flive">● LIVE · FREE</span></span><span class="flbar"><i style="width:${pct}%"></i></span><span class="flt"><b>${esc(it.title)}</b><small>${esc(x.r.n)} · ${left} min left</small><small class="flsv">${esc(it.svc)}${x.r.p.length > 1 ? ' +' + (x.r.p.length - 1) : ''}</small></span></button>`; };
+  const ranked = live.slice().sort((a, b) => score(b) - score(a));
+  const used = new Set(), top = ranked.filter(x => x.q[5]).slice(0, 8); top.forEach(x => used.add(x.r.n));
+  const catRows = (wantCats.length ? wantCats : ['Movies', 'Comedy', 'Crime']).slice(0, 4).map(c => { const r = ranked.filter(x => x.r.g === c && !used.has(x.r.n)).slice(0, 8); r.forEach(x => used.add(x.r.n)); return [c, r]; }).filter(z => z[1].length);
+  const od = mergeByTitle(FREE_OD.flatMap(n => [...((S.cat[n + '|movie|' + (kidsOn() ? 1 : 0)] || {}).items || []), ...((S.cat[n + '|tv|' + (kidsOn() ? 1 : 0)] || {}).items || [])]))
+    .map(x => ({ x, sc: (x.genres || []).filter(g => likes.includes(g)).length })).sort((a, b) => b.sc - a.sc).map(z => z.x).filter(x => x.img).slice(0, 12);
+  const why = likes.length || S.moods.length ? `Picked from what you like: ${[...likes.slice(0, 4), ...S.moods.slice(0, 2)].map(esc).join(', ')}.` : 'Tick what you like in ⚙ Settings and these get picked for you.';
+  return `${pageHero('pfree', '📺 FREE TV', 'Free Right Now', `${(all.length || 1500).toLocaleString()} free channels and thousands of free movies. No subscription. ${why}`)}
+    ${!all.length ? '<p class="fine" style="margin-top:16px">Loading free channels…</p>' : ''}
+    ${top.length ? `<div class="hh" style="margin-top:18px"><h2>Free &amp; Live Now, Picked for You</h2><button class="more" data-tab="0">Full guide ›</button></div><div class="flgrid">${top.map(card).join('')}</div>` : ''}
+    ${catRows.map(([c, r]) => `<div class="hh" style="margin-top:20px"><h2>Free ${esc(c)} On Now</h2></div><div class="flgrid">${r.map(card).join('')}</div>`).join('')}
+    ${od.length ? `<div class="hh" style="margin-top:22px"><h2>Free Movies &amp; Shows for You <small class="fine">watch anytime</small></h2></div><div class="lgrid six">${od.map(x => lposter(x)).join('')}</div>` : ''}
+    <div class="frsv"><b>Free services:</b>${FREE_TV.map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-free="${esc(n)}">${esc(n)} ↗</a>`).join('')}</div>
+    <p class="fine">Live schedules: community guide data (test build). Movies: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>.</p>`;
 }
 function watchedPage() {
   const now = Date.now(), week = now - 7 * 86400000, H = S.history, n = f => H.filter(f).length, f = S.wf || 'All', shown = H.filter(h => f === 'All' || h.kind === f).slice(0, 300);

@@ -56,7 +56,8 @@ def main(out_path):
             if b <= lo or a >= hi: continue
             ep = next((e.text for e in p.findall('episode-num') if e.get('system') == 'onscreen'), '') or ''
             rt = p.find('rating'); rt = rt.findtext('value') if rt is not None and rt.find('value') is not None else (rt.text.strip() if rt is not None and rt.text else '')
-            progs.setdefault(p.get('channel'), []).append([a, b, (p.findtext('title') or '').strip()[:80], ep[:12], rt[:6]])
+            ic = p.find('icon'); ic = ic.get('src') if ic is not None else ''
+            progs.setdefault(p.get('channel'), []).append([a, b, (p.findtext('title') or '').strip()[:80], ep[:12], rt[:6], ic or ''])
         n_ch = 0
         for c in root.iter('channel'):
             cid = c.get('id'); name = (c.findtext('display-name') or '').strip(); m = chans.get(cid, {})
@@ -69,7 +70,10 @@ def main(out_path):
                 if r['g'] == 'Other': r['g'] = cat_of(grp, name)
                 continue
             icon = c.find('icon')
-            r = {'n': name[:60], 'g': cat_of(grp, name), 'l': icon.get('src') if icon is not None else '', 'p': [place], 's': sorted(progs[cid])[:24]}
+            sched = sorted(progs[cid])[:24]
+            for i, q in enumerate(sched):   # keep show pictures only for what's on now / next (keeps the file small)
+                if q[1] < now or i > 2: q[5] = ''
+            r = {'n': name[:60], 'g': cat_of(grp, name), 'l': icon.get('src') if icon is not None else '', 'p': [place], 's': sched}
             by_key[k] = r; rows.append(r); n_ch += 1
         print(f'{svc}: {n_ch} new channels', file=sys.stderr)
     rows.sort(key=lambda r: (r['g'], r['n'].lower()))
