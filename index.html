@@ -317,6 +317,13 @@ body.easy{font-size:20px}body.easy nav button{min-height:64px;font-size:24px}bod
 .ezgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.ez{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:200px;border-radius:22px;background:linear-gradient(160deg,#3A2470,#141B44);border:2px solid #6B4DF0;text-align:center}.ez span{font-size:64px}.ez b{font-size:30px}.ez:focus-visible{outline:5px solid var(--gold)}
 .ez.back{flex-direction:row;min-height:72px;width:100%;margin-top:24px;font-size:22px;background:#1C2447;border-color:var(--line)}.ezh2{font-size:30px;margin:26px 0 12px}
 @media (max-width:760px){.ezgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.ez{min-height:150px}.ezhead h1{font-size:34px}}
+/* HEARTS (11/14) */
+.pw{position:relative;min-width:0}.pw>.lp{width:100%}.lgrid.four .pw,.lgrid.six .pw{min-width:0}
+.thumb{position:absolute;z-index:3;right:8px;bottom:8px;min-width:44px;height:36px;padding:0 10px;border-radius:18px;background:rgba(5,8,22,.85);border:1px solid rgba(255,255,255,.25);font-size:16px;font-weight:800;text-align:center}.thumb.on{color:#FF6B8A;border-color:#FF6B8A}
+.gpvb .thumb{position:static;height:52px;min-width:56px;font-size:20px}
+.hearts{display:flex;gap:8px;margin:12px 0 4px}.hearts button{width:52px;height:52px;border-radius:12px;background:#2A3154;font-size:30px;color:#FF6B8A;text-align:center}.hearts button.on{background:#3A1A2E}
+.hearts.sm{margin:6px 0 0;gap:4px}.hearts.sm button{width:38px;height:36px;font-size:20px}.hearts.sm span{color:var(--dim);font-size:13px}
+.lp .lpt{padding-right:56px}
 </style>
 </head>
 <body>
@@ -427,7 +434,7 @@ const rateKey = x => x.show ? 's' + x.show.id : x.key;
 function rateRow(x) {
   if (x.sport) return '';
   const cur = (S.ratings[rateKey(x)] || {}).score;
-  return `<div class="where rate"><span>My rating:</span>${Array.from({ length: 10 }, (_, i) => `<button class="${cur === i + 1 ? 'on' : ''}" data-rate="${i + 1}" aria-label="Rate ${i + 1} of 10">${i + 1}</button>`).join('')}</div>`;
+  return `<div class="where rate hearts sm"><span>My rating:</span>${[1, 2, 3, 4, 5].map(n => `<button class="${n <= (cur || 0) ? 'on' : ''}" data-rate="${n}" aria-label="${n} of 5 hearts">${n <= (cur || 0) ? '♥' : '♡'}</button>`).join('')}${cur ? `<span>${fmtH(cur)}</span>` : ''}</div>`;
 }
 // TRACKER (Scott 11/08: "a tracker on all things watched by me"). Services don't report viewing, so this logs what's opened or marked in Marvel Magic; anything wrong can be removed.
 const dayKey = t => new Date(t).toDateString();
@@ -496,7 +503,7 @@ function preview(pv, now) {
     <div class="gpvk"><span class="chb">${esc(pv.net)}</span><span>${live ? 'Now Live' : 'Coming Up'} · ${esc(clock(new Date(pv.start)))} – ${esc(clock(new Date(pv.end)))}</span></div>
     <h1 class="gpvt">${esc(pv.title)}</h1>${pv.ep || pv.epName ? `<div class="gpve">${esc([pv.ep, pv.epName].filter(Boolean).join('  '))}</div>` : ''}
     ${short ? `<p class="gpvd">${esc(short)}</p>` : ''}${tags.length ? `<div class="gtags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
-    <div class="gpvb"><button class="pill" data-laterx="${reg(pv)}">${isLater(pv) ? '✓ Watch Later' : '⏰ Watch Later'}</button><button class="btn watch" data-i="${reg(pv)}" data-go>▶ ${live ? 'Watch Live' : 'Open'} ↗</button>${pv.show ? `<button class="pill" data-addlist="${reg(pv)}">${saved ? '✓ On My List' : '＋ My List'}</button>` : ''}</div>${whereRow(pv)}</div></section>`;
+    <div class="gpvb">${thumbBtn(pv)}<button class="pill" data-laterx="${reg(pv)}">${isLater(pv) ? '✓ Watch Later' : '⏰ Watch Later'}</button><button class="btn watch" data-i="${reg(pv)}" data-go>▶ ${live ? 'Watch Live' : 'Open'} ↗</button>${pv.show ? `<button class="pill" data-addlist="${reg(pv)}">${saved ? '✓ On My List' : '＋ My List'}</button>` : ''}</div>${whereRow(pv)}</div></section>`;
 }
 function guide() {
   if (S.err && !S.airings.length) return `<h1>Live TV Guide</h1><p>${esc(S.err)}</p>`;
@@ -689,7 +696,7 @@ function tonightPicks() {
   const taste = tasteOf(), have = new Set(S.list.map(s => s.id));
   return todayShows().map(x => ({ x, sc: (x.show.genres || []).filter(g => taste.includes(g)).length * 100 + (have.has(x.show.id) ? -50 : 0) + x.w / 10 })).filter(r => r.x.big).sort((a, b) => b.sc - a.sc).map(r => r.x);
 }
-const lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? ' off' : ''}" data-i="${reg(x)}">${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(x.title)}</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
+const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? ' off' : ''}" data-i="${reg(x)}">${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(x.title)}</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
 function shows() {
   const taste = tasteOf(), picks = tonightPicks().filter(kidOk).slice(0, 4), pickKeys = new Set(picks.map(p => p.key));
   S.hideT = new Set(picks.map(tkey));
@@ -997,13 +1004,13 @@ const houseKids = () => ((S.house && S.house.members) || []).filter(m => m.type 
 function mmTop50() {
   const pts = {};
   const kd = S.rkind || 'Movie';
-  for (const l of (S.lists || [])) (l.items || []).filter(it => (it.kind === 'Show' ? 'Show' : 'Movie') === kd).forEach((it, i) => { const k = String(it.title || '').toLowerCase(); if (!k) return; const e = pts[k] || (pts[k] = { title: it.title, img: it.img, kind: it.kind, pts: 0, lists: 0, sum: 0 }); e.pts += (51 - i) * (1 + Math.min(l.score || 0, 100) / 50); e.lists += 1; e.sum += it.score || 0; if (!e.img && it.img) e.img = it.img; });
+  for (const l of (S.lists || [])) (l.items || []).filter(it => (it.kind === 'Show' ? 'Show' : 'Movie') === kd).forEach((it, i) => { const k = String(it.title || '').toLowerCase(); if (!k) return; const e = pts[k] || (pts[k] = { title: it.title, img: it.img, kind: it.kind, pts: 0, lists: 0, sum: 0 }); e.pts += (51 - i) * (1 + Math.min(l.score || 0, 100) / 50); e.lists += 1; e.sum += (it.score > 5 ? it.score / 2 : it.score) || 0; if (!e.img && it.img) e.img = it.img; });
   return Object.values(pts).sort((a, b) => b.pts - a.pts).slice(0, 50);
 }
 function ratingsPage() {
   if (db) loadLists();
   const KD = S.rkind || 'Movie', keys = topKeysK(KD), top = keys.slice(0, 50), more = keys.slice(50), KW = KD === 'Show' ? 'Shows' : 'Movies';
-  const rrow = (k, i) => { const r = S.ratings[k]; return `<div class="trow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind || '')}${r.review ? ' · “' + esc(r.review) + '”' : ''}</small></span><span class="rscore">${r.score}<small>/10</small></span>
+  const rrow = (k, i) => { const r = S.ratings[k]; return `<div class="trow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind || '')}${r.review ? ' · “' + esc(r.review) + '”' : ''}</small></span><span class="rscore">♥ ${fmtH(r.score)}<small>/5</small></span>
     <button class="round" data-tmv="${esc(k)}|-1" aria-label="Move ${esc(r.title)} up" ${i ? '' : 'disabled'}>▲</button><button class="round" data-tmv="${esc(k)}|1" aria-label="Move ${esc(r.title)} down" ${i < keys.length - 1 ? '' : 'disabled'}>▼</button><button class="round" data-unrate="${esc(k)}" aria-label="Remove ${esc(r.title)}">✕</button></div>`; };
   const v = S.viewList;
   const kchips = `<div class="filters" style="margin:12px 0 0"><button class="chip ${KD === 'Movie' ? 'on' : ''}" data-rkind="Movie">🎬 Movies</button><button class="chip ${KD === 'Show' ? 'on' : ''}" data-rkind="Show">📺 Shows</button></div>`;
@@ -1011,7 +1018,7 @@ function ratingsPage() {
     const its = (v.items || []).filter(it => (it.kind === 'Show' ? 'Show' : 'Movie') === KD);
     return `${pageHero('prate', '🏆 TOP LIST', v.loading ? 'Loading list…' : v.missing ? 'List not found' : esc(v.name || 'Viewer') + '’s Top ' + its.length + ' ' + KW, v.loading || v.missing ? '' : `⭐ ${v.score || 0} points · each time someone watches from this list it earns a point.`)}
       <div style="margin-top:14px"><button class="pill" data-closelist>‹ Back to my Top 50</button></div>${kchips}
-      <div class="tlist" style="margin-top:12px">${its.map((it, i) => { const x = { key: 'L' + v.id + i, title: it.title, img: it.img, series: it.kind === 'Show', fromList: v.id, url: 'https://www.google.com/search?q=' + encodeURIComponent(it.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(it.title)}</b><small>${esc(it.kind || '')}</small></span><span class="rscore">${it.score}<small>/10</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>`;
+      <div class="tlist" style="margin-top:12px">${its.map((it, i) => { const x = { key: 'L' + v.id + i, title: it.title, img: it.img, series: it.kind === 'Show', fromList: v.id, url: 'https://www.google.com/search?q=' + encodeURIComponent(it.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(it.title)}</b><small>${esc(it.kind || '')}</small></span><span class="rscore">♥ ${fmtH(it.score > 5 ? it.score / 2 : it.score)}<small>/5</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>`;
   }
   const lists = S.lists || [];
   const shareBox = `<section class="glow amber"><h3>🔗 Share My Top 50</h3>${!me ? '<p class="fine">Sign in with Google to share your list.</p><button class="btn" data-acct2>Sign in with Google</button>' : S.shared ? `<p class="fine">✓ Shared. It updates when you change it. People who watch from it give it points.</p><div class="where"><span>Link:</span><a href="${esc(listLink(me.uid))}" target="_blank" rel="noopener">${esc(listLink(me.uid))}</a></div><div class="act" style="display:flex;gap:8px;margin-top:8px"><button class="btn" data-copylist>Copy link</button><button class="btn alt" data-unshare>Stop sharing</button></div>` : `<p class="fine">Publish your list so friends and other Marvel Magic viewers can watch from it.</p><button class="btn gold" data-sharelist ${top.length ? '' : 'disabled'}>Share my list</button>`}</section>`;
@@ -1020,7 +1027,7 @@ function ratingsPage() {
   const svc = (n, i) => `<div class="rrow"><span class="rnum">${i + 1}</span><span class="t"><b>${esc(n)}</b><small>Opened ${S.opens[n] || 0} time${S.opens[n] === 1 ? '' : 's'}${FREE_SVC.has(n) ? ' · Free' : S.lastOpen[n] ? ' · last ' + (Math.floor((Date.now() - S.lastOpen[n]) / DAY) ? Math.floor((Date.now() - S.lastOpen[n]) / DAY) + ' days ago' : 'today') : ' · not used yet'}</small><div class="bar"><i style="width:${Math.round((S.opens[n] || 0) / maxOpen * 100)}%"></i></div></span></div>`;
   const mmTab = S.rtab === 'mm', chart = mmTop50();
   const tabs = `<div class="whtabs" style="margin:16px 0 4px"><button class="wtab ${mmTab ? '' : 'on'}" data-rtab="me">⭐ My Top 50</button><button class="wtab ${mmTab ? 'on' : ''}" data-rtab="mm">🏆 Marvel Magic Top 50</button></div>${kchips}`;
-  const chartHtml = !db || S.lists === null ? '<p class="fine">Loading…</p>' : S.listsErr ? '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">The Marvel Magic Top 50 switches on once the database allows shared lists.</p></div>' : chart.length ? `<div class="tlist">${chart.map((c, i) => { const x = { key: 'MM' + i, title: c.title, img: c.img, series: c.kind === 'Show', url: 'https://www.google.com/search?q=' + encodeURIComponent(c.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(c.title)}</b><small>On ${c.lists} list${c.lists === 1 ? '' : 's'} · avg ${(c.sum / c.lists).toFixed(1)}/10</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>` : '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">No shared lists yet. Share yours and it starts the chart.</p></div>';
+  const chartHtml = !db || S.lists === null ? '<p class="fine">Loading…</p>' : S.listsErr ? '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">The Marvel Magic Top 50 switches on once the database allows shared lists.</p></div>' : chart.length ? `<div class="tlist">${chart.map((c, i) => { const x = { key: 'MM' + i, title: c.title, img: c.img, series: c.kind === 'Show', url: 'https://www.google.com/search?q=' + encodeURIComponent(c.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(c.title)}</b><small>On ${c.lists} list${c.lists === 1 ? '' : 's'} · avg ♥ ${fmtH(c.sum / c.lists)}/5</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>` : '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">No shared lists yet. Share yours and it starts the chart.</p></div>';
   return `${mmTab ? `<img class="top50ban" src="banner_top50.jpg" alt="Marvel Magic Top 50 - the most watched, trending now">` : ''}${mmTab ? `<p class="fine" style="margin:0">The ${KW.toLowerCase()} chart from every viewer’s shared list: ranked high, on many lists, and watched from.</p>` : pageHero('prate', '⭐ MY RATINGS', 'My Top 50 ' + KW, 'Put what you’ve rated in your own order: what ranks above what. Share it if you want.')}${tabs}
     <div class="wgrid" style="margin-top:12px"><div class="wmain">${mmTab ? chartHtml : top.length ? `<div class="tlist">${top.map(rrow).join('')}</div>` : '<div class="hbox" style="padding:18px"><p style="margin:0 0 10px">No ${KW.toLowerCase()} rated yet.</p><p class="fine" style="margin:0 0 12px">Rate any show or movie 1 to 10 (bottom of the screen, or when you come back from watching). It lands here and you can move it up or down.</p><button class="btn gold" data-tab="1">Find something to rate</button></div>'}
       ${!mmTab && more.length ? `<h2>Also Rated</h2><div class="tlist">${more.map((k, i) => rrow(k, i + 50)).join('')}</div>` : ''}</div>
@@ -1104,7 +1111,29 @@ const poolItem = x => ({ key: 's' + x.id, title: x.name, svc: NETWORK_SERVICE[x.
 // "your channels": a service you ticked, a free service, or any TV network when you have YouTube TV (a live bundle)
 const yours = x => S.mine.length ? ((x.svc && hasIt(x.svc)) || !!livePkgFor(x.net || x.chan || '')) : true;
 const daysTo = t => { const d = Math.round((new Date(new Date(t).toDateString()) - new Date(new Date().toDateString())) / 86400000); return d <= 0 ? 'Today' : d === 1 ? 'Tomorrow' : 'In ' + d + ' days'; };
-const hposter = x => `<button class="lp hp${S.sel && S.sel.key === x.key ? ' on' : ''}${yours(x) ? '' : ' off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(x.title)}</span>`}${x.prem ? `<span class="hot">${x.prem.season === 1 ? 'NEW SERIES' : x.prem.season > 100 ? 'NEW SEASON' : 'SEASON ' + x.prem.season}</span>` : ''}<span class="lpt"><b>${esc(x.title)}</b>${x.svc || x.net ? `<span class="hsv">${esc(x.svc || x.net)}</span>` : ''}<small>${esc(new Date(x.when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }))} · <em>${esc(daysTo(x.when))}</em></small></span></button>`;
+const _hposter = x => `<button class="lp hp${S.sel && S.sel.key === x.key ? ' on' : ''}${yours(x) ? '' : ' off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(x.title)}</span>`}${x.prem ? `<span class="hot">${x.prem.season === 1 ? 'NEW SERIES' : x.prem.season > 100 ? 'NEW SEASON' : 'SEASON ' + x.prem.season}</span>` : ''}<span class="lpt"><b>${esc(x.title)}</b>${x.svc || x.net ? `<span class="hsv">${esc(x.svc || x.net)}</span>` : ''}<small>${esc(new Date(x.when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }))} · <em>${esc(daysTo(x.when))}</em></small></span></button>`;
+// HEARTS (Scott 11/14): a 👍 on every show / movie picture opens 1-5 hearts (scale 5.0); the rating feeds My Top 50 (move it with ▲▼ there)
+const fmtH = n => (Math.round(Number(n || 0) * 2) / 2).toFixed(1);
+const heartsTxt = n => '♥'.repeat(Math.round(n)) + '♡'.repeat(5 - Math.round(n));
+const myRating = x => { const r = x && S.ratings[rateKey(x)]; return r ? r.score : 0; };
+const thumbBtn = x => { const r = myRating(x); return `<button class="thumb${r ? ' on' : ''}" data-thumb="${reg(x)}" aria-label="Rate ${esc(x.title)}">${r ? '♥ ' + fmtH(r) : '👍'}</button>`; };
+const lposter = (x, big) => `<div class="pw">${_lposter(x, big)}${thumbBtn(x)}</div>`;
+const hposter = x => `<div class="pw">${_hposter(x)}${thumbBtn(x)}</div>`;
+function setRating(x, n) {
+  const k = rateKey(x);
+  if (!n) delete S.ratings[k];
+  else S.ratings[k] = { ...(S.ratings[k] || {}), title: x.title, img: x.big || x.img || (x.show && (x.show.img || (x.show.image && x.show.image.medium))) || (S.ratings[k] || {}).img || null, kind: x.series ? 'Show' : 'Movie', score: n, at: Date.now() };
+  save('ratings', S.ratings); if (typeof shareRefresh === 'function') shareRefresh();
+}
+function rateBox(x) {
+  const b = $('back'); if (b.open) b.close();
+  const cur = myRating(x);
+  b.innerHTML = `<b>Rate ${esc(x.title)}</b><div class="hearts">${[1, 2, 3, 4, 5].map(n => `<button class="${n <= cur ? 'on' : ''}" data-h="${n}" aria-label="${n} of 5 hearts">${n <= cur ? '♥' : '♡'}</button>`).join('')}</div><p class="fine" id="hlab">${cur ? fmtH(cur) + ' of 5.0' : 'Tap a heart'}</p><div class="act">${cur ? '<button class="btn alt" data-hclear>Clear</button>' : ''}<button class="btn alt" data-hx>Close</button></div>`;
+  b.querySelectorAll('[data-h]').forEach(h => h.onclick = () => { setRating(x, Number(h.dataset.h)); b.close(); const y = window.scrollY; draw(); window.scrollTo(0, y); });
+  const c = b.querySelector('[data-hclear]'); if (c) c.onclick = () => { setRating(x, 0); b.close(); draw(); };
+  b.querySelector('[data-hx]').onclick = () => b.close();
+  b.showModal(); (b.querySelector('[data-h]') || b).focus();
+}
 function comingPage() {
   const loading = !S.pool ? `<p class="fine">${S.poolBusy ? 'Gathering the next 3 weeks of premieres… about 20 seconds the first time.' : 'Loading…'}</p>` : '';
   const prem = (S.pool || []).filter(x => x.prem).map(poolItem).filter(kidOk).sort((a, b) => b.w - a.w || a.when - b.when);
@@ -1235,8 +1264,8 @@ function askSetup() {
 function askReview(p) {
   const b = $('back'); if (b.open || !p.rk) return;
   const had = S.ratings[p.rk] || {}; let pick = had.score || 0;
-  b.innerHTML = `<b>How was ${esc(p.title)}?</b><div class="where rate" style="flex-wrap:wrap">${Array.from({ length: 10 }, (_, i) => `<button data-r="${i + 1}" class="${pick === i + 1 ? 'on' : ''}" aria-label="${i + 1} of 10">${i + 1}</button>`).join('')}</div><input id="rvw" maxlength="280" aria-label="Short review" placeholder="Short review (optional)" value="${esc(had.review || '')}" style="width:100%;height:44px;margin-top:10px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--off)"><div class="act"><button class="btn alt" data-skip>Skip</button><button class="btn" data-keep>Save</button></div>`;
-  b.querySelectorAll('[data-r]').forEach(x => x.onclick = () => { pick = Number(x.dataset.r); b.querySelectorAll('[data-r]').forEach(y => y.classList.toggle('on', y === x)); });
+  b.innerHTML = `<b>How was ${esc(p.title)}?</b><div class="hearts">${[1, 2, 3, 4, 5].map(n => `<button data-r="${n}" class="${n <= pick ? 'on' : ''}" aria-label="${n} of 5 hearts">${n <= pick ? '♥' : '♡'}</button>`).join('')}</div><input id="rvw" maxlength="280" aria-label="Short review" placeholder="Short review (optional)" value="${esc(had.review || '')}" style="width:100%;height:44px;margin-top:10px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--off)"><div class="act"><button class="btn alt" data-skip>Skip</button><button class="btn" data-keep>Save</button></div>`;
+  b.querySelectorAll('[data-r]').forEach(x => x.onclick = () => { pick = Number(x.dataset.r); b.querySelectorAll('[data-r]').forEach(y => { const on = Number(y.dataset.r) <= pick; y.classList.toggle('on', on); y.textContent = on ? '♥' : '♡'; }); });
   b.querySelector('[data-skip]').onclick = () => b.close();
   b.querySelector('[data-keep]').onclick = () => { if (!pick) { b.querySelector('[data-r]').focus(); return; } S.ratings[p.rk] = { title: p.title, img: p.img || had.img || null, kind: p.series ? 'Show' : 'Movie', score: pick, review: b.querySelector('#rvw').value.trim().slice(0, 280), at: Date.now() }; save('ratings', S.ratings); b.close(); draw(); };
   b.showModal();
@@ -1312,7 +1341,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.gs) { for (const id of ['ggrid', 'fgrid']) { const g = $(id); if (g) g.scrollBy({ left: Number(t.dataset.gs) * 568, behavior: 'smooth' }); } }
   else if (t.dataset.addlist != null) { toggleList(items[Number(t.dataset.addlist)].show); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key) { if (!S.sel.svc || hasIt(S.sel.svc)) openIt(S.sel); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); enrich(x); }
-  else if (t.dataset.rate) { const x = S.sel, k = rateKey(x), n = Number(t.dataset.rate); if (S.ratings[k] && S.ratings[k].score === n) delete S.ratings[k]; else S.ratings[k] = { title: x.title, img: x.img || (x.show && (x.show.img || (x.show.image && x.show.image.medium))) || null, kind: x.series ? 'Show' : 'Movie', score: n, at: Date.now() }; save('ratings', S.ratings); const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.rate) { const x = S.sel, k = rateKey(x), n = Number(t.dataset.rate); setRating(x, S.ratings[k] && S.ratings[k].score === n ? 0 : n); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.unrate) { delete S.ratings[t.dataset.unrate]; save('ratings', S.ratings); shareRefresh(); draw(); }
   else if (t.dataset.mv) { const [n, d] = t.dataset.mv.split('|'), a = rankedSvcs(), i = a.indexOf(n), j = i + Number(d); if (j >= 0 && j < a.length) { [a[i], a[j]] = [a[j], a[i]]; S.rank = a; save('rank', S.rank); const y = window.scrollY; draw(); window.scrollTo(0, y); } }
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
@@ -1329,6 +1358,7 @@ document.addEventListener('click', e => {
   else if (t.hasAttribute('data-whome')) { const back = () => { if (kidsOn()) { S.kids = { ...S.kids, on: false }; save('kids', S.kids); } switchProfile(null); }; if (S.profLock || kidsOn()) pinBox('Enter the PIN to switch profiles', v => { if (v !== S.kids.pin) return false; S.profLock = false; save('profLock', false); back(); }); else back(); }
   else if (t.hasAttribute('data-proflock')) { if (S.profLock) pinBox('Enter the PIN to unlock this TV', v => { if (v !== S.kids.pin) return false; S.profLock = false; save('profLock', false); draw(); }); else if (!S.kids.pin) pinBox('Pick a 4-digit household PIN first', v => { S.kids = { ...S.kids, pin: v }; save('kids', S.kids); S.profLock = true; save('profLock', true); draw(); }); else { S.profLock = true; save('profLock', true); draw(); } }
   else if (t.dataset.mmeasy) { const ms = (S.house.members || []).map(m => m.id === t.dataset.mmeasy ? { ...m, easy: !m.easy } : m); saveHouse({ members: ms }).then(() => draw()).catch(() => {}); draw(); }
+  else if (t.dataset.thumb != null) { rateBox(items[Number(t.dataset.thumb)]); }
   else if (t.dataset.rkind) { S.rkind = t.dataset.rkind; draw(); }
   else if (t.dataset.rtab) { S.rtab = t.dataset.rtab; draw(); }
   else if (t.dataset.tmv) { const [k, d] = t.dataset.tmv.split('|'); moveTop(k, Number(d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -1464,6 +1494,7 @@ function startAccount() {
   });
 }
 if (location.hash.startsWith('#list=')) { S.tab = 5; S.viewList = { id: location.hash.slice(6), loading: true }; }
+for (const r of Object.values(S.ratings)) if (r && r.score > 5) r.score = Math.round(r.score) / 2;   // 11/14: 1-10 -> 5 hearts
 draw(); loadGuide(); loadGames(); loadEps(); loadTeamGames(); startAccount();
 if (S.viewList && S.viewList.loading) { const iv = setInterval(() => { if (db) { clearInterval(iv); openList(S.viewList.id); } }, 300); }
 setTimeout(loadPool, 4000);
