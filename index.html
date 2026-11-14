@@ -298,6 +298,9 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 .frsv{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:22px;padding:12px 16px;border-radius:12px;background:rgba(14,22,56,.85);border:1px solid var(--line)}.frsv a{padding:5px 12px;border-radius:14px;background:#2A3154;color:var(--text);text-decoration:none;font-size:14px;font-weight:700}
 @media (max-width:1250px){.flgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:760px){.flgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* MY TOP 50 (11/14) */
+.tlist{display:flex;flex-direction:column;gap:6px}.trow{display:flex;align-items:center;gap:10px;width:100%;padding:6px 10px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}.trow img,.trow .noimg{width:40px;height:58px;object-fit:cover;border-radius:6px;flex:none;background:var(--off)}.trow .t{flex:1;min-width:0}.trow b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trow small{font-size:12px;color:var(--dim)}.trow.on{outline:3px solid var(--pick)}
+.tlc{display:flex;align-items:center;gap:10px;width:100%;padding:8px 0;border-bottom:1px solid var(--line)}.tlc .t{flex:1;min-width:0}.tlc b{display:block}.tlc small{font-size:12px;color:var(--gold)}.tlimgs{display:flex}.tlimgs img{width:30px;height:44px;object-fit:cover;border-radius:4px;margin-right:-8px;border:2px solid var(--panel)}
 </style>
 </head>
 <body>
@@ -347,9 +350,9 @@ const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile'].includes(k)) queueSync(); };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile', 'order'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
+const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -849,14 +852,66 @@ function rankedSvcs() {
   const have = S.mine.length ? S.mine.filter(n => SERVICE_URL[n]) : S.setup.filter(n => SERVICE_URL[n]), all = [...new Set([...S.rank, ...have, ...FREE_SVC])];
   return all.filter(n => have.includes(n) || FREE_SVC.has(n));
 }
+// MY TOP 50 (Scott 11/14): the person puts their rated titles in their own order (▲▼), can share the list (public link), browses other viewers'
+// shared lists, and a list earns a point each time someone opens a title from it. Shared lists live in Firestore toplists/{uid}.
+function topKeys() {
+  const keys = Object.keys(S.ratings), inOrder = S.order.filter(k => S.ratings[k]);
+  const rest = keys.filter(k => !inOrder.includes(k)).sort((a, b) => S.ratings[b].score - S.ratings[a].score || S.ratings[b].at - S.ratings[a].at);
+  return [...inOrder, ...rest];
+}
+function moveTop(k, d) { const a = topKeys(), i = a.indexOf(k), j = i + d; if (i < 0 || j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; S.order = a; save('order', S.order); shareRefresh(); }
+const listItems = () => topKeys().slice(0, 50).map(k => { const r = S.ratings[k]; return { k, title: r.title, img: r.img || null, kind: r.kind || '', score: r.score }; });
+let shareTimer = null;
+function shareRefresh() { if (!S.shared || !me || !db) return; clearTimeout(shareTimer); shareTimer = setTimeout(publishList, 1500); }
+function publishList() {
+  if (!me || !db) return Promise.reject('signin');
+  return db.collection('toplists').doc(me.uid).set({ name: firstName() || 'Marvel Magic viewer', items: listItems(), at: firebase.firestore.FieldValue.serverTimestamp(), score: firebase.firestore.FieldValue.increment(0) }, { merge: true });
+}
+const listLink = uid => location.origin + location.pathname + '#list=' + uid;
+function loadLists() {
+  if (!db || S.lists) return; S.lists = [];
+  db.collection('toplists').orderBy('score', 'desc').limit(60).get().then(q => { S.lists = q.docs.map(d => ({ id: d.id, ...d.data() })); if (S.tab === 5) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => { S.lists = null; S.listsErr = true; });
+}
+function openList(uid) {
+  if (!db) { S.viewList = { id: uid, loading: true }; return; }
+  S.viewList = { id: uid, loading: true };
+  db.collection('toplists').doc(uid).get().then(d => { S.viewList = d.exists ? { id: uid, ...d.data() } : { id: uid, missing: true }; draw(); window.scrollTo(0, 0); }).catch(() => { S.viewList = { id: uid, missing: true }; draw(); });
+}
+function scoreList(uid, item) {   // someone opened a title from another viewer's list -> that list earns a point
+  if (!db || !uid || (me && me.uid === uid)) return;
+  db.collection('toplists').doc(uid).update({ score: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
+}
+// MARVEL MAGIC TOP 50 (Scott 11/14 "be marvelMagic top 50"): one chart from every shared list - a title earns more the higher people rank it,
+// how many lists it's on, and how much those lists get watched from
+function mmTop50() {
+  const pts = {};
+  for (const l of (S.lists || [])) (l.items || []).forEach((it, i) => { const k = String(it.title || '').toLowerCase(); if (!k) return; const e = pts[k] || (pts[k] = { title: it.title, img: it.img, kind: it.kind, pts: 0, lists: 0, sum: 0 }); e.pts += (51 - i) * (1 + Math.min(l.score || 0, 100) / 50); e.lists += 1; e.sum += it.score || 0; if (!e.img && it.img) e.img = it.img; });
+  return Object.values(pts).sort((a, b) => b.pts - a.pts).slice(0, 50);
+}
 function ratingsPage() {
-  const all = Object.entries(S.ratings).sort((a, b) => b[1].score - a[1].score || b[1].at - a[1].at), top = all.slice(0, 10), more = all.slice(10);
-  const row = ([k, r], i) => `<div class="rrow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind)}${r.review ? ' · “' + esc(r.review) + '”' : ''}</small></span><span class="rscore">${r.score}<small>/10</small></span><button class="round" data-unrate="${esc(k)}" aria-label="Remove rating">✕</button></div>`;
+  if (db) loadLists();
+  const keys = topKeys(), top = keys.slice(0, 50), more = keys.slice(50);
+  const rrow = (k, i) => { const r = S.ratings[k]; return `<div class="trow"><span class="rnum">${i + 1}</span>${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(r.title)}</b><small>${esc(r.kind || '')}${r.review ? ' · “' + esc(r.review) + '”' : ''}</small></span><span class="rscore">${r.score}<small>/10</small></span>
+    <button class="round" data-tmv="${esc(k)}|-1" aria-label="Move ${esc(r.title)} up" ${i ? '' : 'disabled'}>▲</button><button class="round" data-tmv="${esc(k)}|1" aria-label="Move ${esc(r.title)} down" ${i < keys.length - 1 ? '' : 'disabled'}>▼</button><button class="round" data-unrate="${esc(k)}" aria-label="Remove ${esc(r.title)}">✕</button></div>`; };
+  const v = S.viewList;
+  if (v) {   // viewing someone's shared list
+    const its = v.items || [];
+    return `${pageHero('prate', '🏆 TOP LIST', v.loading ? 'Loading list…' : v.missing ? 'List not found' : esc(v.name || 'Viewer') + '’s Top ' + its.length, v.loading || v.missing ? '' : `⭐ ${v.score || 0} points · each time someone watches from this list it earns a point.`)}
+      <div style="margin-top:14px"><button class="pill" data-closelist>‹ Back to my Top 50</button></div>
+      <div class="tlist" style="margin-top:12px">${its.map((it, i) => { const x = { key: 'L' + v.id + i, title: it.title, img: it.img, series: it.kind === 'Show', fromList: v.id, url: 'https://www.google.com/search?q=' + encodeURIComponent(it.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(it.title)}</b><small>${esc(it.kind || '')}</small></span><span class="rscore">${it.score}<small>/10</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>`;
+  }
+  const lists = S.lists || [];
+  const shareBox = `<section class="glow amber"><h3>🔗 Share My Top 50</h3>${!me ? '<p class="fine">Sign in with Google to share your list.</p><button class="btn" data-acct2>Sign in with Google</button>' : S.shared ? `<p class="fine">✓ Shared. It updates when you change it. People who watch from it give it points.</p><div class="where"><span>Link:</span><a href="${esc(listLink(me.uid))}" target="_blank" rel="noopener">${esc(listLink(me.uid))}</a></div><div class="act" style="display:flex;gap:8px;margin-top:8px"><button class="btn" data-copylist>Copy link</button><button class="btn alt" data-unshare>Stop sharing</button></div>` : `<p class="fine">Publish your list so friends and other Marvel Magic viewers can watch from it.</p><button class="btn gold" data-sharelist ${top.length ? '' : 'disabled'}>Share my list</button>`}</section>`;
+  const listsBox = `<section class="glow plain"><h3>🏆 Top Lists from Viewers</h3>${!db ? '<p class="fine">Loading…</p>' : S.listsErr ? '<p class="fine">Shared lists switch on once the database allows them.</p>' : lists.length ? lists.map((l, i) => `<button class="tlc" data-openlist="${esc(l.id)}"><span class="rnum">${i + 1}</span><span class="tlimgs">${(l.items || []).slice(0, 3).map(it => it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : '').join('')}</span><span class="t"><b>${esc(l.name || 'Viewer')}${me && l.id === me.uid ? ' (you)' : ''}</b><small>Top ${(l.items || []).length} · ⭐ ${l.score || 0} points</small></span></button>`).join('') : '<p class="fine">No shared lists yet. Be the first.</p>'}</section>`;
   const svcs = rankedSvcs(), maxOpen = Math.max(1, ...svcs.map(n => S.opens[n] || 0));
   const svc = (n, i) => `<div class="rrow"><span class="rnum">${i + 1}</span><span class="t"><b>${esc(n)}</b><small>Opened ${S.opens[n] || 0} time${S.opens[n] === 1 ? '' : 's'}${FREE_SVC.has(n) ? ' · Free' : ''}</small><div class="bar"><i style="width:${Math.round((S.opens[n] || 0) / maxOpen * 100)}%"></i></div></span><button class="round" data-mv="${esc(n)}|-1" aria-label="Move ${esc(n)} up" ${i ? '' : 'disabled'}>▲</button><button class="round" data-mv="${esc(n)}|1" aria-label="Move ${esc(n)} down" ${i < svcs.length - 1 ? '' : 'disabled'}>▼</button></div>`;
-  const rcard = ([k, r], i) => `<div class="rc">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(r.title)}</span>`}<span class="rcn">#${i + 1}</span><span class="rcs">${r.score}<small>/10</small></span><span class="lpt"><b>${esc(r.title)}</b><small>${esc(r.kind)}${r.review ? ' · “' + esc(r.review) + '”' : ''}</small></span><button class="round rcx" data-unrate="${esc(k)}" aria-label="Remove rating">✕</button></div>`;
-  return `${pageHero('prate', '⭐ MY RATINGS', 'My Top 10', 'Everything you rated, best first. Private to your account.')}<div class="wgrid" style="margin-top:18px"><div class="wmain">${top.length ? `<div class="lgrid">${top.map(rcard).join('')}</div>` : '<div class="hbox" style="padding:18px"><p style="margin:0 0 10px">Nothing rated yet.</p><p class="fine" style="margin:0 0 12px">Pick any show or movie and tap a number from 1 to 10 at the bottom of the screen. Marvel Magic also asks when you come back from watching.</p><button class="btn gold" data-tab="1">Find something to rate</button></div>'}${more.length ? `<h2>Everything Else I Rated</h2>${more.map((r, i) => row(r, i + 10)).join('')}` : ''}</div>
-    <aside class="wside"><section class="glow plain"><h3>My Streaming Services</h3><p class="fine">Put them in your own order. The counts show which ones you actually use from Marvel Magic.</p>${svcs.map(svc).join('')}</section></aside></div>`;
+  const mmTab = S.rtab === 'mm', chart = mmTop50();
+  const tabs = `<div class="whtabs" style="margin:16px 0 4px"><button class="wtab ${mmTab ? '' : 'on'}" data-rtab="me">⭐ My Top 50</button><button class="wtab ${mmTab ? 'on' : ''}" data-rtab="mm">🏆 Marvel Magic Top 50</button></div>`;
+  const chartHtml = !db || S.lists === null ? '<p class="fine">Loading…</p>' : S.listsErr ? '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">The Marvel Magic Top 50 switches on once the database allows shared lists.</p></div>' : chart.length ? `<div class="tlist">${chart.map((c, i) => { const x = { key: 'MM' + i, title: c.title, img: c.img, series: c.kind === 'Show', url: 'https://www.google.com/search?q=' + encodeURIComponent(c.title + ' watch') }; return `<button class="trow tpick${S.sel && S.sel.key === x.key ? ' on' : ''}" data-i="${reg(x)}"><span class="rnum">${i + 1}</span>${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : '<span class="noimg"></span>'}<span class="t"><b>${esc(c.title)}</b><small>On ${c.lists} list${c.lists === 1 ? '' : 's'} · avg ${(c.sum / c.lists).toFixed(1)}/10</small></span><span class="pill">Watch ›</span></button>`; }).join('')}</div>` : '<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">No shared lists yet. Share yours and it starts the chart.</p></div>';
+  return `${pageHero('prate', '⭐ MY RATINGS', mmTab ? 'Marvel Magic Top 50' : 'My Marvel Magic Top 50', mmTab ? 'The chart from every viewer’s shared list: ranked high, on many lists, and watched from.' : 'Put what you’ve rated in your own order: what ranks above what. Share it if you want.')}${tabs}
+    <div class="wgrid" style="margin-top:12px"><div class="wmain">${mmTab ? chartHtml : top.length ? `<div class="tlist">${top.map(rrow).join('')}</div>` : '<div class="hbox" style="padding:18px"><p style="margin:0 0 10px">Nothing rated yet.</p><p class="fine" style="margin:0 0 12px">Rate any show or movie 1 to 10 (bottom of the screen, or when you come back from watching). It lands here and you can move it up or down.</p><button class="btn gold" data-tab="1">Find something to rate</button></div>'}
+      ${!mmTab && more.length ? `<h2>Also Rated</h2><div class="tlist">${more.map((k, i) => rrow(k, i + 50)).join('')}</div>` : ''}</div>
+    <aside class="wside">${shareBox}${listsBox}<section class="glow plain"><h3>My Streaming Services</h3><p class="fine">Your own order. Counts show what you open from Marvel Magic.</p>${svcs.map(svc).join('')}</section></aside></div>`;
 }
 // HOME (Scott 11/14 board): everything on it is real data - his watchlist, tonight's listings, his teams' next game. No made-up titles or people.
 const firstName = () => (S.profile && S.profile.name) || (me ? ((me.displayName || me.email || '').split(/[ @]/)[0]) : '');
@@ -1041,6 +1096,7 @@ async function loadGames() {
   S.gamesDone = true; if (S.tab === 2 || S.tab === HOME || S.tab === 0) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
 function openIt(x) {
+  if (x && x.fromList) scoreList(x.fromList, x);
   armFull();
   countOpen(x.svc);
   logPick(x);
@@ -1097,11 +1153,18 @@ document.addEventListener('click', e => {
   else if (t.dataset.addlist != null) { toggleList(items[Number(t.dataset.addlist)].show); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key) { if (!S.sel.svc || hasIt(S.sel.svc)) openIt(S.sel); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); enrich(x); }
   else if (t.dataset.rate) { const x = S.sel, k = rateKey(x), n = Number(t.dataset.rate); if (S.ratings[k] && S.ratings[k].score === n) delete S.ratings[k]; else S.ratings[k] = { title: x.title, img: x.img || (x.show && (x.show.img || (x.show.image && x.show.image.medium))) || null, kind: x.series ? 'Show' : 'Movie', score: n, at: Date.now() }; save('ratings', S.ratings); const y = window.scrollY; draw(); window.scrollTo(0, y); }
-  else if (t.dataset.unrate) { delete S.ratings[t.dataset.unrate]; save('ratings', S.ratings); draw(); }
+  else if (t.dataset.unrate) { delete S.ratings[t.dataset.unrate]; save('ratings', S.ratings); shareRefresh(); draw(); }
   else if (t.dataset.mv) { const [n, d] = t.dataset.mv.split('|'), a = rankedSvcs(), i = a.indexOf(n), j = i + Number(d); if (j >= 0 && j < a.length) { [a[i], a[j]] = [a[j], a[i]]; S.rank = a; save('rank', S.rank); const y = window.scrollY; draw(); window.scrollTo(0, y); } }
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.rtab) { S.rtab = t.dataset.rtab; draw(); }
+  else if (t.dataset.tmv) { const [k, d] = t.dataset.tmv.split('|'); moveTop(k, Number(d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.hasAttribute('data-sharelist')) { publishList().then(() => { S.shared = true; save('shared', true); S.lists = null; draw(); }).catch(() => { const b = $('back'); b.innerHTML = '<b>Couldn\'t share yet</b><p class="fine">Shared lists switch on once the database allows them.</p><div class="act"><button class="btn" data-castok>OK</button></div>'; b.querySelector('[data-castok]').onclick = () => b.close(); b.showModal(); }); }
+  else if (t.hasAttribute('data-unshare')) { if (me && db) db.collection('toplists').doc(me.uid).delete().catch(() => {}); S.shared = false; save('shared', false); S.lists = null; draw(); }
+  else if (t.hasAttribute('data-copylist')) { const u = listLink(me.uid); (navigator.share ? navigator.share({ title: 'My Marvel Magic Top 50', url: u }) : navigator.clipboard.writeText(u)).catch(() => {}); t.textContent = '✓ Copied'; }
+  else if (t.dataset.openlist) { openList(t.dataset.openlist); draw(); }
+  else if (t.hasAttribute('data-closelist')) { S.viewList = null; if (location.hash.startsWith('#list=')) history.replaceState(history.state, '', location.pathname); draw(); }
   else if (t.dataset.rmactor) { S.actors = S.actors.filter(a => a !== t.dataset.rmactor); save('actors', S.actors); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-pfsave')) { S.profile = { ...S.profile, name: ($('pfname').value || '').trim().slice(0, 40) }; save('profile', S.profile); draw(); }
   else if (t.hasAttribute('data-acct2')) acctPress();
@@ -1187,9 +1250,9 @@ history.replaceState({ tab: S.tab }, '');
 // progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
 const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
-const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile });
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order });
 function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
@@ -1202,7 +1265,7 @@ function mergeLists(cloud, local) {   // first sign-in on a device: keep shows f
   for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
   return [...out.values()];
 }
-function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); localStorage.setItem('mm_history', JSON.stringify(S.history)); localStorage.setItem('mm_likes', JSON.stringify(S.likes)); localStorage.setItem('mm_actors', JSON.stringify(S.actors)); localStorage.setItem('mm_moods', JSON.stringify(S.moods)); localStorage.setItem('mm_profile', JSON.stringify(S.profile)); } catch {} }
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); localStorage.setItem('mm_history', JSON.stringify(S.history)); localStorage.setItem('mm_likes', JSON.stringify(S.likes)); localStorage.setItem('mm_actors', JSON.stringify(S.actors)); localStorage.setItem('mm_moods', JSON.stringify(S.moods)); localStorage.setItem('mm_profile', JSON.stringify(S.profile)); localStorage.setItem('mm_order', JSON.stringify(S.order)); } catch {} }
 function startAccount() {
   if (typeof firebase === 'undefined') return;
   try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
@@ -1212,7 +1275,7 @@ function startAccount() {
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
-        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; const hk = new Set((c.history || []).map(h => h.k)); S.history = [...(c.history || []), ...S.history.filter(h => !hk.has(h.k))].sort((a, b) => b.at - a.at); S.likes = [...new Set([...(c.likes || []), ...S.likes])]; S.actors = [...new Set([...(c.actors || []), ...S.actors])]; S.moods = [...new Set([...(c.moods || []), ...S.moods])]; S.profile = { ...S.profile, ...(c.profile || {}) }; storeLocal(); }
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; const hk = new Set((c.history || []).map(h => h.k)); S.history = [...(c.history || []), ...S.history.filter(h => !hk.has(h.k))].sort((a, b) => b.at - a.at); S.likes = [...new Set([...(c.likes || []), ...S.likes])]; S.actors = [...new Set([...(c.actors || []), ...S.actors])]; S.moods = [...new Set([...(c.moods || []), ...S.moods])]; S.profile = { ...S.profile, ...(c.profile || {}) }; if (c.order && c.order.length) S.order = c.order; storeLocal(); }
         pushCloud();
       } catch {}
       stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
@@ -1223,7 +1286,9 @@ function startAccount() {
     draw(); loadEps();
   });
 }
+if (location.hash.startsWith('#list=')) { S.tab = 5; S.viewList = { id: location.hash.slice(6), loading: true }; }
 draw(); loadGuide(); loadGames(); loadEps(); loadTeamGames(); startAccount();
+if (S.viewList && S.viewList.loading) { const iv = setInterval(() => { if (db) { clearInterval(iv); openList(S.viewList.id); } }, 300); }
 setTimeout(loadPool, 4000);
 setInterval(episodeAlerts, 30 * 60000);
 setInterval(loadTeamGames, 15 * 60000);
