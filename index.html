@@ -246,6 +246,11 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 .plc{display:flex;flex-direction:column;gap:4px;min-height:92px;padding:12px 14px;border-radius:12px;background:linear-gradient(160deg,#3A2470,#141B44);border:1px solid #5A4BB0;color:#fff;text-decoration:none}
 .plc b{font-size:16px;line-height:1.2}.pln{font-size:12px;font-weight:800;color:#C9B8FF}.plw{margin-top:auto;font-size:13px;font-weight:700;color:#FFD36B}
 button.ft{text-align:left}
+/* uniform guide (Scott 11/14) */
+.cell.gap{background:rgba(28,36,71,.45);border:1px dashed #36407A;color:var(--dim)}.cell.gap b{font-weight:600}.cell.gap.on{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border-style:solid;color:#fff}
+a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:linear-gradient(90deg,#2E1F66,#1C2447 60%)}a.cell.plcell b{color:#FFD36B}
+.gfree{margin-top:20px}.gfree .filters{flex:1}.gplut{max-height:560px;overflow-y:auto}.gplut .row{min-width:0!important}
+.grid .cell .ci{display:block;max-width:100%;overflow:hidden}.grid .cell .ci b,.grid .cell .ci small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -329,8 +334,14 @@ async function enrich(x) {
 }
 const reg = x => (items.push(x), items.length - 1);
 
+// Scott 11/14 "when time moves it still shows whats playing": a show that started before the visible edge keeps its title readable
+function stickTitles() {
+  const g = $('ggrid'); if (!g) return;
+  const edge = g.getBoundingClientRect().left + 190;   // just right of the sticky channel column
+  for (const c of g.querySelectorAll('.cell')) { const r = c.getBoundingClientRect(); c.style.paddingLeft = (12 + Math.max(0, Math.min(edge - r.left, r.width - 70))) + 'px'; }
+}
 function draw() {
-  const had = focusables().indexOf(document.activeElement);
+  const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0;
   items.length = 0;
   $('nav').innerHTML = NAV_ORDER.filter(i => !(kidsOn() && i === 2)).map(i => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${icon(i)}<span>${esc(TABS[i])}</span></button>`).join('');
   $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage, home, comingPage, forYouPage][S.tab]();
@@ -338,6 +349,8 @@ function draw() {
   document.body.dataset.tab = S.tab;
   drawAcct();
   dock();
+  if (gx && $('ggrid')) $('ggrid').scrollLeft = gx;   // Scott 11/14: the guide keeps your place when it refreshes
+  if ($('ggrid')) { $('ggrid').addEventListener('scroll', () => requestAnimationFrame(stickTitles), { passive: true }); stickTitles(); }
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
 const rateKey = x => x.show ? 's' + x.show.id : x.key;
@@ -417,10 +430,23 @@ function guide() {
     if (!own && pk) for (const a of by[n]) a.svc = pk;   // watch it live in the package you have
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
       const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100), on = pv && pv.key === a.key, live = a.start <= now && a.end > now;
-      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}"><b>${esc(a.title)}</b><small>${esc(clock(new Date(a.start)))} – ${esc(clock(new Date(a.end)))}</small>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
+      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}"><span class="ci"><b>${esc(a.title)}</b><small>${esc(clock(new Date(a.start)))} – ${esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
-    return `<div class="row"><div class="ch ${pv && pv.net === n ? 'on' : ''}"><b class="chn">${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
+    // Scott 11/14 "keep guide uniform easy to see": every hole in a row gets a plain box, so all rows read the same way
+    let gaps = '', cur = t0;
+    const gapBox = (a, b) => { if (b - a < 10 * 60000) return; const x = { key: 'gap' + n + a, title: n + ' live', net: n, svc, start: a, end: b, series: false, url: svc && SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' }; const l = (a - t0) / span * 100, r = (b - t0) / span * 100; gaps += `<button class="cell gap ${pv && pv.key === x.key ? 'on' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${r - l}%"><span class="ci"><b>No listing</b><small>${svc ? 'Watch live on ' + esc(svc) : 'Live channel'}</small></span></button>`; };
+    for (const a of by[n].slice().sort((x, y) => x.start - y.start)) { if (a.start > cur) gapBox(cur, Math.min(a.start, t1)); cur = Math.max(cur, a.end); }
+    if (cur < t1) gapBox(cur, t1);
+    return `<div class="row"><div class="ch ${pv && pv.net === n ? 'on' : ''}"><b class="chn">${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}${gaps}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
   }).join('');
+  // Pluto channels as ordinary guide rows (one category at a time) instead of a separate block of tiles
+  loadPluto();
+  const pcats = PLUTO_CH && PLUTO_CH.length ? [...new Set(PLUTO_CH.map(c => c[3]))].filter(c => !kidsOn() || c === 'Kids') : [];
+  const pcat = pcats.includes(S.plutoCat) ? S.plutoCat : (kidsOn() ? 'Kids' : 'Movies');
+  const pch = pcats.length ? PLUTO_CH.filter(c => c[3] === pcat) : [];
+  const plutoRows = pch.map(c => `<div class="row"><div class="ch"><b class="chn">${c[2] ? c[2] + ' · ' : ''}${esc(c[0])}</b><small>Pluto TV · Free</small></div><div class="track"><a class="cell plcell" href="${esc(plutoUrl(c[1]))}" target="_blank" rel="noopener" data-free="Pluto TV" style="left:0;width:100%"><b>▶ Watch live</b><small>${esc(pcat)} channel · always on</small></a></div></div>`).join('');
+  const plutoCards = pch.map(c => `<a class="card freecard" href="${esc(plutoUrl(c[1]))}" target="_blank" rel="noopener" data-free="Pluto TV"><span class="t"><small>Pluto TV · Free${c[2] ? ' · ' + c[2] : ''}</small><b>${esc(c[0])}</b><small>▶ Watch live</small></span></a>`).join('');
+  const plutoBar = pcats.length ? `<div class="gbar gfree"><span class="gday">📺 Free Pluto TV channels</span><div class="filters">${pcats.map(c => `<button class="chip ${c === pcat ? 'on' : ''}" data-plcat="${esc(c)}">${esc(c)}</button>`).join('')}</div></div>` : '';
   const list = nets.map(n => {
     const sorted = by[n].sort((a, b) => a.start - b.start), cur = sorted.find(a => a.end > now) || sorted[0], next = sorted[sorted.indexOf(cur) + 1], ok = !cur.svc || hasIt(cur.svc);
     return `<button class="card ${S.sel && S.sel.key === cur.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(cur)}"><span class="t"><small>${esc(n)}${cur.svc ? ' · ' + esc(cur.svc) : ''}</small><b>${esc(cur.title)}</b><small>${cur.start <= now ? 'On now' : esc(clock(new Date(cur.start)))}${next ? ' · Next: ' + esc(next.title) : ''}</small></span></button>`;
@@ -428,7 +454,8 @@ function guide() {
   const today = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
   for (const n of nets) { const pk = livePkgFor(n); if (pk && !(NETWORK_SERVICE[n] && S.mine.includes(NETWORK_SERVICE[n]))) for (const a of by[n]) a.svc = pk; }
   return `${preview(pv, now)}<div class="gbar"><span class="gday">📅 Today, ${esc(today)}</span><button class="pill gsb" data-gs="-1" aria-label="Earlier">‹</button><button class="pill gsb" data-gs="1" aria-label="Later">›</button><span class="fine">${nets.length} channel${nets.length === 1 ? '' : 's'} you can watch · next 8 hours${Object.keys(LIVE_PKG).some(pk => S.mine.includes(pk) && LIVE_PKG[pk] !== '*') ? ' · package channels can vary by plan and area' : ''}</span></div>
-    <div class="grid" id="ggrid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>${kidsOn() ? '' : ticker()}${plutoBlock()}${freeTv()}${credit()}`;
+    <div class="grid" id="ggrid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>
+    ${plutoBar}<div class="grid gplut">${plutoRows}</div><div class="phone">${plutoCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
 }
 const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
 function showItem(s) {
