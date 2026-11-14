@@ -1,0 +1,24 @@
+# .github/workflows/free_guide.yml
+# Save to: C:\MarvelApps\marvelmagic\.github\workflows\free_guide.yml
+# Rebuilds free_guide.json (free-channel schedules for the Live TV Guide) every 3 hours. Test build: community XMLTV data, not licensed.
+name: free guide
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/build_free_guide.py free_guide.json
+      - run: |
+          git config user.name "marvel-magic-guide-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add free_guide.json
+          git diff --cached --quiet || (git commit -m "free guide refresh" && git push)

@@ -268,6 +268,10 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 .stticks{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.stck{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 12px;border-radius:10px;background:var(--cell);cursor:pointer;font-weight:600}.stck input{width:20px;height:20px;accent-color:#8A3FF0}
 .stchips{display:flex;flex-wrap:wrap;gap:8px}
 @media (max-width:900px){.stgrid{grid-template-columns:minmax(0,1fr)}}
+/* free channel guide (11/14) */
+#fgrid .ch{flex-direction:row;align-items:center;gap:8px}.chlogo{width:38px;height:28px;object-fit:contain;flex:none;background:rgba(255,255,255,.06);border-radius:5px}.cht{display:flex;flex-direction:column;min-width:0;overflow:hidden}.cht b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cht small{font-size:12px;color:var(--dim)}
+.gfree .chip small{font-size:11px;color:var(--dim);margin-left:2px}.gfree .chip.on small{color:#fff}
+#fgrid{max-height:70vh;overflow-y:auto}#fgrid .times{position:sticky;top:0;z-index:3;background:var(--bg)}
 </style>
 </head>
 <body>
@@ -294,10 +298,10 @@ const SERVICE_URL = {
   Netflix: q => 'https://www.netflix.com/search?q=' + q, Hulu: q => 'https://www.hulu.com/search?q=' + q, 'Prime Video': q => 'https://www.amazon.com/s?i=instant-video&k=' + q,
   'Disney+': () => 'https://www.disneyplus.com/', 'HBO Max': () => 'https://www.hbomax.com/', Peacock: () => 'https://www.peacocktv.com/', 'Paramount+': () => 'https://www.paramountplus.com/',
   'Apple TV': q => 'https://tv.apple.com/search?term=' + q, ESPN: () => 'https://www.espn.com/watch/', 'YouTube TV': () => 'https://tv.youtube.com/', 'Fox One': () => 'https://www.fox.com/', 'Sling Orange': () => 'https://watch.sling.com/', 'Sling Blue': () => 'https://watch.sling.com/', 'Hulu + Live TV': () => 'https://www.hulu.com/live', 'DirecTV Stream': () => 'https://stream.directv.com/', Fubo: () => 'https://www.fubo.tv/',
-  'Pluto TV': () => 'https://pluto.tv/', Tubi: () => 'https://tubitv.com/', Plex: () => 'https://watch.plex.tv/', 'Xumo Play': () => 'https://play.xumo.com/', 'The Roku Channel': () => 'https://therokuchannel.roku.com/'
+  'Samsung TV Plus': () => 'https://www.samsungtvplus.com/', 'Pluto TV': () => 'https://pluto.tv/', Tubi: () => 'https://tubitv.com/', Plex: () => 'https://watch.plex.tv/', 'Xumo Play': () => 'https://play.xumo.com/', 'The Roku Channel': () => 'https://therokuchannel.roku.com/'
 };
 // Free services need no account, so they always count as yours (Scott 11/08: "plus all free one")
-const FREE_SVC = new Set(['Pluto TV', 'Tubi', 'Plex', 'Xumo Play', 'The Roku Channel']);
+const FREE_SVC = new Set(['Pluto TV', 'Tubi', 'Plex', 'Xumo Play', 'The Roku Channel', 'Samsung TV Plus']);
 const NETWORK_SERVICE = { NBC: 'Peacock', Bravo: 'Peacock', USA: 'Peacock', CBS: 'Paramount+', 'CBS Sports Network': 'Paramount+', ABC: 'Hulu', FX: 'Hulu', HBO: 'HBO Max', TNT: 'HBO Max', TBS: 'HBO Max', TLC: 'HBO Max', Discovery: 'HBO Max', FOX: 'Fox One', FS1: 'Fox One', ESPN: 'ESPN', ESPN2: 'ESPN', ESPNU: 'ESPN', 'SEC Network': 'ESPN', ACCN: 'ESPN', Netflix: 'Netflix', Hulu: 'Hulu', 'Prime Video': 'Prime Video', 'Disney+': 'Disney+', 'HBO Max': 'HBO Max', Peacock: 'Peacock', 'Paramount+': 'Paramount+', 'Apple TV+': 'Apple TV', 'Apple TV': 'Apple TV' };
 // Where a TV network's live games can be streamed (Scott 11/08: "show where all can be watched based on your accounts"). Claude's general knowledge, not a data feed: carriage can vary by area.
 const YT = 'YouTube TV';
@@ -354,12 +358,12 @@ const reg = x => (items.push(x), items.length - 1);
 
 // Scott 11/14 "when time moves it still shows whats playing": a show that started before the visible edge keeps its title readable
 function stickTitles() {
-  const g = $('ggrid'); if (!g) return;
+  for (const id of ['ggrid', 'fgrid']) { const g = $(id); if (!g) continue;
   const edge = g.getBoundingClientRect().left + 190;   // just right of the sticky channel column
-  for (const c of g.querySelectorAll('.cell')) { const r = c.getBoundingClientRect(); c.style.paddingLeft = (12 + Math.max(0, Math.min(edge - r.left, r.width - 70))) + 'px'; }
+  for (const c of g.querySelectorAll('.cell')) { const r = c.getBoundingClientRect(); c.style.paddingLeft = (12 + Math.max(0, Math.min(edge - r.left, r.width - 70))) + 'px'; } }
 }
 function draw() {
-  const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0;
+  const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0, fx = $('fgrid') ? $('fgrid').scrollLeft : 0;
   items.length = 0;
   $('nav').innerHTML = NAV_ORDER.filter(i => !(kidsOn() && i === 2)).map(i => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${icon(i)}<span>${esc(TABS[i])}</span></button>`).join('');
   $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage, home, comingPage, forYouPage, settingsPage][S.tab]();
@@ -368,7 +372,9 @@ function draw() {
   drawAcct();
   dock();
   if (gx && $('ggrid')) $('ggrid').scrollLeft = gx;   // Scott 11/14: the guide keeps your place when it refreshes
-  if ($('ggrid')) { $('ggrid').addEventListener('scroll', () => requestAnimationFrame(stickTitles), { passive: true }); stickTitles(); }
+  if (fx && $('fgrid')) $('fgrid').scrollLeft = fx;
+  for (const id of ['ggrid', 'fgrid']) if ($(id)) $(id).addEventListener('scroll', () => requestAnimationFrame(stickTitles), { passive: true });
+  stickTitles();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
 const rateKey = x => x.show ? 's' + x.show.id : x.key;
@@ -478,16 +484,24 @@ function guide() {
     if (cur < t1) gapBox(cur, t1);
     return `<div class="row"><div class="ch ${pv && pv.net === n ? 'on' : ''}"><b class="chn">${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}${gaps}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
   }).join('');
-  // Pluto channels as ordinary guide rows (one category at a time) instead of a separate block of tiles
-  loadPluto();
-  const pcats = PLUTO_CH && PLUTO_CH.length ? [...new Set(PLUTO_CH.map(c => c[3]))].filter(c => !kidsOn() || c === 'Kids') : [];
-  const pcat = pcats.includes(S.plutoCat) ? S.plutoCat : (kidsOn() ? 'Kids' : 'Movies');
-  const pch = pcats.length ? PLUTO_CH.filter(c => c[3] === pcat) : [];
-  const plutoRows = pch.map(c => `<div class="row"><div class="ch"><b class="chn">${c[2] ? c[2] + ' · ' : ''}${esc(c[0])}</b><small>Pluto TV · Free</small></div><div class="track"><a class="cell plcell" href="${esc(plutoUrl(c[1]))}" target="_blank" rel="noopener" data-free="Pluto TV" style="left:0;width:100%"><b>▶ Watch live</b><small>${esc(pcat)} channel · always on</small></a></div></div>`).join('');
-  const plutoCards = pch.map(c => `<a class="card freecard" href="${esc(plutoUrl(c[1]))}" target="_blank" rel="noopener" data-free="Pluto TV"><span class="t"><small>Pluto TV · Free${c[2] ? ' · ' + c[2] : ''}</small><b>${esc(c[0])}</b><small>▶ Watch live</small></span></a>`).join('');
-  const plutoBar = pcats.length ? `<div class="gbar gfree"><span class="gday">📺 Free Pluto TV channels</span><div class="filters">${pcats.map(c => `<button class="chip ${c === pcat ? 'on' : ''}" data-plcat="${esc(c)}">${esc(c)}</button>`).join('')}</div></div>` : '';
+  // FREE CHANNELS with real schedules (free_guide.json), one category at a time, on the same timeline; one row per channel, every service that has it
+  loadFreeGuide();
+  const fall = FREE_G.ch || [], fcats = FREE_ORDER.filter(c => fall.some(r => r.g === c) && (!kidsOn() || c === 'Kids'));
+  const fcat = fcats.includes(S.freeCat) ? S.freeCat : (kidsOn() ? 'Kids' : 'Movies');
+  const fch = fall.filter(r => r.g === fcat).slice(0, 150);
+  const fRows = fch.map(r => {
+    const places = r.p.map(q => ({ svc: q[0], url: q[1] })), first = places[0];
+    const cells = r.s.filter(q => q[1] * 1000 > t0 && q[0] * 1000 < t1).map(q => {
+      const a = q[0] * 1000, b = q[1] * 1000, x = { key: 'f' + r.n + q[0], title: q[2] || r.n, net: r.n, start: a, end: b, svc: first.svc, exact: first.url, options: places, series: false, ep: q[3] || '' };
+      const l = Math.max(0, (a - t0) / span * 100), w = Math.min(100, (b - t0) / span * 100) - l, on = pv && pv.key === x.key, live = a <= now && b > now;
+      return `<button class="cell ${on ? 'on' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${w}%" title="${esc(x.title)}"><span class="ci"><b>${esc(x.title)}</b><small>${esc(clock(new Date(a)))} – ${esc(clock(new Date(b)))}${q[3] ? ' · ' + esc(q[3]) : ''}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
+    }).join('');
+    return `<div class="row"><div class="ch">${r.l ? `<img class="chlogo" src="${esc(r.l)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="cht"><b class="chn">${esc(r.n)}</b><small>Free · ${esc(r.p[0][0])}${r.p.length > 1 ? ' +' + (r.p.length - 1) : ''}</small></span></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
+  }).join('');
+  const fCards = fch.map(r => { const cur = r.s.find(q => q[1] * 1000 > now) || r.s[0]; if (!cur) return ''; const x = { key: 'f' + r.n + cur[0], title: cur[2] || r.n, net: r.n, start: cur[0] * 1000, end: cur[1] * 1000, svc: r.p[0][0], exact: r.p[0][1], options: r.p.map(q => ({ svc: q[0], url: q[1] })), series: false }; return `<button class="card" data-i="${reg(x)}"><span class="t"><small>${esc(r.n)} · Free</small><b>${esc(x.title)}</b><small>${cur[0] * 1000 <= now ? 'On now' : esc(clock(new Date(cur[0] * 1000)))}</small></span></button>`; }).join('');
+  const fBar = fcats.length ? `<div class="gbar gfree"><span class="gday">📺 Free channels · ${fall.length.toLocaleString()} with schedules</span><div class="filters">${fcats.map(c => `<button class="chip ${c === fcat ? 'on' : ''}" data-frcat="${esc(c)}">${esc(c)} <small>${fall.filter(r => r.g === c).length}</small></button>`).join('')}</div></div>` : (FREE_G.ch ? '' : '<p class="fine">Loading free channels…</p>');
   // ON-DEMAND ROWS: a streaming service has no timetable, so its row shows what's on it (top movies + shows), each watch-anytime
-  const odSvcs = catSvcs().filter(n => n !== 'Pluto TV');
+  const odSvcs = catSvcs().filter(n => n !== 'Pluto TV' && n !== 'Samsung TV Plus');
   const od = odSvcs.map(n => { loadCat(n, 'movie'); loadCat(n, 'tv'); const k = kidsOn() ? 1 : 0, m = (S.cat[n + '|movie|' + k] || {}).items || [], t = (S.cat[n + '|tv|' + k] || {}).items || []; const mix = []; for (let i = 0; i < 6; i++) { if (m[i]) mix.push(m[i]); if (t[i]) mix.push(t[i]); } return [n, mix.slice(0, 8), S.cat[n + '|movie|' + k]]; });
   const odRows = od.map(([n, mix, st]) => `<div class="row"><div class="ch"><b class="chn">${esc(n)}</b><small>${FREE_SVC.has(n) ? 'Free · ' : ''}On demand · anytime</small></div><div class="track">${mix.length ? mix.map((x, i) => `<button class="cell od ${S.sel && S.sel.key === x.key ? 'on' : ''}" data-i="${reg(x)}" style="left:${i * 12.5}%;width:12.5%" title="${esc(x.title)}"><span class="ci"><b>${esc(x.title)}</b><small>${esc((x.series ? 'Series' : 'Movie') + (x.note.match(/^\d{4}/) ? ' · ' + x.note.slice(0, 4) : ''))}</small></span></button>`).join('') : `<span class="cell gap" style="left:0;width:100%"><span class="ci"><b>${st && st.error ? 'Catalog not available' : 'Loading…'}</b><small>${esc(n)}</small></span></span>`}</div></div>`).join('');
   const odCards = od.map(([n, mix]) => mix.slice(0, 4).map(x => `<button class="card" data-i="${reg(x)}"><span class="t"><small>${esc(n)} · anytime</small><b>${esc(x.title)}</b><small>${x.series ? 'Series' : 'Movie'}</small></span></button>`).join('')).join('');
@@ -502,7 +516,7 @@ function guide() {
   return `${preview(pv, now)}<div class="gbar"><span class="gday">📅 Today, ${esc(today)}</span><button class="pill gsb" data-gs="-1" aria-label="Earlier">‹</button><button class="pill gsb" data-gs="1" aria-label="Later">›</button><span class="fine">${nets.length} channel${nets.length === 1 ? '' : 's'} you can watch · next 8 hours${Object.keys(LIVE_PKG).some(pk => S.mine.includes(pk) && LIVE_PKG[pk] !== '*') ? ' · package channels can vary by plan and area' : ''}</span></div>
     <div class="grid" id="ggrid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>
     ${odBar}<div class="grid gplut gond">${odRows}</div><div class="phone">${odCards}</div>
-    ${plutoBar}<div class="grid gplut">${plutoRows}</div><div class="phone">${plutoCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
+    ${fBar}<div class="grid" id="fgrid"><div class="times">${times}</div>${fRows}</div><div class="phone">${fCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
 }
 const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
 function showItem(s) {
@@ -563,6 +577,11 @@ function settingsPage() {
     ${kidsSection()}
     </div>`;
 }
+// FREE CHANNEL GUIDE (Scott 11/14): free_guide.json is rebuilt every 3 hours by tools/build_free_guide.py (GitHub Actions) from the community
+// XMLTV mirror at i.mjh.nz - Pluto TV, Samsung TV Plus, Plex, Roku Channel. Test build only: not licensed; licensed data before selling.
+let FREE_G = null;
+function loadFreeGuide() { if (FREE_G) return; FREE_G = { ch: [] }; fetch('free_guide.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => { FREE_G = j; if (S.tab === 0) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
+const FREE_ORDER = ['Movies', 'News', 'Sports', 'Drama', 'Comedy', 'Crime', 'Reality', 'Classic TV', 'Westerns', 'Sci-Fi', 'Kids', 'Food & Home', 'Nature & History', 'Music', 'En Español', 'Other'];
 // PLUTO CHANNELS (Scott 11/14): the channel list ships with the app (pluto_channels.json - name, slug, number, category; collected once from
 // Pluto's public lineup, no schedules). A tap opens that channel already playing on Pluto, never Pluto's own guide.
 let PLUTO_CH = null;
@@ -1008,7 +1027,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null && t.hasAttribute('data-go')) { const x = items[Number(t.dataset.i)]; if (!x.svc || hasIt(x.svc)) openIt(x); else { S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); } }
-  else if (t.dataset.gs) { const g = $('ggrid'); if (g) g.scrollBy({ left: Number(t.dataset.gs) * 568, behavior: 'smooth' }); }
+  else if (t.dataset.gs) { for (const id of ['ggrid', 'fgrid']) { const g = $(id); if (g) g.scrollBy({ left: Number(t.dataset.gs) * 568, behavior: 'smooth' }); } }
   else if (t.dataset.addlist != null) { toggleList(items[Number(t.dataset.addlist)].show); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key) { if (!S.sel.svc || hasIt(S.sel.svc)) openIt(S.sel); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); enrich(x); }
   else if (t.dataset.rate) { const x = S.sel, k = rateKey(x), n = Number(t.dataset.rate); if (S.ratings[k] && S.ratings[k].score === n) delete S.ratings[k]; else S.ratings[k] = { title: x.title, img: x.img || (x.show && (x.show.img || (x.show.image && x.show.image.medium))) || null, kind: x.series ? 'Show' : 'Movie', score: n, at: Date.now() }; save('ratings', S.ratings); const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -1020,6 +1039,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.rmactor) { S.actors = S.actors.filter(a => a !== t.dataset.rmactor); save('actors', S.actors); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-pfsave')) { S.profile = { ...S.profile, name: ($('pfname').value || '').trim().slice(0, 40) }; save('profile', S.profile); draw(); }
   else if (t.hasAttribute('data-acct2')) acctPress();
+  else if (t.dataset.frcat) { S.freeCat = t.dataset.frcat; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.plcat) { S.plutoCat = t.dataset.plcat; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-plgo')) { const g = document.querySelector('.plgrid'); if (g) g.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
   else if (t.dataset.cats) { S.catSvc = t.dataset.cats; const y = window.scrollY; draw(); window.scrollTo(0, y); }
