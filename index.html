@@ -161,7 +161,9 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 @media (max-width:760px){.hgrid{grid-template-columns:minmax(0,1fr)}.ht{font-size:34px}.hero{padding:20px;min-height:220px}.hero-planet{width:110px;height:110px;right:-10px;top:10px}.hero-planet::after{top:40px;height:30px;left:-30px;right:-30px}.cwrow{grid-template-columns:repeat(2,minmax(0,1fr))}.cwrow .cw:nth-child(3){display:none}.ftrow{grid-template-columns:repeat(2,minmax(0,1fr))}.hclock{font-size:20px}.btn.gold,.btn.ghost{flex:1;font-size:16px;padding:0 14px}nav svg{display:none}nav button{justify-content:center}}
 /* LIVE TV GUIDE (Scott 11/14 "Magic Guide" board) */
 .gpv{position:relative;overflow:hidden;border-radius:18px;min-height:300px;display:flex;align-items:center;padding:26px 32px;background:#100A30;border:1px solid #4B3A9A;margin-bottom:16px}
-.gpv-art{position:absolute;top:0;right:0;bottom:0;width:62%;background:center 20%/cover no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent,#000 40%);mask-image:linear-gradient(90deg,transparent,#000 40%)}
+.gpv-art{position:absolute;top:0;right:0;bottom:0;width:62%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 30%);mask-image:linear-gradient(90deg,transparent,#000 30%)}
+.gpv-art::before{content:"";position:absolute;inset:-30px;z-index:-1;background-image:var(--img);background-size:cover;background-position:center;filter:blur(26px) brightness(.55)}   /* Scott 11/14: never chop the picture - whole image shown, a blurred copy fills the rest */
+.gpv-art{isolation:isolate;overflow:hidden}.gpv-art::after{content:"";position:absolute;inset:0;background-image:var(--img);background-size:contain;background-position:right center;background-repeat:no-repeat}
 .gpv::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(16,10,48,.7),transparent 55%);pointer-events:none}
 .gpv-in{position:relative;z-index:1;max-width:620px}
 .gpvk{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:16px;color:#E2DAFF}.chb{padding:3px 10px;border:1.5px solid #8A6BFF;border-radius:7px;font-weight:800;font-size:14px}
@@ -272,6 +274,11 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 #fgrid .ch{flex-direction:row;align-items:center;gap:8px}.chlogo{width:38px;height:28px;object-fit:contain;flex:none;background:rgba(255,255,255,.06);border-radius:5px}.cht{display:flex;flex-direction:column;min-width:0;overflow:hidden}.cht b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cht small{font-size:12px;color:var(--dim)}
 .gfree .chip small{font-size:11px;color:var(--dim);margin-left:2px}.gfree .chip.on small{color:#fff}
 #fgrid{max-height:70vh;overflow-y:auto}#fgrid .times{position:sticky;top:0;z-index:3;background:var(--bg)}
+/* Home: Coming This Week strip + free TV line (11/14) */
+.lgrid.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.freebar{display:flex;align-items:center;gap:14px;width:100%;margin-top:16px;padding:12px 18px;border-radius:14px;border:1px solid #2F7A6A;background:linear-gradient(90deg,#0C2A2C,#111838 70%)}.freebar .fbi{font-size:26px}.freebar .t{flex:1;min-width:0}.freebar b{display:block;font-size:17px}.freebar small{color:var(--dim);font-size:13px}.fbgo{font-weight:800;color:#7FF0CF;white-space:nowrap}
+@media (max-width:1250px){.lgrid.six{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){.lgrid.six{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -430,7 +437,7 @@ function bgFor(show) {
   fetch(`https://api.tvmaze.com/shows/${show.id}/images`).then(r => r.ok ? r.json() : []).then(j => {
     const b = j.find(i => i.type === 'background' && i.main) || j.find(i => i.type === 'background');
     BG[show.id] = (b && b.resolutions && b.resolutions.original && b.resolutions.original.url) || fall;
-  }).catch(() => { BG[show.id] = fall; }).then(() => { const el = document.querySelector(`.gpv-art[data-id="${show.id}"]`); if (el && BG[show.id]) el.style.backgroundImage = `url("${BG[show.id]}")`; });
+  }).catch(() => { BG[show.id] = fall; }).then(() => { const el = document.querySelector(`.gpv-art[data-id="${show.id}"]`); if (el && BG[show.id]) el.style.setProperty('--img', `url("${BG[show.id]}")`); });
   return '';
 }
 const mineGame = g => g.teams && S.teams.some(t => t.path === g.path && g.teams.includes(t.id));
@@ -445,7 +452,7 @@ function preview(pv, now) {
   const sh = pv.show || {}, live = pv.start <= now && pv.end > now, bg = bgFor(pv.show), saved = pv.show && S.list.some(x => x.id === sh.id);
   const sum = strip(sh.summary), short = sum.length > 230 ? sum.slice(0, 227).replace(/\s+\S*$/, '') + '…' : sum;
   const tags = [...(sh.genres || []).slice(0, 3), sh.rating && sh.rating.average ? '★ ' + sh.rating.average : ''].filter(Boolean);
-  return `<section class="gpv"><div class="gpv-art" data-id="${esc(sh.id || '')}" style="${bg ? `background-image:url('${esc(bg)}')` : ''}"></div><div class="gpv-in">
+  return `<section class="gpv"><div class="gpv-art" data-id="${esc(sh.id || '')}" style="${bg ? `--img:url('${esc(bg)}')` : ''}"></div><div class="gpv-in">
     <div class="gpvk"><span class="chb">${esc(pv.net)}</span><span>${live ? 'Now Live' : 'Coming Up'} · ${esc(clock(new Date(pv.start)))} – ${esc(clock(new Date(pv.end)))}</span></div>
     <h1 class="gpvt">${esc(pv.title)}</h1>${pv.ep || pv.epName ? `<div class="gpve">${esc([pv.ep, pv.epName].filter(Boolean).join('  '))}</div>` : ''}
     ${short ? `<p class="gpvd">${esc(short)}</p>` : ''}${tags.length ? `<div class="gtags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
@@ -831,7 +838,14 @@ function home() {
     <div class="hgrid"><section class="cwbox"><div class="hh"><h2>Continue Watching</h2><button class="more" data-tab="3">See all ›</button></div>${cont.length ? `<div class="cwrow">${cont.map(cw).join('')}</div>` : `<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">${S.list.length ? 'Loading your shows…' : 'Save a show in Movies &amp; Shows and it shows up here with where you left off.'}</p></div>`}</section>
       <section><div class="hh"><h2>On Tonight</h2><button class="more" data-tab="0">Guide ›</button></div><div class="hbox">${tonight.length ? tonight.map(otr).join('') : `<p class="fine" style="padding:14px;margin:0">${S.airings.length ? 'Nothing else on your channels tonight.' : 'Loading tonight’s listings…'}</p>`}</div></section>
       ${kidsOn() ? '<section class="game"><div class="hh"><h2>🔒 Kids Lock</h2></div><p class="fine">Kids\' channels and family shows only. Sports and settings are hidden.</p><button class="pill" data-kids>Turn off (PIN)</button></section>' : `<section class="game"><div class="hh"><h2>Where's My Game?</h2><button class="more" data-tab="2">All ›</button></div>${gameBox}</section>`}</div>
-    <section><div class="hh" style="margin-top:20px"><h2>Free TV</h2><button class="more" data-tab="4">See all ›</button></div><p class="fine" style="margin:-4px 0 10px">Stream for free. You watch in each service's own app.</p><div class="ftrow">${FREE_TV.map(([n, u]) => n === 'Pluto TV' ? `<button class="ft" data-tab="4" style="--c:${FREE_LOOK[n]}"><span class="fttag">Free</span><b>${esc(n)}</b><span class="ftgo">Pick a channel ›</span></button>` : `<a class="ft" href="${esc(u)}" target="_blank" rel="noopener" data-free="${esc(n)}" style="--c:${FREE_LOOK[n] || '#2A3154'}"><span class="fttag">Free</span><b>${esc(n)}</b><span class="ftgo">Watch on ${esc(n)} ↗</span></a>`).join('')}</div></section>
+    ${(() => {   // Scott 11/14: "mention free tv in the guide, not waste all that room ... something far cooler in that spot"
+      const hot = (S.pool || []).filter(x => x.prem).map(poolItem).filter(x => kidOk(x) && yours(x) && x.img && x.when - now < 8 * 86400000).sort((a, b) => b.w - a.w).slice(0, 6);
+      const alt = hot.length ? [] : tonightPicks().filter(kidOk).slice(0, 6);
+      const nFree = FREE_G && FREE_G.ch && FREE_G.ch.length ? FREE_G.ch.length.toLocaleString() : '1,500+';
+      return `<section><div class="hh" style="margin-top:22px"><h2>${hot.length ? '🔥 Coming This Week on Your Services' : '🔥 Popular Tonight'}</h2><button class="more" data-tab="${hot.length ? 8 : 1}">See all ›</button></div>
+        ${hot.length || alt.length ? `<div class="lgrid six">${hot.length ? hot.map(hposter).join('') : alt.map(x => lposter(x)).join('')}</div>` : `<p class="fine">${S.poolBusy ? 'Finding this week’s premieres…' : 'Loading…'}</p>`}</section>
+        <button class="freebar" data-tab="0"><span class="fbi">📺</span><span class="t"><b>${nFree} free channels with schedules are in your Live TV Guide</b><small>Pluto TV · Samsung TV Plus · Plex · Roku Channel. No subscription.</small></span><span class="fbgo">Open guide ›</span></button>`;
+    })()}
     <div class="hfoot"><p class="fine">Watch buttons open the official service in its own window or app. Marvel Magic doesn't play video itself.</p><div class="svchips"><b>Your services:</b>${paid.length ? paid.slice(0, 4).map(n => `<span>${esc(n)} ✓</span>`).join('') + (paid.length > 4 ? `<span>+${paid.length - 4} more</span>` : '') : '<button class="pill" data-tab="3">Set them up</button>'}</div></div>${credit()}`;
 }
 // COMING SOON (HOT) + FOR YOU + KIDS LOCK (Scott 11/14: "a coming soon HOT page based on what channels you currently have", "its own recommendation
