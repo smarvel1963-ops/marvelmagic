@@ -262,6 +262,12 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 .splg2{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
 .hlg{display:block;width:56px;height:56px;object-fit:contain;margin:0 auto 4px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
 @media (max-width:760px){.splg2{width:56px;height:56px}}
+/* SETTINGS (11/14) */
+.stgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px;align-items:start}.stgrid .stwide{grid-column:1/-1}.stbox{margin:0}
+.stlab{display:block;font-weight:700}.stin{display:block;width:100%;height:46px;margin-top:6px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--off);font-size:17px}
+.stticks{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.stck{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 12px;border-radius:10px;background:var(--cell);cursor:pointer;font-weight:600}.stck input{width:20px;height:20px;accent-color:#8A3FF0}
+.stchips{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:900px){.stgrid{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -278,10 +284,10 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 <script>
 // Marvel Magic test build. Listings: TVmaze (free, credit required). Scores: ESPN's public scoreboard (personal test only, not for a paid release).
 // It opens each title on that service's own site or app; it never plays or stores a stream, and never holds a service's password.
-const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings', 'Watched', 'Home', 'Coming Soon', 'For You'];
+const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings', 'Watched', 'Home', 'Coming Soon', 'For You', 'Settings'];
 // Home (Scott 11/14) is page 7 so every older page number stays the same; it shows FIRST in the menu and the app opens on it.
-const HOME = 7, NAV_ORDER = [7, 0, 1, 8, 9, 2, 3, 4, 5, 6];   // Coming Soon + For You (Scott 11/14) are pages 8 and 9
-const ICONS = ['<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l3-4M13 7l3-4"/>', '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/>', '<path d="M6 3h12v18l-6-4-6 4z"/>', '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>', '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>', '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/>', '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>'];
+const HOME = 7, NAV_ORDER = [7, 0, 1, 8, 9, 2, 3, 4, 5, 6, 10];   // Coming Soon + For You (Scott 11/14) are pages 8 and 9
+const ICONS = ['<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l3-4M13 7l3-4"/>', '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/>', '<path d="M6 3h12v18l-6-4-6 4z"/>', '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>', '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>', '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/>', '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>', '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'];
 const icon = i => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[i]}</svg>`;
 const LEAGUES = [['NBA', 'basketball/nba'], ['College Basketball', 'basketball/mens-college-basketball'], ['NFL', 'football/nfl'], ['College Football', 'football/college-football'], ['NHL', 'hockey/nhl'], ['MLB', 'baseball/mlb']];
 const SERVICE_URL = {
@@ -311,9 +317,9 @@ const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history'].includes(k)) queueSync(); };
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {} };
+const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -356,7 +362,7 @@ function draw() {
   const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0;
   items.length = 0;
   $('nav').innerHTML = NAV_ORDER.filter(i => !(kidsOn() && i === 2)).map(i => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${icon(i)}<span>${esc(TABS[i])}</span></button>`).join('');
-  $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage, home, comingPage, forYouPage][S.tab]();
+  $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage, home, comingPage, forYouPage, settingsPage][S.tab]();
   $('signside').innerHTML = sideFoot();
   document.body.dataset.tab = S.tab;
   drawAcct();
@@ -531,6 +537,31 @@ function catSection() {
   return `<div class="hh" style="margin-top:22px"><h2>On Your Services</h2><div class="filters"><button class="chip ${kind === 'movie' ? 'on' : ''}" data-catk="movie">Movies</button><button class="chip ${kind === 'tv' ? 'on' : ''}" data-catk="tv">Shows</button></div></div>
     <div class="filters catsv">${svcs.map(n => `<button class="chip ${n === svc ? 'on' : ''}" data-cats="${esc(n)}">${esc(n)}${FREE_SVC.has(n) ? ' · Free' : ''}</button>`).join('')}</div>${body}
     <p class="fine">Popular titles from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>, where-to-watch by JustWatch. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>`;
+}
+// SETTINGS (Scott 11/14): profile, favorite teams, favorite actors, tick boxes for favorite movie + show types, moods, services, alerts, Kids Lock.
+// Synced to the person's account (Google sign-in) like the rest.
+const MOODS = ['Funny', 'Action', 'Mystery', 'Romance', 'Scary', 'Feel-good', 'Family Night', 'True story'];
+function settingsPage() {
+  if (kidsOn()) return `${pageHero('pwatch', '⚙ SETTINGS', 'Settings', 'Locked while Kids Lock is on.')}<div style="margin-top:18px">${kidsSection()}</div>`;
+  const mineT = t => S.teams.some(x => x.path === t.path && x.id === t.id);
+  const hits = S.teamHits ? `<div class="teamhits">${S.teamHits.length ? S.teamHits.map((t, i) => `<button class="chip" data-team="${i}" ${mineT(t) ? 'disabled' : ''}>${esc(t.name)} · ${esc(t.league)}${mineT(t) ? ' ✓' : ''}</button>`).join('') : '<p class="fine">No team found.</p>'}</div>` : '';
+  const box = (title, body, cls) => `<section class="glow ${cls || 'plain'} stbox"><h3>${title}</h3>${body}</section>`;
+  const tick = (list, key, v) => `<label class="stck"><input type="checkbox" data-st="${key}" value="${esc(v)}" ${list.includes(v) ? 'checked' : ''}><span>${esc(v)}</span></label>`;
+  const notif = !('Notification' in window) ? 'Not supported on this device.' : Notification.permission === 'granted' ? '✓ On. New episodes and game reminders pop up while Marvel Magic is open.' : Notification.permission === 'denied' ? 'Blocked in this browser\'s site settings.' : '<button class="btn" data-alerts>Turn on alerts</button>';
+  return `${pageHero('pwatch', '⚙ SETTINGS', 'My Settings', 'Tell Marvel Magic what you like. It shapes For You, picks, Sports and alerts.')}
+    <div class="stgrid">
+    ${box('👤 Profile', `<label class="stlab">Your name<input id="pfname" class="stin" maxlength="40" value="${esc(S.profile.name || firstName() || '')}" placeholder="Your name"></label><button class="btn alt" data-pfsave style="margin-top:8px">Save name</button>
+      <p class="fine" style="margin:12px 0 6px">${me ? '✓ Signed in as ' + esc(me.email || me.displayName || '') + '. Your settings follow you to every device.' : 'Sign in with Google and your settings follow you to every device.'}</p><button class="btn ${me ? 'alt' : ''}" data-acct2>${me ? 'Sign out' : 'Sign in with Google'}</button>`)}
+    ${box('🏈 Favorite Teams', `${S.teams.length ? S.teams.map(t => `<div class="spmy"><span>★</span><b>${esc(t.name)}</b><small>${esc(t.league)}</small><button class="round" data-rmteam="${esc(t.path + '|' + t.id)}" aria-label="Remove ${esc(t.name)}">✕</button></div>`).join('') : '<p class="fine">No teams yet.</p>'}
+      <form class="search" id="teamfind" style="margin-top:10px"><input id="tq" aria-label="Find a team" placeholder="Add a team, like Razorbacks or Chiefs" value="${esc(S.tq || '')}"><button class="btn">Add</button></form>${hits}<p class="fine">Their games show first on Sports and Home, with reminders.</p>`)}
+    ${box('🎭 Favorite Actors', `<div class="stchips">${S.actors.map(a => `<button class="chip on" data-rmactor="${esc(a)}" aria-label="Remove ${esc(a)}">${esc(a)} ✕</button>`).join('') || '<p class="fine">None yet.</p>'}</div>
+      <form class="search" id="actorfind" style="margin-top:10px"><input id="aq" maxlength="60" aria-label="Add an actor" placeholder="Add an actor, like Tom Hanks"><button class="btn">Add</button></form>`)}
+    ${box('🎬 Favorite Movie &amp; Show Types', `<div class="stticks">${GENRES.map(g => tick(S.likes, 'likes', g)).join('')}</div><p class="fine">For You picks lean on these.</p>`, 'stwide')}
+    ${box('😀 Moods I Like', `<div class="stticks">${MOODS.map(m => tick(S.moods, 'moods', m)).join('')}</div>`)}
+    ${box('📺 My Services', `<p class="fine">Tick what you have. The guide, catalogs and picks show only these.</p><div class="svcs">${SERVICES.map(x => `<label><input type="checkbox" data-svc="${esc(x)}" ${S.mine.includes(x) ? 'checked' : ''}>${esc(x)}</label>`).join('')}</div><button class="btn alt" data-tab="3" style="margin-top:10px">Sign in to services ›</button>`, 'stwide')}
+    ${box('🔔 Alerts', `<p class="fine">${notif}</p>`)}
+    ${kidsSection()}
+    </div>`;
 }
 // PLUTO CHANNELS (Scott 11/14): the channel list ships with the app (pluto_channels.json - name, slug, number, category; collected once from
 // Pluto's public lineup, no schedules). A tap opens that channel already playing on Pluto, never Pluto's own guide.
@@ -750,8 +781,8 @@ function ratingsPage() {
     <aside class="wside"><section class="glow plain"><h3>My Streaming Services</h3><p class="fine">Put them in your own order. The counts show which ones you actually use from Marvel Magic.</p>${svcs.map(svc).join('')}</section></aside></div>`;
 }
 // HOME (Scott 11/14 board): everything on it is real data - his watchlist, tonight's listings, his teams' next game. No made-up titles or people.
-const firstName = () => me ? ((me.displayName || me.email || '').split(/[ @]/)[0]) : '';
-const sideFoot = () => `<div class="sf"><div class="sfme"><span class="av">${esc((firstName() || 'G')[0].toUpperCase())}</span><b>${esc(firstName() || 'Guest')}</b></div>${kidsOn() ? '<button class="btn sfbtn" data-kids>🔒 Kids Lock ON</button>' : '<button class="btn alt sfbtn" data-tab="3">⚙ Manage Services</button>'}</div>`;
+const firstName = () => (S.profile && S.profile.name) || (me ? ((me.displayName || me.email || '').split(/[ @]/)[0]) : '');
+const sideFoot = () => `<div class="sf"><div class="sfme"><span class="av">${esc((firstName() || 'G')[0].toUpperCase())}</span><b>${esc(firstName() || 'Guest')}</b></div>${kidsOn() ? '<button class="btn sfbtn" data-kids>🔒 Kids Lock ON</button>' : '<button class="btn alt sfbtn" data-tab="10">⚙ Settings</button>'}</div>`;
 const greet = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const cdText = when => { const s = Math.max(0, Math.floor((when - Date.now()) / 1000)); if (!s) return 'Starting now'; const p = n => String(n).padStart(2, '0'); return s >= 86400 ? Math.floor(s / 86400) + 'd ' + p(Math.floor(s % 86400 / 3600)) + 'h' : p(Math.floor(s / 3600)) + ':' + p(Math.floor(s % 3600 / 60)) + ':' + p(s % 60); };
 function homeGame() {
@@ -776,7 +807,7 @@ function home() {
     g.state === 'in' ? `<span class="glive">● LIVE · ${esc(g.detail)}</span><span class="gsc">${esc(g.score)}</span>` : g.state === 'post' ? `<span class="ko">FINAL</span><span class="gsc">${esc(g.score)}</span>` : `<span class="ko">STARTS IN</span><span class="cd" data-when="${g.when}">${esc(cdText(g.when))}</span><small class="fine">${esc(g.detail)}</small>`}</button>${whereRow(g)}`;
   const paid = S.mine.filter(n => !FREE_SVC.has(n));
   const line = [fresh ? `${fresh} new episode${fresh === 1 ? '' : 's'} ready` : '', today ? `${today} game${today === 1 ? '' : 's'} on today` : ''].filter(Boolean).join(' · ') || 'Pick something and we open it in the right app.';
-  return `<div class="htop"><div class="hgreet">${esc(greet())}${firstName() ? ', ' + esc(firstName()) : ''}</div><button class="pill" data-tab="1" data-q>🔍 Search</button><button class="pill" data-kids>${kidsOn() ? '🔒 Kids ON' : '👪 Kids Lock'}</button>${kidsOn() ? '' : '<button class="pill" data-tab="3">⚙ Settings</button>'}<span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
+  return `<div class="htop"><div class="hgreet">${esc(greet())}${firstName() ? ', ' + esc(firstName()) : ''}</div><button class="pill" data-tab="1" data-q>🔍 Search</button><button class="pill" data-kids>${kidsOn() ? '🔒 Kids ON' : '👪 Kids Lock'}</button>${kidsOn() ? '' : '<button class="pill" data-tab="10">⚙ Settings</button>'}<span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
     <section class="hero"><div class="hero-sky"></div><div class="hero-art"></div><div class="hero-planet"></div><div class="hero-hills"></div><div class="hero-in"><h1 class="ht">Tonight on<br><em>Marvel Magic</em></h1><p class="hs">${esc(line)}</p><div class="hb"><button class="btn gold" data-tab="1">▶ Find Something to Watch</button><button class="btn ghost" data-tab="0">Open Live TV Guide</button></div></div></section>
     <div class="hgrid"><section class="cwbox"><div class="hh"><h2>Continue Watching</h2><button class="more" data-tab="3">See all ›</button></div>${cont.length ? `<div class="cwrow">${cont.map(cw).join('')}</div>` : `<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">${S.list.length ? 'Loading your shows…' : 'Save a show in Movies &amp; Shows and it shows up here with where you left off.'}</p></div>`}</section>
       <section><div class="hh"><h2>On Tonight</h2><button class="more" data-tab="0">Guide ›</button></div><div class="hbox">${tonight.length ? tonight.map(otr).join('') : `<p class="fine" style="padding:14px;margin:0">${S.airings.length ? 'Nothing else on your channels tonight.' : 'Loading tonight’s listings…'}</p>`}</div></section>
@@ -986,6 +1017,9 @@ document.addEventListener('click', e => {
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.rmactor) { S.actors = S.actors.filter(a => a !== t.dataset.rmactor); save('actors', S.actors); const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.hasAttribute('data-pfsave')) { S.profile = { ...S.profile, name: ($('pfname').value || '').trim().slice(0, 40) }; save('profile', S.profile); draw(); }
+  else if (t.hasAttribute('data-acct2')) acctPress();
   else if (t.dataset.plcat) { S.plutoCat = t.dataset.plcat; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-plgo')) { const g = document.querySelector('.plgrid'); if (g) g.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
   else if (t.dataset.cats) { S.catSvc = t.dataset.cats; const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -1006,8 +1040,9 @@ document.addEventListener('click', e => {
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { toggleList(S.sel.show); dock(); }
 });
-document.addEventListener('change', e => { const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
+document.addEventListener('change', e => { const k = e.target.dataset.st; if (k === 'likes' || k === 'moods') { const v = e.target.value; S[k] = e.target.checked ? [...new Set([...S[k], v])] : S[k].filter(x => x !== v); save(k, S[k]); return; } const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
+  if (e.target.id === 'actorfind') { e.preventDefault(); const a = ($('aq').value || '').trim().replace(/\s+/g, ' ').slice(0, 60); if (a && !S.actors.some(x => x.toLowerCase() === a.toLowerCase())) { S.actors = [...S.actors, a]; save('actors', S.actors); } const y = window.scrollY; draw(); window.scrollTo(0, y); return; }
   if (e.target.id === 'teamfind') { e.preventDefault(); S.tq = $('tq').value.trim(); const w = S.tq.toLowerCase(); if (!w) { S.teamHits = null; return draw(); } const all = await loadAllTeams(); S.teamHits = all.filter(t => t.name.toLowerCase().includes(w)).slice(0, 12); return draw(); }
   if (e.target.id !== 'find') return; e.preventDefault(); S.q = $('q').value.trim(); if (!S.q) { S.results = null; return draw(); }
   const q = S.q;
@@ -1065,9 +1100,9 @@ history.replaceState({ tab: S.tab }, '');
 // progress live at users/{their id} in Firebase project marvel-magic; the published rules let only that person read or write it. No streaming passwords, ever.
 const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'marvel-magic.firebaseapp.com', projectId: 'marvel-magic', storageBucket: 'marvel-magic.firebasestorage.app', messagingSenderId: '282622101673', appId: '1:282622101673:web:cc2322ae12d2b1487381b8' };
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
-const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history });
+const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile });
 function queueSync() { if (!me || !db) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { if (!me || !db) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
@@ -1080,7 +1115,7 @@ function mergeLists(cloud, local) {   // first sign-in on a device: keep shows f
   for (const x of local) { const c = out.get(x.id); out.set(x.id, c ? { ...c, at: Math.max(c.at || 0, x.at || 0), img: c.img || x.img } : x); }
   return [...out.values()];
 }
-function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); localStorage.setItem('mm_history', JSON.stringify(S.history)); } catch {} }
+function storeLocal() { try { localStorage.setItem('mm_mine', JSON.stringify(S.mine)); localStorage.setItem('mm_list', JSON.stringify(S.list)); localStorage.setItem('mm_setup', JSON.stringify(S.setup)); localStorage.setItem('mm_ratings', JSON.stringify(S.ratings)); localStorage.setItem('mm_rank', JSON.stringify(S.rank)); localStorage.setItem('mm_opens', JSON.stringify(S.opens)); localStorage.setItem('mm_teams', JSON.stringify(S.teams)); localStorage.setItem('mm_history', JSON.stringify(S.history)); localStorage.setItem('mm_likes', JSON.stringify(S.likes)); localStorage.setItem('mm_actors', JSON.stringify(S.actors)); localStorage.setItem('mm_moods', JSON.stringify(S.moods)); localStorage.setItem('mm_profile', JSON.stringify(S.profile)); } catch {} }
 function startAccount() {
   if (typeof firebase === 'undefined') return;
   try { firebase.initializeApp(FB); auth = firebase.auth(); db = firebase.firestore(); } catch { auth = null; return; }
@@ -1090,12 +1125,12 @@ function startAccount() {
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
-        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; const hk = new Set((c.history || []).map(h => h.k)); S.history = [...(c.history || []), ...S.history.filter(h => !hk.has(h.k))].sort((a, b) => b.at - a.at); storeLocal(); }
+        if (c) { S.mine = [...new Set([...(c.mine || []), ...S.mine])]; S.list = mergeLists(c.list || [], S.list); S.setup = [...new Set([...(c.setup || []), ...S.setup])]; S.ratings = { ...S.ratings, ...(c.ratings || {}) }; S.rank = (c.rank && c.rank.length) ? c.rank : S.rank; for (const [k, v] of Object.entries(c.opens || {})) S.opens[k] = Math.max(S.opens[k] || 0, v); const tk = t => t.path + t.id, had = new Set((c.teams || []).map(tk)); S.teams = [...(c.teams || []), ...S.teams.filter(t => !had.has(tk(t)))]; const hk = new Set((c.history || []).map(h => h.k)); S.history = [...(c.history || []), ...S.history.filter(h => !hk.has(h.k))].sort((a, b) => b.at - a.at); S.likes = [...new Set([...(c.likes || []), ...S.likes])]; S.actors = [...new Set([...(c.actors || []), ...S.actors])]; S.moods = [...new Set([...(c.moods || []), ...S.moods])]; S.profile = { ...S.profile, ...(c.profile || {}) }; storeLocal(); }
         pushCloud();
       } catch {}
       stopWatch = ref.onSnapshot(d => {   // a change made on another device shows up here
-        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [], ratings: c.ratings || {}, rank: c.rank || [], opens: c.opens || {}, teams: c.teams || [], history: c.history || [] }); if (j === lastCloud) return;
-        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; S.ratings = c.ratings || {}; S.rank = c.rank || []; S.opens = c.opens || {}; S.teams = c.teams || []; S.history = c.history || []; storeLocal(); draw(); loadEps(); loadTeamGames();
+        if (!d.exists || d.metadata.hasPendingWrites) return; const c = d.data(), j = JSON.stringify({ mine: c.mine || [], list: c.list || [], setup: c.setup || [], ratings: c.ratings || {}, rank: c.rank || [], opens: c.opens || {}, teams: c.teams || [], history: c.history || [], likes: c.likes || [], actors: c.actors || [], moods: c.moods || [], profile: c.profile || {} }); if (j === lastCloud) return;
+        lastCloud = j; S.mine = c.mine || []; S.list = c.list || []; S.setup = c.setup || []; S.ratings = c.ratings || {}; S.rank = c.rank || []; S.opens = c.opens || {}; S.teams = c.teams || []; S.history = c.history || []; S.likes = c.likes || []; S.actors = c.actors || []; S.moods = c.moods || []; S.profile = c.profile || {}; storeLocal(); draw(); loadEps(); loadTeamGames();
       }, () => {});
     }
     draw(); loadEps();
