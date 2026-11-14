@@ -334,6 +334,10 @@ body.easy{font-size:20px}body.easy nav button{min-height:64px;font-size:24px}bod
 .grid .times{position:relative}.nowtab{position:absolute;top:2px;transform:translateX(-50%);padding:2px 8px;border-radius:9px;background:var(--gold);color:#1A1030;font-size:11px;font-weight:900;white-space:nowrap;z-index:3;pointer-events:none}
 .cell.live{background-image:linear-gradient(90deg,rgba(255,194,75,.16) 0,rgba(255,194,75,.16) var(--el),transparent var(--el))}.cell.isg.live{background-image:linear-gradient(90deg,rgba(255,194,75,.18) 0,rgba(255,194,75,.18) var(--el),transparent var(--el)),linear-gradient(90deg,#3A1426,#1C2447 70%)}.cell.live.on{background-image:linear-gradient(90deg,rgba(255,255,255,.14) 0,rgba(255,255,255,.14) var(--el),transparent var(--el)),linear-gradient(135deg,#5C3DF0,#8A3FF0)}
 .updtoast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:20;padding:12px 22px;border-radius:24px;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);color:#fff;font-weight:800;box-shadow:0 0 18px rgba(120,80,255,.6)}
+/* TV code (11/14) */
+.pairbox{text-align:center;padding:26px;border-radius:20px;border:2px solid var(--gold);background:linear-gradient(160deg,#2A200C,#141026);margin-bottom:16px}.paircode{font-size:72px;font-weight:900;letter-spacing:10px;color:#FFE08A;margin:6px 0}.pairbox p{font-size:18px;margin:6px 0}
+.pairask{display:flex;align-items:center;gap:14px;width:100%;margin-bottom:12px;padding:12px 18px;border-radius:14px;border:1px solid #4B3A9A;background:rgba(20,16,50,.85)}.pairask>span:first-child{font-size:26px}.pairask .t{flex:1;min-width:0}.pairask b{display:block}.pairask small{color:var(--dim)}
+.tvadd{margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--line)}.tvadd h4{margin:0 0 6px}
 </style>
 </head>
 <body>
@@ -385,7 +389,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile', 'order', 'lastOpen', 'svcSince', 'svcSnooze', 'svcRemindOff', 'later', 'profiles', 'svcRate'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
+const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, paired: load('paired', null), pairCode: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -621,6 +625,7 @@ function catSection() {
 const WHOP_MM = 'https://whop.com/commander-marvel-por-picks/marvel-magic';   // Scott 11/14: $4.99/mo, 30-day free trial (prod_jXXGU9TnSIgHR)
 const MOODS = ['Funny', 'Action', 'Mystery', 'Romance', 'Scary', 'Feel-good', 'Family Night', 'True story'];
 function settingsPage() {
+  if (S.paired) return `${pageHero('pwatch', '⚙ SETTINGS', 'This TV', 'Set up for ' + esc(profName()) + '. Nothing to sign in to.')}<div style="margin-top:18px" class="glow plain" ><p>This screen belongs to <b>${esc(profName())}</b> in ${esc((S.house && S.house.name) || 'the household')}. To change it, the household owner removes it in their Settings.</p></div>`;
   if (kidsOn()) return `${pageHero('pwatch', '⚙ SETTINGS', 'Settings', 'Locked while Kids Lock is on.')}<div style="margin-top:18px">${kidsSection()}</div>`;
   const mineT = t => S.teams.some(x => x.path === t.path && x.id === t.id);
   const hits = S.teamHits ? `<div class="teamhits">${S.teamHits.length ? S.teamHits.map((t, i) => `<button class="chip" data-team="${i}" ${mineT(t) ? 'disabled' : ''}>${esc(t.name)} · ${esc(t.league)}${mineT(t) ? ' ✓' : ''}</button>`).join('') : '<p class="fine">No team found.</p>'}</div>` : '';
@@ -950,8 +955,8 @@ const PDEF = { list: [], ratings: {}, history: [], likes: [], moods: [], later: 
 const pick = () => Object.fromEntries(PERSONAL.map(k => [k, S[k]]));
 const houseMember = id => ((S.house && S.house.members) || []).find(m => m.id === id) || null;
 const myMember = () => S.houseRole === 'member' && me && ((S.house && S.house.members) || []).find(m => m.email && m.email === String(me.email || '').toLowerCase()) || null;
-const activeEasy = () => { const m = S.prof ? houseMember(S.prof) : myMember(); return !!(m && m.easy); };
-const profName = () => { const m = S.prof ? houseMember(S.prof) : myMember(); return m ? m.name : (firstName() || 'Me'); };
+const activeEasy = () => { const m = S.prof ? houseMember(S.prof) : S.paired ? houseMember(S.paired.pid) : myMember(); return !!(m && m.easy); };
+const profName = () => { const m = S.prof ? houseMember(S.prof) : S.paired ? houseMember(S.paired.pid) : myMember(); return m ? m.name : (S.paired && S.paired.name) || firstName() || 'Me'; };
 function switchProfile(id) {
   if ((S.prof || null) === (id || null)) return;
   S.profiles[S.prof || '__me'] = pick();
@@ -967,11 +972,53 @@ function switchProfile(id) {
 }
 function withPin(msg, then) { if (!S.profLock) return then(); pinBox(msg, v => { if (v !== S.kids.pin) return false; S.profLock = false; save('profLock', false); then(); }); }
 function easyHome() {
-  return `<div class="ezhead"><h1>Hi ${esc(profName())} 👋</h1><span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
+  return `${!S.paired && S.pairCode ? pairPanel() : ''}<div class="ezhead"><h1>Hi ${esc(profName())} 👋</h1><span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
     <div class="ezgrid"><button class="ez" data-tab="0"><span>📺</span><b>Live TV</b></button><button class="ez" data-tab="4"><span>🆓</span><b>Free TV</b></button><button class="ez" data-tab="3"><span>⭐</span><b>My Shows</b></button><button class="ez" data-tab="2"><span>🏈</span><b>Sports</b></button></div>
     ${S.later.length ? `<h2 class="ezh2">⏰ Saved for Later</h2>${laterRow(6)}` : ''}
     ${S.profLock || !S.prof ? '' : `<button class="ez back" data-whome>↩ Back to ${esc(firstName() || 'the main')} profile</button>`}`;
 }
+// TV CODE (Scott 11/14): pair a TV to a household profile without a sign-in
+let stopPair = null;
+async function startPair() {
+  if (!auth || !db) return;
+  try {
+    if (!me) await auth.signInAnonymously();
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    await db.collection('pair').doc(code).set({ anon: auth.currentUser.uid, at: firebase.firestore.FieldValue.serverTimestamp(), status: 'waiting' });
+    S.pairCode = code; draw();
+    if (stopPair) stopPair();
+    stopPair = db.collection('pair').doc(code).onSnapshot(d => {
+      const x = d.data(); if (!x || x.status !== 'approved') return;
+      S.paired = { hid: x.hid, pid: x.pid, name: x.pname || '' }; save('paired', S.paired); S.pairCode = null;
+      stopPair(); stopPair = null; db.collection('pair').doc(code).delete().catch(() => {});
+      loadDevice();
+    }, () => {});
+  } catch (e) { S.pairErr = true; draw(); }
+}
+function loadDevice() {
+  if (!db || !S.paired || !me) return;
+  const H = db.collection('households').doc(S.paired.hid);
+  H.get().then(d => {
+    if (!d.exists || !(d.data().devices || {})[me.uid]) { S.paired = null; save('paired', null); S.house = null; S.houseRole = null; draw(); return; }   // removed by the owner
+    S.house = { id: d.id, ...d.data() }; S.houseRole = 'device';
+    if ((S.house.services || []).length) { S.mine = [...new Set([...S.mine, ...S.house.services])]; save('mine', S.mine); }
+    if (S.house.kidsPin) { S.kids = { ...S.kids, pin: S.house.kidsPin }; }
+    const m = houseMember(S.paired.pid); if (m && m.type === 'Kid') S.kids = { ...S.kids, on: true };
+    save('kids', S.kids);
+    return H.collection('profiles').doc(S.paired.pid).get().then(pd => { if (pd.exists) { const c = pd.data(); for (const k of PERSONAL) if (c[k] !== undefined) { S[k] = c[k]; try { localStorage.setItem('mm_' + k, JSON.stringify(c[k])); } catch {} } } draw(); loadEps(); });
+  }).catch(() => draw());
+}
+async function approvePair(code, pid) {
+  const d = await db.collection('pair').doc(code).get();
+  if (!d.exists) throw new Error('That code isn’t showing on any TV. Check the number on the TV.');
+  const x = d.data(), m = houseMember(pid);
+  if (x.at && Date.now() - x.at.toMillis() > 20 * 60000) throw new Error('That code is too old. Press "Show a new code" on the TV.');
+  S.house.devices = { ...(S.house.devices || {}), [x.anon]: pid };
+  await db.collection('households').doc(me.uid).set({ devices: S.house.devices }, { merge: true });
+  await db.collection('pair').doc(code).update({ status: 'approved', hid: me.uid, pid, pname: m ? m.name : '' });
+}
+const pairPanel = () => S.pairCode ? `<section class="pairbox"><div class="lk">📺 SET UP THIS TV</div><div class="paircode">${S.pairCode.slice(0, 3)} ${S.pairCode.slice(3)}</div><p>On your phone open Marvel Magic → <b>⚙ Settings → 🏠 My Household → Add a TV</b> and type this code.</p><p class="fine">This screen sets itself up as soon as you approve it.</p></section>`
+  : `<button class="pairask" data-paircode><span>📺</span><span class="t"><b>Setting this up for someone else's TV?</b><small>Show a code and approve it from your phone - nothing to sign in to here.</small></span><span class="fbgo">Show a TV code ›</span></button>`;
 // HOUSEHOLD (Scott 11/14): "how many accounts ... owner can assign emails with profiles ... keep groups together but also replace people"
 const HOUSE_MAX = 6;   // owner + 5 (Netflix 5, Disney+ 7)
 function loadHouse() {
@@ -996,7 +1043,7 @@ function saveHouse(patch) {
   if (!me || !db || S.houseRole !== 'owner') return Promise.reject('owner');
   const h = { ...S.house, ...patch }; h.memberEmails = (h.members || []).map(m => String(m.email || '').toLowerCase()).filter(Boolean);
   S.house = h;
-  return db.collection('households').doc(me.uid).set({ owner: me.uid, ownerEmail: String(me.email || '').toLowerCase(), ownerName: firstName() || 'Owner', name: h.name || ((firstName() || 'My') + '’s household'), members: h.members || [], memberEmails: h.memberEmails, services: S.mine, kidsPin: S.kids.pin || '', at: firebase.firestore.FieldValue.serverTimestamp() });
+  return db.collection('households').doc(me.uid).set({ owner: me.uid, ownerEmail: String(me.email || '').toLowerCase(), ownerName: firstName() || 'Owner', name: h.name || ((firstName() || 'My') + '’s household'), members: h.members || [], memberEmails: h.memberEmails, services: S.mine, kidsPin: S.kids.pin || '', devices: h.devices || {}, at: firebase.firestore.FieldValue.serverTimestamp() });
 }
 function houseBox() {
   const h = S.house, role = S.houseRole;
@@ -1007,6 +1054,8 @@ function houseBox() {
   const row = (m, i) => `<div class="hhrow"><span class="av hhav ${m.type === 'Kid' ? 'kid' : ''}">${esc((m.name || '?')[0].toUpperCase())}</span><span class="t"><b>${esc(m.name || '')}</b><small>${esc(m.type)}${m.email ? ' · ' + esc(m.email) : i > 0 ? ' · watches on this TV, no sign-in' : ''}${m.easy ? ' · Easy Mode' : ''}${me && m.email && m.email === String(me.email || '').toLowerCase() && role === 'member' ? ' · you' : ''}</small></span>${role === 'owner' && i > 0 ? `<button class="pill" data-mmeasy="${esc(m.id)}">${m.easy ? 'Easy Mode on' : 'Easy Mode'}</button>` : ''}${role === 'owner' && i > 0 ? `<button class="round" data-rmmember="${esc(m.id)}" aria-label="Remove ${esc(m.name)}">✕</button>` : ''}</div>`;
   const full = people.length >= HOUSE_MAX;
   return `<p class="fine" style="margin:0 0 8px">${esc(h.name || 'Household')} · ${people.length} of ${HOUSE_MAX} people${role === 'member' ? ' · managed by ' + esc(h.ownerName || 'the owner') : ''}</p>${people.map(row).join('')}
+    ${role === 'owner' ? `<div class="tvadd"><h4>📺 TVs and computers set up for someone</h4>${Object.entries(h.devices || {}).map(([u, pid]) => `<div class="hhrow"><span class="t"><b>A TV for ${esc((houseMember(pid) || {}).name || 'someone')}</b><small>signs in with no password</small></span><button class="round" data-rmdevice="${esc(u)}" aria-label="Remove this TV">✕</button></div>`).join('')}
+      <form id="pairform" class="hhadd"><input id="pcode" inputmode="numeric" maxlength="7" placeholder="Code on the TV" aria-label="Code shown on the TV" required><select id="pprof" aria-label="Who uses that TV">${(h.members || []).map(m => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select><button class="btn">Add a TV</button></form>${(h.members || []).length ? '' : '<p class="fine">Add the person first (above), then their TV.</p>'}</div>` : ''}
     ${role === 'owner' ? (full ? '<p class="fine">Household is full. Remove someone to add someone new.</p>' : `<form id="addmember" class="hhadd"><input id="mmname" maxlength="30" placeholder="Name" aria-label="Name" required><input id="mmemail" type="email" maxlength="80" placeholder="Email (leave blank if they only watch on this TV)" aria-label="Email"><select id="mmtype" aria-label="Type"><option>Adult</option><option>Teen</option><option>Kid</option></select><label class="stck" style="min-height:44px"><input type="checkbox" id="mmeasy"><span>Easy Mode</span></label><button class="btn">Add</button></form>`) + '<p class="fine">They sign in to Marvel Magic with that email and join automatically. Removing someone takes them out right away; their own ratings and history stay theirs.</p>' : ''}`;
 }
 const houseKids = () => ((S.house && S.house.members) || []).filter(m => m.type === 'Kid' || !m.email);   // every profile that lives on this TV
@@ -1119,8 +1168,8 @@ function home() {
     g.state === 'in' ? `<span class="glive">● LIVE · ${esc(g.detail)}</span><span class="gsc">${esc(g.score)}</span>` : g.state === 'post' ? `<span class="ko">FINAL</span><span class="gsc">${esc(g.score)}</span>` : `<span class="ko">STARTS IN</span><span class="cd" data-when="${g.when}">${esc(cdText(g.when))}</span><small class="fine">${esc(g.detail)}</small>`}</button>${whereRow(g)}`;
   const paid = S.mine.filter(n => !FREE_SVC.has(n));
   const line = [fresh ? `${fresh} new episode${fresh === 1 ? '' : 's'} ready` : '', today ? `${today} game${today === 1 ? '' : 's'} on today` : ''].filter(Boolean).join(' · ') || 'Pick something and we open it in the right app.';
-  return `<div class="htop"><div class="hgreet">${esc(greet())}${firstName() ? ', ' + esc(firstName()) : ''}${houseKids().length && !S.profLock ? `<span class="whow"><small>Who's watching?</small><button class="av hhav ${S.prof ? '' : 'on'}" data-whome title="${esc(firstName() || 'Me')}">${esc((firstName() || 'M')[0].toUpperCase())}</button>${houseKids().map(k => `<button class="av hhav ${k.type === 'Kid' ? 'kid' : ''} ${S.prof === k.id ? 'on' : ''}" data-whoprof="${esc(k.id)}" title="${esc(k.name)}">${esc(k.name[0].toUpperCase())}</button>`).join('')}</span>` : ''}</div><button class="pill" data-tab="1" data-q>🔍 Search</button><button class="pill" data-kids>${kidsOn() ? '🔒 Kids ON' : '👪 Kids Lock'}</button>${kidsOn() ? '' : '<button class="pill" data-tab="10">⚙ Settings</button>'}<span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
-    ${unusedCards()}<section class="hero"><div class="hero-sky"></div><div class="hero-art"></div><div class="hero-planet"></div><div class="hero-hills"></div><div class="hero-in"><h1 class="ht">Tonight on<br><em>Marvel Magic</em></h1><p class="hs">${esc(line)}</p><div class="hb"><button class="btn gold" data-tab="1">▶ Find Something to Watch</button><button class="btn ghost" data-tab="0">Open Live TV Guide</button></div></div></section>
+  return `<div class="htop"><div class="hgreet">${esc(greet())}${firstName() ? ', ' + esc(firstName()) : ''}${houseKids().length && !S.profLock && !S.paired ? `<span class="whow"><small>Who's watching?</small><button class="av hhav ${S.prof ? '' : 'on'}" data-whome title="${esc(firstName() || 'Me')}">${esc((firstName() || 'M')[0].toUpperCase())}</button>${houseKids().map(k => `<button class="av hhav ${k.type === 'Kid' ? 'kid' : ''} ${S.prof === k.id ? 'on' : ''}" data-whoprof="${esc(k.id)}" title="${esc(k.name)}">${esc(k.name[0].toUpperCase())}</button>`).join('')}</span>` : ''}</div><button class="pill" data-tab="1" data-q>🔍 Search</button><button class="pill" data-kids>${kidsOn() ? '🔒 Kids ON' : '👪 Kids Lock'}</button>${kidsOn() ? '' : '<button class="pill" data-tab="10">⚙ Settings</button>'}<span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
+    ${!S.paired && (!me || me.isAnonymous) ? pairPanel() : ''}${unusedCards()}<section class="hero"><div class="hero-sky"></div><div class="hero-art"></div><div class="hero-planet"></div><div class="hero-hills"></div><div class="hero-in"><h1 class="ht">Tonight on<br><em>Marvel Magic</em></h1><p class="hs">${esc(line)}</p><div class="hb"><button class="btn gold" data-tab="1">▶ Find Something to Watch</button><button class="btn ghost" data-tab="0">Open Live TV Guide</button></div></div></section>
     <div class="hgrid"><section class="cwbox"><div class="hh"><h2>Continue Watching</h2><button class="more" data-tab="3">See all ›</button></div>${cont.length ? `<div class="cwrow">${cont.map(cw).join('')}</div>` : `<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">${S.list.length ? 'Loading your shows…' : 'Save a show in Movies &amp; Shows and it shows up here with where you left off.'}</p></div>`}</section>
       <section><div class="hh"><h2>On Tonight <small class="fine">for you</small></h2><button class="more" data-tab="0">Guide ›</button></div><div class="hbox">${teamGame ? otg(teamGame) : ''}${tonight.length ? tonight.slice(0, teamGame ? 3 : 4).map(otr).join('') : `<p class="fine" style="padding:14px;margin:0">${S.airings.length ? 'Nothing else on your channels tonight.' : 'Loading tonight’s listings…'}</p>`}</div></section>
       ${kidsOn() ? '<section class="game"><div class="hh"><h2>🔒 Kids Lock</h2></div><p class="fine">Kids\' channels and family shows only. Sports and settings are hidden.</p><button class="pill" data-kids>Turn off (PIN)</button></section>' : `<section class="game"><div class="hh"><h2>Where's My Game?</h2><button class="more" data-tab="2">All ›</button></div>${gameBox}</section>`}</div>
@@ -1420,6 +1469,8 @@ document.addEventListener('click', e => {
   else if (t.dataset.mmeasy) { const ms = (S.house.members || []).map(m => m.id === t.dataset.mmeasy ? { ...m, easy: !m.easy } : m); saveHouse({ members: ms }).then(() => draw()).catch(() => {}); draw(); }
   else if (t.dataset.svcrate) { svcRateBox(t.dataset.svcrate); }
   else if (t.dataset.thumb != null) { rateBox(items[Number(t.dataset.thumb)]); }
+  else if (t.hasAttribute('data-paircode')) { startPair(); }
+  else if (t.dataset.rmdevice) { const dv = { ...(S.house.devices || {}) }; delete dv[t.dataset.rmdevice]; S.house.devices = dv; saveHouse({ devices: dv }).then(() => draw()).catch(() => {}); draw(); }
   else if (t.dataset.rkind) { S.rkind = t.dataset.rkind; draw(); }
   else if (t.dataset.rtab) { S.rtab = t.dataset.rtab; draw(); }
   else if (t.dataset.tmv) { const [k, d] = t.dataset.tmv.split('|'); moveTop(k, Number(d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -1455,6 +1506,8 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => { if (e.target.dataset.svc && S.houseRole === 'owner') setTimeout(() => saveHouse({}).catch(() => {}), 50); if (e.target.hasAttribute('data-svcremind')) { S.svcRemindOff = !e.target.checked; save('svcRemindOff', S.svcRemindOff); return; } const k = e.target.dataset.st; if (k === 'likes' || k === 'moods') { const v = e.target.value; S[k] = e.target.checked ? [...new Set([...S[k], v])] : S[k].filter(x => x !== v); save(k, S[k]); return; } const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
+  if (e.target.id === 'pairform') { e.preventDefault(); const code = ($('pcode').value || '').replace(/\D/g, ''), pid = $('pprof').value; if (code.length !== 6) { alert('Type the 6 numbers shown on the TV.'); return; }
+    approvePair(code, pid).then(() => { alert('Done! That TV is set up for ' + ((houseMember(pid) || {}).name || 'them') + '. It will change by itself in a moment.'); draw(); }).catch(err => alert(err.message || 'Could not add that TV. Try again.')); return; }
   if (e.target.id === 'addmember') { e.preventDefault(); const name = ($('mmname').value || '').trim().slice(0, 30), email = ($('mmemail').value || '').trim().toLowerCase().slice(0, 80), type = $('mmtype').value; const h = S.house || {};
     if (!name || (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))) { alert('Add a name. An email is optional - leave it blank for someone who only watches on this TV.'); return; }
     if (email && ((h.members || []).some(m => m.email === email) || email === h.ownerEmail)) { alert('That email is already in the household.'); return; }
@@ -1520,8 +1573,8 @@ const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'mar
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
 const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later, profiles: S.profiles, svcRate: S.svcRate });
 function queueSync() { if (!me || !db || S.prof) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (!me || !db || S.prof) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later, profiles: S.profiles, svcRate: S.svcRate, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
-function drawAcct() { const b = $('acct'); if (!auth) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
+function pushCloud() { if (me && db && me.isAnonymous) { if (S.paired) db.collection('households').doc(S.paired.hid).collection('profiles').doc(S.paired.pid).set({ ...pick(), at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {}); return; } if (!me || !db || S.prof) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later, profiles: S.profiles, svcRate: S.svcRate, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function drawAcct() { const b = $('acct'); if (!auth || S.paired || (me && me.isAnonymous)) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
   const p = new firebase.auth.GoogleAuthProvider();
@@ -1540,6 +1593,7 @@ function startAccount() {
   auth.onAuthStateChanged(async u => {
     if (stopWatch) { stopWatch(); stopWatch = null; }
     me = u;
+    if (u && u.isAnonymous) { drawAcct(); if (S.paired) loadDevice(); draw(); return; }
     if (u) {
       const ref = db.collection('users').doc(u.uid);
       try { const d = await ref.get(), c = d.exists ? d.data() : null;
