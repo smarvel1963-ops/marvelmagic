@@ -209,7 +209,11 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 @media (max-width:760px){.sph h1{font-size:32px}.sph p{border:0;padding:0}.spt b{font-size:20px}.spsc{font-size:40px}.spf{padding:16px}.spbadge{font-size:17px}.spclock{font-size:16px}.spcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* MOVIES & SHOWS = THE LOUNGE (Scott 11/14 board) - warm gold + plum */
 .lounge{position:relative;overflow:hidden;border-radius:18px;min-height:330px;padding:28px 34px 110px;border:1px solid #6A3E7A;background:radial-gradient(600px 300px at 85% 10%,rgba(255,170,80,.25),transparent),linear-gradient(180deg,#2A1336 0%,#1C0E2A 60%,#140A20 100%)}
-.lounge-art{position:absolute;left:0;right:0;bottom:0;height:150px;background:url(hero_lounge.jpg) center bottom/cover no-repeat;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%);mask-image:linear-gradient(180deg,transparent,#000 45%)}
+/* Scott 11/14: lounge on the left half, theater (popcorn, candy, marquee) on the right half - art made in OpenArt (hero_theater.jpg) */
+.lounge-theater{position:absolute;top:0;right:0;bottom:0;width:52%;background:url(hero_theater.jpg) right center/cover no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent,#000 28%);mask-image:linear-gradient(90deg,transparent,#000 28%)}
+.lounge-in{max-width:52%}
+@media (max-width:1100px){.lounge-in{max-width:none}.lounge-theater{opacity:.35}}
+.lounge-art{position:absolute;left:0;right:36%;bottom:0;height:150px;-webkit-mask-composite:source-in;mask-composite:intersect;background:url(hero_lounge.jpg) left bottom/cover no-repeat;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%),linear-gradient(90deg,#000 60%,transparent);mask-image:linear-gradient(180deg,transparent,#000 45%),linear-gradient(90deg,#000 60%,transparent)}
 .lounge-in{position:relative;z-index:1}
 .lk{font-size:14px;letter-spacing:5px;font-weight:700;color:#FFC98A}
 .lt{margin:4px 0 6px;font-family:Georgia,"Times New Roman",serif;font-size:58px;line-height:1;color:#FFF1DC;text-shadow:0 0 24px rgba(255,170,80,.45)}
@@ -279,6 +283,9 @@ a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:lin
 .freebar{display:flex;align-items:center;gap:14px;width:100%;margin-top:16px;padding:12px 18px;border-radius:14px;border:1px solid #2F7A6A;background:linear-gradient(90deg,#0C2A2C,#111838 70%)}.freebar .fbi{font-size:26px}.freebar .t{flex:1;min-width:0}.freebar b{display:block;font-size:17px}.freebar small{color:var(--dim);font-size:13px}.fbgo{font-weight:800;color:#7FF0CF;white-space:nowrap}
 @media (max-width:1250px){.lgrid.six{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:760px){.lgrid.six{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* sport buttons (11/14) */
+.spsports{margin:0 0 12px}.spsports .chip small{font-size:11px;color:var(--dim);margin-left:3px}.spsports .chip.on small{color:#fff}
+.chip.fav{border-color:var(--gold);color:#FFE3A0}.chip.fav.on{background:linear-gradient(135deg,#C98A1E,#FFA62E);color:#1A1030;border-color:#FFD36B}.chip.fav.on small{color:#3A2410}
 </style>
 </head>
 <body>
@@ -638,7 +645,7 @@ function shows() {
   const rest = todayShows().filter(x => !pickKeys.has(x.key) && kidOk(x) && !S.hideT.has(tkey(x))).slice(0, 24);
   const res = S.results;
   const found = res ? `<div class="hh"><h2>Results for “${esc(S.q)}”</h2><button class="more" data-clearq>Clear ✕</button></div>${S.movies && S.movies.length && !kidsOn() ? `<h3 class="lsub">Movies</h3><div class="lgrid">${S.movies.map(m => lposter(m)).join('')}</div>` : ''}<h3 class="lsub">Shows</h3>${res.filter(kidOk).length ? `<div class="lgrid">${res.filter(kidOk).map(x => lposter({ ...x, big: x.show && x.show.img })).join('')}</div>` : '<p class="fine">No shows found.</p>'}` : '';
-  return `<section class="lounge"><div class="lounge-art"></div><div class="lounge-in"><div class="lk">🛋 THE LOUNGE</div><h1 class="lt">Movie Night</h1><p class="lsub2">Settle in and find something good tonight, from the services you have.</p>
+  return `<section class="lounge"><div class="lounge-art"></div><div class="lounge-theater"></div><div class="lounge-in"><div class="lk">🛋 THE LOUNGE</div><h1 class="lt">Movie Night</h1><p class="lsub2">Settle in and find something good tonight, from the services you have.</p>
       <div class="lb"><button class="btn gold" data-pick>▶ Find Tonight's Pick</button><form class="search lsearch" id="find"><input id="q" aria-label="Search movies and shows" placeholder="Search any movie or show" value="${esc(S.q || '')}"><button class="btn">Search</button></form></div>
       <div class="ltaste">${taste.length ? `<b>Your taste:</b>${taste.map(g => `<span>${esc(g)}</span>`).join('')}` : '<span class="fine">Save a few shows and Marvel Magic learns your taste.</span>'}</div></div></section>
     ${found}
@@ -670,7 +677,11 @@ function sports() {
   }
   // today's games, filtered
   const flt = S.sf || 'all', rank = { in: 0, pre: 1, post: 2 };
-  const shown = S.games.filter(g => flt === 'all' || (flt === 'live' && g.state === 'in') || (flt === 'up' && g.state === 'pre') || (flt === 'final' && g.state === 'post') || (flt === 'mine' && mineGame(g))).sort((a, b) => (mineGame(b) - mineGame(a)) || rank[a.state] - rank[b.state] || a.when - b.when);
+  // sport buttons: one per league with games today; leagues your favorite teams play get a star and always sit first
+  const favL = new Set(S.teams.map(t => t.league)), lg = [...new Set(S.games.map(g => g.league))].sort((a, b) => (favL.has(b) - favL.has(a)) || LEAGUES.findIndex(l => l[0] === a) - LEAGUES.findIndex(l => l[0] === b));
+  const spt = lg.includes(S.sport) ? S.sport : 'all';
+  const sportChips = `<button class="chip ${spt === 'all' ? 'on' : ''}" data-sport="all">All sports <small>${S.games.length}</small></button>` + lg.map(l => `<button class="chip ${spt === l ? 'on' : ''} ${favL.has(l) ? 'fav' : ''}" data-sport="${esc(l)}">${favL.has(l) ? '★ ' : ''}${esc(l)} <small>${S.games.filter(g => g.league === l).length}</small></button>`).join('');
+  const shown = S.games.filter(g => spt === 'all' || g.league === spt).filter(g => flt === 'all' || (flt === 'live' && g.state === 'in') || (flt === 'up' && g.state === 'pre') || (flt === 'final' && g.state === 'post') || (flt === 'mine' && mineGame(g))).sort((a, b) => (mineGame(b) - mineGame(a)) || rank[a.state] - rank[b.state] || a.when - b.when);
   const gc = g => `<button class="spc${sel(g)}${f && f.key === g.key ? ' feat' : ''}" data-i="${reg(g)}"><span class="spct ${g.state === 'in' ? 'l' : g.state === 'post' ? 'f' : 'u'}">${g.state === 'in' ? '● LIVE' : g.state === 'post' ? 'FINAL' : 'UPCOMING'}</span>${mineGame(g) ? '<span class="spstar">★</span>' : ''}<b class="spvs">${tlogo(g.awayLogo)}${esc(g.away)} <i>vs</i> ${tlogo(g.homeLogo)}${esc(g.home)}</b><small>${g.state === 'pre' ? esc(clock(new Date(g.when))) : esc(g.score + ' · ' + g.detail)}</small><small class="spcl">${esc(g.note)}</small></button>`;
   const chips = [['all', 'All'], ['live', '● Live'], ['up', 'Upcoming'], ['final', 'Final'], ['mine', '★ My Teams']].map(([v, l]) => `<button class="chip ${flt === v ? 'on' : ''}" data-sf="${v}">${l}</button>`).join('');
   // right column
@@ -687,7 +698,8 @@ function sports() {
   const remind = rg ? `<button class="sprem" data-remind="${esc(rg.key)}" data-rt="${esc(rg.away + ' vs ' + rg.home)}" data-rw="${rg.when}" aria-pressed="${on ? 'true' : 'false'}"><span class="t"><b>🔔 Remind me 15 min before</b><small>${esc(rg.away)} vs ${esc(rg.home)} · ${esc(rg.detail)}</small></span><span class="tog ${on ? 'on' : ''}"><i></i></span></button>` : '';
   return `<div class="sph"><h1>Where's My Game?</h1><p>Find your game. See where it's on. Live, upcoming or final, all in one place.</p></div>
     <div class="spgrid"><div class="spmain">${hero}
-      <div class="hh" style="margin-top:18px"><h2>Today's Games <small class="fine">${S.games.length}</small></h2><div class="filters">${chips}</div></div>
+      <div class="hh" style="margin-top:18px"><h2>Today's Games <small class="fine">${shown.length}</small></h2><div class="filters">${chips}</div></div>
+      <div class="filters spsports">${sportChips}</div>
       <div class="spcards">${shown.length ? shown.map(gc).join('') : '<p class="fine">Nothing here right now.</p>'}</div></div>
     <aside class="spside">${teamsBox}${upBox}${chanBox}</aside></div>
     <section class="spbot"><div class="spbt"><h3>💲 What it costs to watch</h3><small class="fine">Services that carry ${f ? 'this game' : 'today’s games'} that you don’t have. Approximate prices, check the service.</small></div><div class="spcosts">${costs}</div>${remind}</section>
@@ -1065,6 +1077,7 @@ document.addEventListener('click', e => {
   else if (t.hasAttribute('data-alerts')) { if ('Notification' in window) Notification.requestPermission().then(() => draw()); }
   else if (t.hasAttribute('data-pick')) { const ps = tonightPicks().filter(kidOk); if (ps.length) { S.pickI = ((S.pickI == null ? -1 : S.pickI) + 1) % Math.min(ps.length, 8); S.sel = ps[S.pickI]; draw(); enrich(S.sel); } }
   else if (t.hasAttribute('data-clearq')) { S.q = ''; S.results = null; S.movies = null; draw(); }
+  else if (t.dataset.sport) { S.sport = t.dataset.sport; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.sf) { S.sf = t.dataset.sf; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.remind) { const k = t.dataset.remind; if (S.remind[k]) delete S.remind[k]; else { S.remind[k] = { title: t.dataset.rt, when: Number(t.dataset.rw) }; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } save('remind', S.remind); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.wf) { S.wf = t.dataset.wf; draw(); }
