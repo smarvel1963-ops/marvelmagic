@@ -1016,12 +1016,32 @@ async function approvePair(code, pid) {
   if (x.at && Date.now() - x.at.toMillis() > 20 * 60000) throw new Error('That code is too old. Press "Show a new code" on the TV.');
   S.house.devices = { ...(S.house.devices || {}), [x.anon]: pid };
   await db.collection('households').doc(me.uid).set({ devices: S.house.devices }, { merge: true });
-  await db.collection('pair').doc(code).update({ status: 'approved', hid: me.uid, pid, pname: m ? m.name : '' });
+  if (pid === 'owner') await db.collection('households').doc(me.uid).collection('profiles').doc('owner').set({ ...pick(), at: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });   // the TV starts with my lists
+  await db.collection('pair').doc(code).update({ status: 'approved', hid: me.uid, pid, pname: m ? m.name : (firstName() || 'Me') });
 }
 const pairPanel = () => S.pairCode ? `<section class="pairbox"><div class="lk">📺 SET UP THIS TV</div><div class="paircode">${S.pairCode.slice(0, 3)} ${S.pairCode.slice(3)}</div><p>On your phone open Marvel Magic → <b>⚙ Settings → 🏠 My Household → Add a TV</b> and type this code.</p><p class="fine">This screen sets itself up as soon as you approve it.</p></section>`
   : `<button class="pairask" data-paircode><span>📺</span><span class="t"><b>Setting this up for someone else's TV?</b><small>Show a code and approve it from your phone - nothing to sign in to here.</small></span><span class="fbgo">Show a TV code ›</span></button>`;
 // HOUSEHOLD (Scott 11/14): "how many accounts ... owner can assign emails with profiles ... keep groups together but also replace people"
 const HOUSE_MAX = 6;   // owner + 5 (Netflix 5, Disney+ 7)
+// OWNER MIRROR (Scott 11/14 "this one is my tv"): keeps households/{me}/profiles/owner in step with my own lists for a TV set up as me
+let mirrorTimer = null;
+function pushOwnerMirror() {
+  if (!me || !db || me.isAnonymous || S.prof || S.houseRole !== 'owner' || !Object.values((S.house && S.house.devices) || {}).includes('owner')) return;
+  clearTimeout(mirrorTimer);
+  mirrorTimer = setTimeout(() => db.collection('households').doc(me.uid).collection('profiles').doc('owner').set({ ...pick(), at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {}), 1500);
+}
+function pullOwnerMirror() {
+  if (!me || !db || me.isAnonymous || S.houseRole !== 'owner') return;
+  db.collection('households').doc(me.uid).collection('profiles').doc('owner').get().then(d => {
+    if (!d.exists) return; const c = d.data(); let ch = false;
+    for (const [k, r] of Object.entries(c.ratings || {})) if (!S.ratings[k] || (r.at || 0) > (S.ratings[k].at || 0)) { S.ratings[k] = r; ch = true; }
+    const lk = new Set(S.later.map(l => l.k)); for (const l of (c.later || [])) if (!lk.has(l.k)) { S.later.push(l); ch = true; }
+    const hk = new Set(S.history.map(h => h.k)); for (const h of (c.history || [])) if (!hk.has(h.k)) { S.history.push(h); ch = true; }
+    if (c.list && c.list.length) { const before = JSON.stringify(S.list); S.list = mergeLists(c.list, S.list); if (JSON.stringify(S.list) !== before) ch = true; }
+    for (const k of ['likes', 'moods', 'actors']) { const u = [...new Set([...(S[k] || []), ...(c[k] || [])])]; if (u.length !== (S[k] || []).length) { S[k] = u; ch = true; } }
+    if (ch) { S.history.sort((a, b) => b.at - a.at); storeLocal(); queueSync(); draw(); }
+  }).catch(() => {});
+}
 function loadHouse() {
   if (!me || !db) { S.house = null; S.houseRole = null; return; }
   const email = String(me.email || '').toLowerCase();
@@ -1036,6 +1056,7 @@ function loadHouse() {
 }
 function afterHouse() {
   const h = S.house;
+  if (S.houseRole === 'owner') pullOwnerMirror();
   if (h && S.houseRole === 'member' && (h.services || []).length) { S.mine = [...new Set([...S.mine, ...h.services])]; save('mine', S.mine); }   // the household's services
   if (h && h.kidsPin && !S.kids.pin) { S.kids = { ...S.kids, pin: h.kidsPin }; save('kids', S.kids); }
   draw();
@@ -1055,8 +1076,8 @@ function houseBox() {
   const row = (m, i) => `<div class="hhrow"><span class="av hhav ${m.type === 'Kid' ? 'kid' : ''}">${esc((m.name || '?')[0].toUpperCase())}</span><span class="t"><b>${esc(m.name || '')}</b><small>${esc(m.type)}${m.email ? ' · ' + esc(m.email) : i > 0 ? ' · watches on this TV, no sign-in' : ''}${m.easy ? ' · Easy Mode' : ''}${me && m.email && m.email === String(me.email || '').toLowerCase() && role === 'member' ? ' · you' : ''}</small></span>${role === 'owner' && i > 0 ? `<button class="pill" data-mmeasy="${esc(m.id)}">${m.easy ? 'Easy Mode on' : 'Easy Mode'}</button>` : ''}${role === 'owner' && i > 0 ? `<button class="round" data-rmmember="${esc(m.id)}" aria-label="Remove ${esc(m.name)}">✕</button>` : ''}</div>`;
   const full = people.length >= HOUSE_MAX;
   return `<p class="fine" style="margin:0 0 8px">${esc(h.name || 'Household')} · ${people.length} of ${HOUSE_MAX} people${role === 'member' ? ' · managed by ' + esc(h.ownerName || 'the owner') : ''}</p>${people.map(row).join('')}
-    ${role === 'owner' ? `<div class="tvadd"><h4>📺 TVs and computers set up for someone</h4>${Object.entries(h.devices || {}).map(([u, pid]) => `<div class="hhrow"><span class="t"><b>A TV for ${esc((houseMember(pid) || {}).name || 'someone')}</b><small>signs in with no password</small></span><button class="round" data-rmdevice="${esc(u)}" aria-label="Remove this TV">✕</button></div>`).join('')}
-      <form id="pairform" class="hhadd"><input id="pcode" inputmode="numeric" maxlength="7" placeholder="Code on the TV" aria-label="Code shown on the TV" required><select id="pprof" aria-label="Who uses that TV">${(h.members || []).map(m => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select><button class="btn">Add a TV</button></form>${(h.members || []).length ? '' : '<p class="fine">Add the person first (above), then their TV.</p>'}</div>` : ''}
+    ${role === 'owner' ? `<div class="tvadd"><h4>📺 TVs and computers set up for someone</h4>${Object.entries(h.devices || {}).map(([u, pid]) => `<div class="hhrow"><span class="t"><b>A TV for ${esc(pid === 'owner' ? 'me' : (houseMember(pid) || {}).name || 'someone')}</b><small>signs in with no password</small></span><button class="round" data-rmdevice="${esc(u)}" aria-label="Remove this TV">✕</button></div>`).join('')}
+      <form id="pairform" class="hhadd"><input id="pcode" inputmode="numeric" maxlength="7" placeholder="Code on the TV" aria-label="Code shown on the TV" required><select id="pprof" aria-label="Who uses that TV"><option value="owner">Me (${esc(h.ownerName || firstName() || 'owner')})</option>${(h.members || []).map(m => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select><button class="btn">Add a TV</button></form></div>` : ''}
     ${role === 'owner' ? (full ? '<p class="fine">Household is full. Remove someone to add someone new.</p>' : `<form id="addmember" class="hhadd"><input id="mmname" maxlength="30" placeholder="Name" aria-label="Name" required><input id="mmemail" type="email" maxlength="80" placeholder="Email (leave blank if they only watch on this TV)" aria-label="Email"><select id="mmtype" aria-label="Type"><option>Adult</option><option>Teen</option><option>Kid</option></select><label class="stck" style="min-height:44px"><input type="checkbox" id="mmeasy"><span>Easy Mode</span></label><button class="btn">Add</button></form>`) + '<p class="fine">They sign in to Marvel Magic with that email and join automatically. Removing someone takes them out right away; their own ratings and history stay theirs.</p>' : ''}`;
 }
 const houseKids = () => ((S.house && S.house.members) || []).filter(m => m.type === 'Kid' || !m.email);   // every profile that lives on this TV
@@ -1522,7 +1543,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { if (e.target.dataset.svc && S.houseRole === 'owner') setTimeout(() => saveHouse({}).catch(() => {}), 50); if (e.target.hasAttribute('data-svcremind')) { S.svcRemindOff = !e.target.checked; save('svcRemindOff', S.svcRemindOff); return; } const k = e.target.dataset.st; if (k === 'likes' || k === 'moods') { const v = e.target.value; S[k] = e.target.checked ? [...new Set([...S[k], v])] : S[k].filter(x => x !== v); save(k, S[k]); return; } const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
   if (e.target.id === 'pairform') { e.preventDefault(); const code = ($('pcode').value || '').replace(/\D/g, ''), pid = $('pprof').value; if (code.length !== 6) { alert('Type the 6 numbers shown on the TV.'); return; }
-    approvePair(code, pid).then(() => { alert('Done! That TV is set up for ' + ((houseMember(pid) || {}).name || 'them') + '. It will change by itself in a moment.'); draw(); }).catch(err => alert(err.message || 'Could not add that TV. Try again.')); return; }
+    approvePair(code, pid).then(() => { alert('Done! That TV is set up for ' + (pid === 'owner' ? 'you' : (houseMember(pid) || {}).name || 'them') + '. It will change by itself in a moment.'); draw(); }).catch(err => alert(err.message || 'Could not add that TV. Try again.')); return; }
   if (e.target.id === 'addmember') { e.preventDefault(); const name = ($('mmname').value || '').trim().slice(0, 30), email = ($('mmemail').value || '').trim().toLowerCase().slice(0, 80), type = $('mmtype').value; const h = S.house || {};
     if (!name || (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))) { alert('Add a name. An email is optional - leave it blank for someone who only watches on this TV.'); return; }
     if (email && ((h.members || []).some(m => m.email === email) || email === h.ownerEmail)) { alert('That email is already in the household.'); return; }
@@ -1588,7 +1609,7 @@ const FB = { apiKey: 'AIzaSyBt4N4ZOkvcY6slHCbmcrWoz4Q_R7ITmOA', authDomain: 'mar
 let auth = null, db = null, me = null, stopWatch = null, syncTimer = null, lastCloud = '';
 const cloudJson = () => JSON.stringify({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later, profiles: S.profiles, svcRate: S.svcRate });
 function queueSync() { if (!me || !db || S.prof) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushCloud, 800); }
-function pushCloud() { if (me && db && me.isAnonymous) { if (S.paired) db.collection('households').doc(S.paired.hid).collection('profiles').doc(S.paired.pid).set({ ...pick(), at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {}); return; } if (!me || !db || S.prof) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later, profiles: S.profiles, svcRate: S.svcRate, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
+function pushCloud() { pushOwnerMirror(); if (me && db && me.isAnonymous) { if (S.paired) db.collection('households').doc(S.paired.hid).collection('profiles').doc(S.paired.pid).set({ ...pick(), at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {}); return; } if (!me || !db || S.prof) return; const j = cloudJson(); if (j === lastCloud) return; lastCloud = j; db.collection('users').doc(me.uid).set({ mine: S.mine, list: S.list, setup: S.setup, ratings: S.ratings, rank: S.rank, opens: S.opens, teams: S.teams, history: S.history, likes: S.likes, actors: S.actors, moods: S.moods, profile: S.profile, order: S.order, lastOpen: S.lastOpen, svcSince: S.svcSince, svcSnooze: S.svcSnooze, svcRemindOff: S.svcRemindOff, later: S.later, profiles: S.profiles, svcRate: S.svcRate, at: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => { lastCloud = ''; }); }
 function drawAcct() { const b = $('acct'); if (!auth || S.paired || (me && me.isAnonymous)) { b.hidden = true; return; } b.hidden = false; b.textContent = me ? 'Sign out ' + ((me.displayName || me.email || '').split(' ')[0]) : 'Sign in with Google'; }
 async function acctPress() {
   if (me) { auth.signOut(); return; }
