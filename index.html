@@ -338,6 +338,7 @@ body.easy{zoom:1.18}   /* Scott 11/14: Easy Mode = the same screens, just bigger
 .pairbox{text-align:center;padding:26px;border-radius:20px;border:2px solid var(--gold);background:linear-gradient(160deg,#2A200C,#141026);margin-bottom:16px}.paircode{font-size:72px;font-weight:900;letter-spacing:10px;color:#FFE08A;margin:6px 0}.pairbox p{font-size:18px;margin:6px 0}
 .pairask{display:flex;align-items:center;gap:14px;width:100%;margin-bottom:12px;padding:12px 18px;border-radius:14px;border:1px solid #4B3A9A;background:rgba(20,16,50,.85)}.pairask>span:first-child{font-size:26px}.pairask .t{flex:1;min-width:0}.pairask b{display:block}.pairask small{color:var(--dim)}
 .tvadd{margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--line)}.tvadd h4{margin:0 0 6px}
+html.tvapp #acct,html.tvapp .castbtn,html.tvapp [data-acct2]{display:none!important}
 </style>
 </head>
 <body>
@@ -1350,7 +1351,9 @@ async function loadGames() {
 // OPEN + COME BACK (Scott 11/14): every watch link opens through here. The selection clears at once, and when the window we opened closes,
 // Marvel Magic brings itself back to the front (the come-back question still asks if it didn't play).
 let watchWin = null, watchTimer = null;
-function openWin(url) {
+const inTvApp = () => typeof window.MMNative !== 'undefined';
+function openWin(url, svc) {
+  if (inTvApp()) { try { MMNative.open(url, svc || ''); } catch {} if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); } return; }   // Fire TV: the real app
   const w = window.open(url, '_blank');
   if (!w) return;
   try { w.opener = null; } catch {}
@@ -1365,7 +1368,7 @@ function openIt(x) {
   logPick(x);
   const u = linkFor(x);
   save('pending', { title: x.title, series: x.series, sport: !!x.sport, rk: rateKey(x), img: x.img || null, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null, svc: x.svc || null, options: (x.options || []).slice(0, 8) });
-  openWin(u);
+  openWin(u, x.svc || '');
 }
 function askSetup() {
   const p = load('pendingSetup', null), b = $('back'); if (!p || Date.now() - p.at < 5000 || b.open) return false;
@@ -1453,7 +1456,7 @@ document.addEventListener('click', e => {
   if (link && link.hasAttribute('data-opt')) { countOpen(link.textContent.replace(' ✓', '')); logPick(S.sel); }
   if (link && link.dataset.free) countOpen(link.dataset.free);
   if (link && link.dataset.unman) { S.svcSnooze[link.dataset.unman] = (unusedSvcs().find(x => x.n === link.dataset.unman) || { step: 1 }).step; save('svcSnooze', S.svcSnooze); setTimeout(draw, 300); }
-  if (link) { armFull(); if (link.dataset.setup) save('pendingSetup', { name: link.dataset.setup, at: Date.now() }); if (!link.dataset.setup && !/(whop\.com|themoviedb|tvmaze|myaccount)/.test(link.href)) { e.preventDefault(); openWin(link.href); } return; }
+  if (link) { armFull(); if (link.dataset.setup) save('pendingSetup', { name: link.dataset.setup, at: Date.now() }); if (!link.dataset.setup && !/(whop\.com|themoviedb|tvmaze|myaccount)/.test(link.href)) { e.preventDefault(); openWin(link.href, link.dataset.rtry || link.dataset.free || (link.hasAttribute('data-opt') ? link.textContent.replace(' ✓', '').trim() : '')); } return; }
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); if (t.hasAttribute('data-q') && $('q')) $('q').focus(); }
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -1632,6 +1635,14 @@ setInterval(() => { const now = Date.now(); let ch = false; for (const [k, r] of
 setInterval(() => { if ((S.tab !== HOME && S.tab !== 2) || document.hidden) return; const c = $('hclock'); if (c) c.textContent = clock(new Date()); document.querySelectorAll('.cd[data-when]').forEach(el => { el.textContent = cdText(Number(el.dataset.when)); }); }, 1000);   // Home clock + game countdown tick without redrawing
 setInterval(loadGuide, 5 * 60000);   // the guide keeps itself current (Scott 11/08)
 setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
+// the Fire TV remote's Back key: close a popup, clear a pick, go Home; at Home the app leaves (returns false)
+window.mmBack = () => {
+  if ($('back').open) { $('back').close(); return true; }
+  if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); return true; }
+  if (S.tab !== HOME) { showTab(HOME); return true; }
+  return false;
+};
+if (typeof window.MMNative !== 'undefined') document.documentElement.classList.add('tvapp');
 // SELF-UPDATE (Scott 11/14 "does site keep updating"): every 10 minutes the app checks for a newer copy of itself; when one is out and nobody
 // is using the screen (2 minutes idle, no popup, no typing) it reloads - so the TV (Scott's dad's) never needs Ctrl+F5.
 let myCopy = null, newCopy = false, lastTouch = Date.now();
