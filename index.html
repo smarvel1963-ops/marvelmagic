@@ -177,7 +177,7 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 .cell{display:flex;flex-direction:column;justify-content:center;line-height:1.2;padding:0 12px}.cell b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cell small{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden}.cell.on small{color:#fff}
 .cell.on{padding-right:64px;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border:2px solid #C9B8FF;box-shadow:0 0 14px rgba(120,80,255,.6)}
 .lv{position:absolute;top:6px;right:8px;padding:1px 7px;border-radius:6px;background:var(--gold);color:#1A1030;font-size:11px;font-weight:900}
-.nowline{background:var(--gold);width:3px}
+.nowline{background:rgba(255,194,75,.42);width:2px;z-index:2;box-shadow:0 0 6px rgba(255,194,75,.25)}   /* Scott 11/14: a clear line you can see through */
 .tick{display:flex;align-items:center;gap:14px;width:100%;margin-top:16px;padding:10px 16px;border-radius:12px;background:linear-gradient(90deg,#1A1440,#120E30);border:1px solid #4B3A9A;flex-wrap:wrap;font-size:17px}.tkb{padding:6px 18px;background:linear-gradient(180deg,#FFD36B,var(--gold2));color:#1A1030;font-weight:900;font-style:italic;border-radius:6px;transform:skewX(-12deg)}.tks{font-size:20px}.tkn{margin-left:auto;color:var(--gold);font-weight:650}
 @media (min-width:761px){body[data-tab="0"] .dock{display:none!important}}
 @media (max-width:760px){.gpv{padding:18px;min-height:0}.gpv-art{width:100%;opacity:.3;-webkit-mask-image:none;mask-image:none}.gpvt{font-size:30px}.gpvd{display:none}.gbar .gsb{display:none}.tkn{margin-left:0}}
@@ -329,6 +329,9 @@ body.easy{font-size:20px}body.easy nav button{min-height:64px;font-size:24px}bod
 /* service quality (11/14) */
 .svcq .rrow .thumb{position:static;margin-left:6px}.tavg{display:block;color:#FF8FA8!important}
 .otwhy{display:block;color:#FFC98A!important;font-size:12px!important}
+/* time marker (11/14): NOW tab + played-part tint */
+.grid .times{position:relative}.nowtab{position:absolute;top:2px;transform:translateX(-50%);padding:2px 8px;border-radius:9px;background:var(--gold);color:#1A1030;font-size:11px;font-weight:900;white-space:nowrap;z-index:3;pointer-events:none}
+.cell.live{background-image:linear-gradient(90deg,rgba(255,194,75,.16) 0,rgba(255,194,75,.16) var(--el),transparent var(--el))}.cell.isg.live{background-image:linear-gradient(90deg,rgba(255,194,75,.18) 0,rgba(255,194,75,.18) var(--el),transparent var(--el)),linear-gradient(90deg,#3A1426,#1C2447 70%)}.cell.live.on{background-image:linear-gradient(90deg,rgba(255,255,255,.14) 0,rgba(255,255,255,.14) var(--el),transparent var(--el)),linear-gradient(135deg,#5C3DF0,#8A3FF0)}
 </style>
 </head>
 <body>
@@ -534,7 +537,7 @@ function guide() {
     if (!own && pk) for (const a of by[n]) a.svc = pk;   // watch it live in the package you have
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
       const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100), on = pv && pv.key === a.key, live = a.start <= now && a.end > now;
-      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}${a.isGame ? ' isg' : ''}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}"><span class="ci"><b>${a.isGame ? '🏟 ' : ''}${esc(a.title)}</b><small>${a.isGame ? esc((a.state === 'in' ? 'LIVE ' + a.score + ' · ' + a.detail : a.state === 'post' ? 'Final ' + a.score : clock(new Date(a.start))) + ' · ' + a.league) : esc(clock(new Date(a.start))) + ' – ' + esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
+      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}${a.isGame ? ' isg' : ''}${live ? ' live' : ''}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%;--el:${live ? Math.round((now - a.start) / (a.end - a.start) * 100) : 0}%" title="${esc(a.title)}"><span class="ci"><b>${a.isGame ? '🏟 ' : ''}${esc(a.title)}</b><small>${a.isGame ? esc((a.state === 'in' ? 'LIVE ' + a.score + ' · ' + a.detail : a.state === 'post' ? 'Final ' + a.score : clock(new Date(a.start))) + ' · ' + a.league) : esc(clock(new Date(a.start))) + ' – ' + esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
     // Scott 11/14 "keep guide uniform easy to see": every hole in a row gets a plain box, so all rows read the same way
     let gaps = '', cur = t0;
@@ -553,7 +556,7 @@ function guide() {
     const cells = r.s.filter(q => q[1] * 1000 > t0 && q[0] * 1000 < t1).map(q => {
       const a = q[0] * 1000, b = q[1] * 1000, x = { key: 'f' + r.n + q[0], title: q[2] || r.n, net: r.n, start: a, end: b, svc: first.svc, exact: first.url, options: places, series: false, ep: q[3] || '' };
       const l = Math.max(0, (a - t0) / span * 100), w = Math.min(100, (b - t0) / span * 100) - l, on = pv && pv.key === x.key, live = a <= now && b > now;
-      return `<button class="cell ${on ? 'on' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${w}%" title="${esc(x.title)}"><span class="ci"><b>${esc(x.title)}</b><small>${esc(clock(new Date(a)))} – ${esc(clock(new Date(b)))}${q[3] ? ' · ' + esc(q[3]) : ''}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
+      return `<button class="cell ${on ? 'on' : ''}${live ? ' live' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${w}%;--el:${live ? Math.round((now - a) / (b - a) * 100) : 0}%" title="${esc(x.title)}"><span class="ci"><b>${esc(x.title)}</b><small>${esc(clock(new Date(a)))} – ${esc(clock(new Date(b)))}${q[3] ? ' · ' + esc(q[3]) : ''}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
     return `<div class="row"><div class="ch">${r.l ? `<img class="chlogo" src="${esc(r.l)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="cht"><b class="chn">${esc(r.n)}</b><small>Free · ${esc(r.p[0][0])}${r.p.length > 1 ? ' +' + (r.p.length - 1) : ''}</small></span></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
   }).join('');
@@ -573,9 +576,9 @@ function guide() {
   const today = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
   for (const n of nets) { const pk = livePkgFor(n); if (pk && !(NETWORK_SERVICE[n] && S.mine.includes(NETWORK_SERVICE[n]))) for (const a of by[n]) a.svc = pk; }
   return `${preview(pv, now)}<div class="gbar"><span class="gday">📅 Today, ${esc(today)}</span><button class="pill gsb" data-gs="-1" aria-label="Earlier">‹</button><button class="pill gsb" data-gs="1" aria-label="Later">›</button><span class="fine">${nets.length} channel${nets.length === 1 ? '' : 's'} you can watch · next 8 hours${Object.keys(LIVE_PKG).some(pk => S.mine.includes(pk) && LIVE_PKG[pk] !== '*') ? ' · package channels can vary by plan and area' : ''}</span></div>
-    <div class="grid" id="ggrid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>
+    <div class="grid" id="ggrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW ${esc(clock(new Date(now)))}</span></div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>
     ${odBar}<div class="grid gplut gond">${odRows}</div><div class="phone">${odCards}</div>
-    ${fBar}<div class="grid" id="fgrid"><div class="times">${times}</div>${fRows}</div><div class="phone">${fCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
+    ${fBar}<div class="grid" id="fgrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW</span></div>${fRows}</div><div class="phone">${fCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
 }
 const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
 function showItem(s) {
