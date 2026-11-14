@@ -642,6 +642,7 @@ const freeTv = () => `<h2>Free TV</h2><div class="svcs">${FREE_TV.map(([n, u]) =
 // service keeps the person signed in on that device. Marvel Magic never sees or stores a password. Plain name tiles until there's permission to use their logos.
 const SIGN_IN = [['Netflix', 'https://www.netflix.com/login', '#E50914'], ['Prime Video', 'https://www.amazon.com/gp/video/storefront', '#00739E'], ['Disney+', 'https://www.disneyplus.com/login', '#1B3FA8'], ['Hulu', 'https://auth.hulu.com/web/login', '#128A4E'],
   ['Apple TV', 'https://tv.apple.com/', '#3A3A3C'], ['HBO Max', 'https://auth.hbomax.com/login', '#4B2BD6'], ['Peacock', 'https://www.peacocktv.com/signin', '#26262B'], ['Para- mount+', 'https://www.paramountplus.com/account/signin/', '#0B5FFF'],
+  ['Sling TV', 'https://www.sling.com/sign-in', '#1E73E8'], ['YouTube TV', 'https://tv.youtube.com/', '#CC0000'], ['Hulu + Live TV', 'https://auth.hulu.com/web/login', '#0B7A43'], ['Fubo', 'https://www.fubo.tv/signin', '#E3412C'],
   ['Pluto TV', 'https://pluto.tv/', '#7A3FF2'], ['Tubi', 'https://tubitv.com/login', '#E8552B'], ['The Roku Channel', 'https://therokuchannel.roku.com/', '#6C3AA6'], ['Plex', 'https://app.plex.tv/auth', '#B9770E'], ['Xumo Play', 'https://play.xumo.com/', '#0E7C86'], ['Samsung TV Plus', 'https://www.samsung.com/us/televisions-home-theater/tvs/tvplus/', '#1B4FB8']];
 const signIn = () => `<p class="fine signhead">Sign in once. Each service keeps you signed in on this device.</p><div class="signgrid">${SIGN_IN.map(([n, u, c]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n.replace('- ', ''))}" style="background:${c}" aria-label="Set up ${esc(n.replace('- ', ''))}">${S.setup.includes(n.replace('- ', '')) ? '<span class="donechk">✓</span>' : ''}${esc(n)}</a>`).join('')}</div>`;
 const setupList = () => `<h3>🔑 Set Up Your Accounts</h3><p class="fine">Sign in on each service's own page and let Chrome save the password. Marvel Magic never sees it.</p>${SIGN_IN.map(([raw, u]) => { const n = raw.replace('- ', ''), ok = S.setup.includes(n); return `<div class="setrow"><span>${esc(n)}</span>${ok ? '<b class="ok">✓ Set up</b>' : ''}<a class="btn ${ok ? 'alt' : ''}" href="${esc(u)}" target="_blank" rel="noopener" data-setup="${esc(n)}">${ok ? 'Open' : 'Set up'}</a></div>`; }).join('')}`;
@@ -852,6 +853,12 @@ function openIt(x) {
 function askSetup() {
   const p = load('pendingSetup', null), b = $('back'); if (!p || Date.now() - p.at < 5000 || b.open) return false;
   save('pendingSetup', null);
+  if (p.name === 'Sling TV') {
+    b.innerHTML = `<b>Sling TV</b><p>Did you get signed in? Pick your Sling plan so the guide shows the right channels.</p><div class="act" style="flex-wrap:wrap"><button class="btn" data-sp="Sling Orange">Orange</button><button class="btn" data-sp="Sling Blue">Blue</button><button class="btn" data-sp="both">Orange &amp; Blue</button></div><button class="btn alt" data-no style="width:100%;margin-top:8px">Not signed in yet</button>`;
+    b.querySelectorAll('[data-sp]').forEach(x => x.onclick = () => { const plans = x.dataset.sp === 'both' ? ['Sling Orange', 'Sling Blue'] : [x.dataset.sp]; S.setup = [...new Set([...S.setup, 'Sling TV'])]; save('setup', S.setup); S.mine = [...new Set([...S.mine.filter(n => !n.startsWith('Sling ')), ...plans])]; save('mine', S.mine); b.close(); draw(); });
+    b.querySelector('[data-no]').onclick = () => { S.setup = S.setup.filter(x => x !== 'Sling TV'); save('setup', S.setup); b.close(); draw(); };
+    b.showModal(); return true;
+  }
   b.innerHTML = `<b>${esc(p.name)}</b><p>Did you get signed in?</p><div class="act"><button class="btn alt" data-no>Not yet</button><button class="btn" data-yes>Yes, signed in</button></div>`;
   const set = on => { S.setup = on ? [...new Set([...S.setup, p.name])] : S.setup.filter(x => x !== p.name); save('setup', S.setup); if (on && !S.mine.includes(p.name)) { S.mine = [...S.mine, p.name]; save('mine', S.mine); } b.close(); draw(); };
   b.querySelector('[data-no]').onclick = () => set(false); b.querySelector('[data-yes]').onclick = () => set(true);
