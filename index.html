@@ -205,6 +205,24 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 @media (min-width:761px){body[data-tab="2"] .dock{display:none!important}}
 @media (max-width:1250px){.spgrid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:760px){.sph h1{font-size:32px}.sph p{border:0;padding:0}.spt b{font-size:20px}.spsc{font-size:40px}.spf{padding:16px}.spbadge{font-size:17px}.spclock{font-size:16px}.spcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* MOVIES & SHOWS = THE LOUNGE (Scott 11/14 board) - warm gold + plum */
+.lounge{position:relative;overflow:hidden;border-radius:18px;min-height:330px;padding:28px 34px 110px;border:1px solid #6A3E7A;background:radial-gradient(600px 300px at 85% 10%,rgba(255,170,80,.25),transparent),linear-gradient(180deg,#2A1336 0%,#1C0E2A 60%,#140A20 100%)}
+.lounge-art{position:absolute;left:0;right:0;bottom:0;height:150px;background:url(hero_lounge.jpg) center bottom/cover no-repeat;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%);mask-image:linear-gradient(180deg,transparent,#000 45%)}
+.lounge-in{position:relative;z-index:1}
+.lk{font-size:14px;letter-spacing:5px;font-weight:700;color:#FFC98A}
+.lt{margin:4px 0 6px;font-family:Georgia,"Times New Roman",serif;font-size:58px;line-height:1;color:#FFF1DC;text-shadow:0 0 24px rgba(255,170,80,.45)}
+.lsub2{margin:0 0 16px;color:#F0DCCB;font-size:17px}
+.lb{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.lsearch{flex:1 1 320px;max-width:520px}.lsearch input{height:52px;border-radius:12px;background:rgba(20,10,30,.75);border-color:#7A4E8A;font-size:17px}.lsearch .btn{min-height:52px}
+.ltaste{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.ltaste b{color:#FFC98A}.ltaste span{padding:4px 12px;border-radius:14px;border:1px solid #FFB86B;color:#FFE3C4;font-size:14px;font-weight:700;background:rgba(255,160,60,.12)}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}.lgrid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.lp{position:relative;display:block;padding:0;aspect-ratio:2/3;border-radius:14px;overflow:hidden;background:#24142F;border:1px solid #4A2E5A}.lp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lp::after{content:"";position:absolute;inset:55% 0 0;background:linear-gradient(transparent,rgba(12,6,20,.95))}.lp .sv{z-index:1}
+.lpt{position:absolute;z-index:1;left:10px;right:10px;bottom:10px}.lpt b{display:block;font-size:16px;line-height:1.2}.lpt small{font-size:12px;color:#E8D6E8}
+.lp.big .lpt b{font-size:20px}.lp.on{outline:none;border:3px solid #FFB23E;box-shadow:0 0 22px rgba(255,170,60,.7)}.lp.off{opacity:.55}
+.lpno{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;font-family:Georgia,serif;font-size:22px;color:#FFE3C4}
+.lsub{margin:14px 0 8px;font-size:18px;color:#FFC98A}
+@media (max-width:1100px){.lgrid.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.lounge{padding:20px 18px 90px;min-height:0}.lt{font-size:40px}.lounge-art{height:110px}.lgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 </style>
 </head>
 <body>
@@ -382,12 +400,28 @@ function showItem(s) {
   const net = (s.webChannel && s.webChannel.name) || (s.network && s.network.name) || '';
   return { key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[net] || null, url: s.officialSite || s.url, note: [net, (s.genres || []).slice(0, 2).join(', ')].filter(Boolean).join(' · '), series: true, img: s.image && s.image.medium, show: { id: s.id, name: s.name, net, img: s.image && s.image.medium, url: s.officialSite || s.url, genres: s.genres || [] } };
 }
+// MOVIES & SHOWS = THE LOUNGE (Scott 11/14 board): Movie Night hero, Find Tonight's Pick, big poster cards. Picks lean on the genres of the shows you saved.
+function tasteOf() { const c = {}; for (const s of S.list) for (const g of (s.genres || [])) c[g] = (c[g] || 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]); }
+function todayShows() {
+  const seen = new Set();
+  return S.airings.filter(a => a.show && a.end > Date.now() && !seen.has(a.show.id) && seen.add(a.show.id)).map(a => ({ ...showItem(a.show), big: a.show.image && (a.show.image.original || a.show.image.medium), when: a.start, chan: a.net, w: a.show.weight || 0 }));
+}
+function tonightPicks() {
+  const taste = tasteOf(), have = new Set(S.list.map(s => s.id));
+  return todayShows().map(x => ({ x, sc: (x.show.genres || []).filter(g => taste.includes(g)).length * 100 + (have.has(x.show.id) ? -50 : 0) + x.w / 10 })).filter(r => r.x.big).sort((a, b) => b.sc - a.sc).map(r => r.x);
+}
+const lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? ' off' : ''}" data-i="${reg(x)}">${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(x.title)}</span>`}${x.svc ? `<span class="sv">${esc(x.svc)}</span>` : ''}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
 function shows() {
-  const seen = new Set(), tonight = S.airings.filter(a => a.show && !seen.has(a.show.id) && seen.add(a.show.id)).sort((a, b) => (b.show.weight || 0) - (a.show.weight || 0)).slice(0, 20).map(a => showItem(a.show));
+  const taste = tasteOf(), picks = tonightPicks().slice(0, 4), pickKeys = new Set(picks.map(p => p.key));
+  const rest = todayShows().filter(x => !pickKeys.has(x.key)).slice(0, 24);
   const res = S.results;
-  return `<h1>Movies &amp; Shows</h1><form class="search" id="find"><input id="q" aria-label="Search movies and shows" placeholder="Search movies and shows" value="${esc(S.q || '')}"><button class="btn">Search</button></form>
-    
-    ${res ? `${S.movies && S.movies.length ? `<h2>Movies</h2>${S.movies.map(card).join('')}` : ''}<h2>Shows</h2>${res.length ? res.map(card).join('') : '<p class="fine">No shows found.</p>'}` : ''}<h2>On today</h2>${tonight.map(card).join('')}${credit()}`;
+  const found = res ? `<div class="hh"><h2>Results for “${esc(S.q)}”</h2><button class="more" data-clearq>Clear ✕</button></div>${S.movies && S.movies.length ? `<h3 class="lsub">Movies</h3><div class="lgrid">${S.movies.map(m => lposter(m)).join('')}</div>` : ''}<h3 class="lsub">Shows</h3>${res.length ? `<div class="lgrid">${res.map(x => lposter({ ...x, big: x.show && x.show.img })).join('')}</div>` : '<p class="fine">No shows found.</p>'}` : '';
+  return `<section class="lounge"><div class="lounge-art"></div><div class="lounge-in"><div class="lk">🛋 THE LOUNGE</div><h1 class="lt">Movie Night</h1><p class="lsub2">Settle in and find something good tonight, from the services you have.</p>
+      <div class="lb"><button class="btn gold" data-pick>▶ Find Tonight's Pick</button><form class="search lsearch" id="find"><input id="q" aria-label="Search movies and shows" placeholder="Search any movie or show" value="${esc(S.q || '')}"><button class="btn">Search</button></form></div>
+      <div class="ltaste">${taste.length ? `<b>Your taste:</b>${taste.map(g => `<span>${esc(g)}</span>`).join('')}` : '<span class="fine">Save a few shows and Marvel Magic learns your taste.</span>'}</div></div></section>
+    ${found}
+    <div class="hh" style="margin-top:18px"><h2>${taste.length ? 'Picked for Your Lounge' : 'Popular Tonight'}</h2></div>${picks.length ? `<div class="lgrid four">${picks.map(x => lposter(x, true)).join('')}</div>` : `<p class="fine">${S.airings.length ? 'Nothing with artwork on tonight.' : 'Loading tonight’s shows…'}</p>`}
+    ${rest.length ? `<div class="hh" style="margin-top:18px"><h2>On Today</h2><button class="more" data-tab="0">Guide ›</button></div><div class="lgrid">${rest.map(x => lposter(x)).join('')}</div>` : ''}${credit()}`;
 }
 // SPORTS = WHERE'S MY GAME (Scott 11/14 board; "Where Can I Watch My Team?" 11/08). Team names + team colors from ESPN, no team logos (trademarks).
 // Prices are approximate monthly prices as of 11/2026, Claude's general knowledge, not a feed - services change them, so the page says "about" and "check".
@@ -493,12 +527,12 @@ function stuff() {
       <section class="glow plain">${setupList()}</section><section class="glow plain"><h3>⚙ Your Services</h3><div class="signphone">${signIn()}</div><div class="svcs">${SERVICES.map(s => `<label><input type="checkbox" data-svc="${esc(s)}" ${S.mine.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div></section></aside></div>${credit()}`;
 }
 async function loadEps() {
-  const need = S.list.filter(s => !S.eps[s.id]); if (!need.length) return;
-  await Promise.all(need.map(s => fetch(`https://api.tvmaze.com/shows/${s.id}?embed=episodes`).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; S.eps[s.id] = ((j._embedded && j._embedded.episodes) || []).filter(e => e.airstamp); if (j.image && j.image.original) s.img = j.image.original; }).catch(() => {})));
+  const need = S.list.filter(s => !S.eps[s.id] || !s.genres); if (!need.length) return;
+  await Promise.all(need.map(s => fetch(`https://api.tvmaze.com/shows/${s.id}?embed=episodes`).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; S.eps[s.id] = ((j._embedded && j._embedded.episodes) || []).filter(e => e.airstamp); if (j.image && j.image.original) s.img = j.image.original; if (j.genres) s.genres = j.genres; }).catch(() => {})));
   save('list', S.list);
   if (S.tab === 3 || S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
-function toggleList(s) { if (!s) return; const have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); loadEps(); }
+function toggleList(s) { if (!s) return; const have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, genres: s.genres || [], at: 0 }]; save('list', S.list); loadEps(); }
 function step(id, d) { const s = S.list.find(x => x.id === id); if (!s) return; const eps = S.eps[id] || [], max = eps.length;
   const ep = eps[d > 0 ? (s.at || 0) : (s.at || 0) - 1];
   if (ep) { const k = 's' + id + '-' + ep.season + '-' + ep.number; if (d > 0) logWatch({ k, title: s.name, kind: 'Show', ep: 'S' + ep.season + ' E' + ep.number + (ep.name ? ' · ' + ep.name : ''), svc: NETWORK_SERVICE[s.net] || s.net || '', img: s.img || null }); else { S.history = S.history.filter(h => h.k !== k); save('history', S.history); } }
@@ -663,6 +697,8 @@ document.addEventListener('click', e => {
   else if (t.dataset.team != null) { S.teams = [...S.teams, S.teamHits[Number(t.dataset.team)]]; S.teamHits = null; S.tq = ''; save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.rmteam) { const [p, id] = t.dataset.rmteam.split('|'); S.teams = S.teams.filter(x => !(x.path === p && x.id === id)); save('teams', S.teams); draw(); loadTeamGames(); }
   else if (t.dataset.only != null) { S.onlyTeams = t.dataset.only === '1'; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.hasAttribute('data-pick')) { const ps = tonightPicks(); if (ps.length) { S.pickI = ((S.pickI == null ? -1 : S.pickI) + 1) % Math.min(ps.length, 8); S.sel = ps[S.pickI]; draw(); enrich(S.sel); } }
+  else if (t.hasAttribute('data-clearq')) { S.q = ''; S.results = null; S.movies = null; draw(); }
   else if (t.dataset.sf) { S.sf = t.dataset.sf; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.remind) { const k = t.dataset.remind; if (S.remind[k]) delete S.remind[k]; else { S.remind[k] = { title: t.dataset.rt, when: Number(t.dataset.rw) }; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } save('remind', S.remind); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.wf) { S.wf = t.dataset.wf; draw(); }
