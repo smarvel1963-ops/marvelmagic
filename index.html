@@ -159,6 +159,26 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 .svchips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.svchips b{font-size:14px}.svchips span{padding:5px 10px;border-radius:7px;background:#2A3154;font-size:13px;font-weight:800}
 @media (max-width:1400px){.hgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.hgrid .cwbox{grid-column:1/-1}.ftrow{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:760px){.hgrid{grid-template-columns:minmax(0,1fr)}.ht{font-size:34px}.hero{padding:20px;min-height:220px}.hero-planet{width:110px;height:110px;right:-10px;top:10px}.hero-planet::after{top:40px;height:30px;left:-30px;right:-30px}.cwrow{grid-template-columns:repeat(2,minmax(0,1fr))}.cwrow .cw:nth-child(3){display:none}.ftrow{grid-template-columns:repeat(2,minmax(0,1fr))}.hclock{font-size:20px}.btn.gold,.btn.ghost{flex:1;font-size:16px;padding:0 14px}nav svg{display:none}nav button{justify-content:center}}
+/* LIVE TV GUIDE (Scott 11/14 "Magic Guide" board) */
+.gpv{position:relative;overflow:hidden;border-radius:18px;min-height:300px;display:flex;align-items:center;padding:26px 32px;background:#100A30;border:1px solid #4B3A9A;margin-bottom:16px}
+.gpv-art{position:absolute;top:0;right:0;bottom:0;width:62%;background:center 20%/cover no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent,#000 40%);mask-image:linear-gradient(90deg,transparent,#000 40%)}
+.gpv::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(16,10,48,.7),transparent 55%);pointer-events:none}
+.gpv-in{position:relative;z-index:1;max-width:620px}
+.gpvk{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:16px;color:#E2DAFF}.chb{padding:3px 10px;border:1.5px solid #8A6BFF;border-radius:7px;font-weight:800;font-size:14px}
+.gpvt{margin:8px 0 4px;font-family:Georgia,"Times New Roman",serif;font-size:46px;line-height:1.05;color:#FFE3A0;text-transform:uppercase;letter-spacing:.5px;text-shadow:0 2px 14px rgba(0,0,0,.7)}
+.gpve{font-size:18px;font-weight:650;white-space:pre}.gpvd{margin:8px 0 10px;color:#D6D0F0;font-size:15px}
+.gtags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.gtags span{padding:3px 12px;border-radius:7px;border:1px solid #5A4BB0;background:rgba(40,30,100,.6);font-size:13px;font-weight:700}
+.gpvb{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.btn.watch{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);color:#fff;min-height:52px;padding:0 26px;font-size:19px;box-shadow:0 0 16px rgba(120,80,255,.6);border:1.5px solid #B9A8FF}
+.gbar{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap}.gday{font-weight:700;font-size:17px;padding:9px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}.gsb{min-width:48px;justify-content:center;font-size:22px;padding:0}
+.grid .times{height:34px;align-items:center;border-bottom:1px solid var(--line)}.grid .times div{padding-left:8px;border-left:1px solid var(--line)}
+.grid .row{height:62px}.grid .ch{background:var(--panel);border-radius:9px;padding:0 12px;border:1px solid var(--line)}.grid .ch.on{border-color:var(--gold);box-shadow:0 0 10px rgba(255,180,60,.35)}.chn{font-weight:800}
+.cell{display:flex;flex-direction:column;justify-content:center;line-height:1.2;padding:0 12px}.cell b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cell small{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden}.cell.on small{color:#fff}
+.cell.on{padding-right:64px;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border:2px solid #C9B8FF;box-shadow:0 0 14px rgba(120,80,255,.6)}
+.lv{position:absolute;top:6px;right:8px;padding:1px 7px;border-radius:6px;background:var(--gold);color:#1A1030;font-size:11px;font-weight:900}
+.nowline{background:var(--gold);width:3px}
+.tick{display:flex;align-items:center;gap:14px;width:100%;margin-top:16px;padding:10px 16px;border-radius:12px;background:linear-gradient(90deg,#1A1440,#120E30);border:1px solid #4B3A9A;flex-wrap:wrap;font-size:17px}.tkb{padding:6px 18px;background:linear-gradient(180deg,#FFD36B,var(--gold2));color:#1A1030;font-weight:900;font-style:italic;border-radius:6px;transform:skewX(-12deg)}.tks{font-size:20px}.tkn{margin-left:auto;color:var(--gold);font-weight:650}
+@media (min-width:761px){body[data-tab="0"] .dock{display:none!important}}
+@media (max-width:760px){.gpv{padding:18px;min-height:0}.gpv-art{width:100%;opacity:.3;-webkit-mask-image:none;mask-image:none}.gpvt{font-size:30px}.gpvd{display:none}.gbar .gsb{display:none}.tkn{margin-left:0}}
 </style>
 </head>
 <body>
@@ -238,6 +258,7 @@ function draw() {
   $('nav').innerHTML = NAV_ORDER.map(i => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${icon(i)}<span>${esc(TABS[i])}</span></button>`).join('');
   $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage, home][S.tab]();
   $('signside').innerHTML = sideFoot();
+  document.body.dataset.tab = S.tab;
   drawAcct();
   dock();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
@@ -265,6 +286,38 @@ function dock() {
     ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
     <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
 }
+// LIVE TV GUIDE (Scott 11/14 "Magic Guide" board): big preview of the picked show, the grid, the Magic Sports ticker. Art + summaries from TVmaze.
+const strip = h => String(h || '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+const BG = {};
+function bgFor(show) {
+  if (!show) return '';
+  if (BG[show.id] !== undefined) return BG[show.id] || '';
+  BG[show.id] = null;
+  const fall = (show.image && show.image.original) || '';
+  fetch(`https://api.tvmaze.com/shows/${show.id}/images`).then(r => r.ok ? r.json() : []).then(j => {
+    const b = j.find(i => i.type === 'background' && i.main) || j.find(i => i.type === 'background');
+    BG[show.id] = (b && b.resolutions && b.resolutions.original && b.resolutions.original.url) || fall;
+  }).catch(() => { BG[show.id] = fall; }).then(() => { const el = document.querySelector(`.gpv-art[data-id="${show.id}"]`); if (el && BG[show.id]) el.style.backgroundImage = `url("${BG[show.id]}")`; });
+  return '';
+}
+const mineGame = g => g.teams && S.teams.some(t => t.path === g.path && g.teams.includes(t.id));
+function ticker() {
+  const live = S.games.filter(g => g.state === 'in'), g = live.find(mineGame) || live[0];
+  const nx = S.games.filter(x => x.state === 'pre').sort((a, b) => (mineGame(b) - mineGame(a)) || a.when - b.when)[0];
+  if (!g && !nx) return '';
+  return `<button class="tick" data-tab="2"><span class="tkb">MAGIC SPORTS</span>${g ? `<span class="glive">● LIVE</span><b>${esc(g.away)} vs ${esc(g.home)}</b><b class="tks">${esc(g.score)}</b><span>${esc(g.detail)}</span>` : ''}${nx ? `<span class="tkn">Next: ${esc(nx.title)} · ${esc(clock(new Date(nx.when)))}</span>` : ''}</button>`;
+}
+function preview(pv, now) {
+  if (!pv) return '';
+  const sh = pv.show || {}, live = pv.start <= now && pv.end > now, bg = bgFor(pv.show), saved = pv.show && S.list.some(x => x.id === sh.id);
+  const sum = strip(sh.summary), short = sum.length > 230 ? sum.slice(0, 227).replace(/\s+\S*$/, '') + '…' : sum;
+  const tags = [...(sh.genres || []).slice(0, 3), sh.rating && sh.rating.average ? '★ ' + sh.rating.average : ''].filter(Boolean);
+  return `<section class="gpv"><div class="gpv-art" data-id="${esc(sh.id || '')}" style="${bg ? `background-image:url('${esc(bg)}')` : ''}"></div><div class="gpv-in">
+    <div class="gpvk"><span class="chb">${esc(pv.net)}</span><span>${live ? 'Now Live' : 'Coming Up'} · ${esc(clock(new Date(pv.start)))} – ${esc(clock(new Date(pv.end)))}</span></div>
+    <h1 class="gpvt">${esc(pv.title)}</h1>${pv.ep || pv.epName ? `<div class="gpve">${esc([pv.ep, pv.epName].filter(Boolean).join('  '))}</div>` : ''}
+    ${short ? `<p class="gpvd">${esc(short)}</p>` : ''}${tags.length ? `<div class="gtags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
+    <div class="gpvb"><button class="btn watch" data-i="${reg(pv)}" data-go>▶ ${live ? 'Watch Live' : 'Open'} ↗</button>${pv.show ? `<button class="pill" data-addlist="${reg(pv)}">${saved ? '✓ On My List' : '＋ My List'}</button>` : ''}</div>${whereRow(pv)}</div></section>`;
+}
 function guide() {
   if (S.err && !S.airings.length) return `<h1>Live TV Guide</h1><p>${esc(S.err)}</p>`;
   if (!S.airings.length) return `<h1>Live TV Guide</h1><p class="fine">Loading tonight's listings…</p>`;
@@ -275,24 +328,28 @@ function guide() {
   const canSee = n => S.mine.includes('YouTube TV') || (!['ABC', 'FX'].includes(n) && S.mine.includes(NETWORK_SERVICE[n]));   // plain Hulu has these on demand, not live
   const nets = Object.keys(by).filter(canSee).sort((a, b) => a.localeCompare(b));
   const freeSet = FREE_TV.filter(([n]) => S.setup.includes(n));
-  const freeRows = freeSet.map(([n, u]) => `<div class="row"><div class="ch"><b>${esc(n)}</b><small>Free</small></div><div class="track"><a class="cell freecell" data-free="${esc(n)}" href="${esc(u)}" target="_blank" rel="noopener" style="left:0;width:100%">Open ${esc(n)} live guide</a></div></div>`).join('');
+  const freeRows = freeSet.map(([n, u]) => `<div class="row"><div class="ch"><b class="chn">${esc(n)}</b><small>Free</small></div><div class="track"><a class="cell freecell" data-free="${esc(n)}" href="${esc(u)}" target="_blank" rel="noopener" style="left:0;width:100%">Open ${esc(n)} live guide</a></div></div>`).join('');
   const freeCards = freeSet.map(([n, u]) => `<a class="card freecard" data-free="${esc(n)}" href="${esc(u)}" target="_blank" rel="noopener"><span class="t"><small>Free</small><b>${esc(n)}</b><small>Open its live guide</small></span></a>`).join('');
   if (!nets.length && !freeSet.length) return `<h1>Live TV Guide</h1><p class="fine">None of your services have channel listings in the next 8 hours.</p>`;
+  const onNow = nets.flatMap(n => by[n].filter(a => a.start <= now && a.end > now));
+  const pv = (S.sel && S.sel.net && !S.sel.sport) ? S.sel : onNow.sort((a, b) => ((b.show && b.show.weight) || 0) - ((a.show && a.show.weight) || 0))[0] || null;
   const nowPct = (now - t0) / span * 100;
   const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
   const rows = nets.map(n => {
     const svc = NETWORK_SERVICE[n], ok = !svc || hasIt(svc);
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
-      const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100);
-      return `<button class="cell ${S.sel && S.sel.key === a.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}">${esc(a.title)}</button>`;
+      const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100), on = pv && pv.key === a.key, live = a.start <= now && a.end > now;
+      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}"><b>${esc(a.title)}</b><small>${esc(clock(new Date(a.start)))} – ${esc(clock(new Date(a.end)))}</small>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
-    return `<div class="row"><div class="ch"><b>${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
+    return `<div class="row"><div class="ch ${pv && pv.net === n ? 'on' : ''}"><b class="chn">${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
   }).join('');
   const list = nets.map(n => {
     const sorted = by[n].sort((a, b) => a.start - b.start), cur = sorted.find(a => a.end > now) || sorted[0], next = sorted[sorted.indexOf(cur) + 1], ok = !cur.svc || hasIt(cur.svc);
     return `<button class="card ${S.sel && S.sel.key === cur.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(cur)}"><span class="t"><small>${esc(n)}${cur.svc ? ' · ' + esc(cur.svc) : ''}</small><b>${esc(cur.title)}</b><small>${cur.start <= now ? 'On now' : esc(clock(new Date(cur.start)))}${next ? ' · Next: ' + esc(next.title) : ''}</small></span></button>`;
   }).join('');
-  return `<h1>Live TV Guide</h1><div class="grid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>${freeTv()}${credit()}`;
+  const today = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  return `${preview(pv, now)}<div class="gbar"><span class="gday">📅 Today, ${esc(today)}</span><button class="pill gsb" data-gs="-1" aria-label="Earlier">‹</button><button class="pill gsb" data-gs="1" aria-label="Later">›</button><span class="fine">${nets.length} channel${nets.length === 1 ? '' : 's'} you can watch · next 8 hours</span></div>
+    <div class="grid" id="ggrid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>${ticker()}${freeTv()}${credit()}`;
 }
 const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
 function showItem(s) {
@@ -385,6 +442,7 @@ async function loadEps() {
   save('list', S.list);
   if (S.tab === 3 || S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
+function toggleList(s) { if (!s) return; const have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); loadEps(); }
 function step(id, d) { const s = S.list.find(x => x.id === id); if (!s) return; const eps = S.eps[id] || [], max = eps.length;
   const ep = eps[d > 0 ? (s.at || 0) : (s.at || 0) - 1];
   if (ep) { const k = 's' + id + '-' + ep.season + '-' + ep.number; if (d > 0) logWatch({ k, title: s.name, kind: 'Show', ep: 'S' + ep.season + ' E' + ep.number + (ep.name ? ' · ' + ep.name : ''), svc: NETWORK_SERVICE[s.net] || s.net || '', img: s.img || null }); else { S.history = S.history.filter(h => h.k !== k); save('history', S.history); } }
@@ -477,7 +535,7 @@ async function loadGuide() {
       const show = e.show || (e._embedded && e._embedded.show); if (!show || !e.airstamp || seen.has(e.id)) continue; seen.add(e.id);
       const net = (show.network && show.network.name) || (show.webChannel && show.webChannel.name); if (!net) continue;
       const start = Date.parse(e.airstamp), mins = e.runtime || show.runtime || show.averageRuntime || 30;
-      out.push({ key: 'e' + e.id, title: show.name, net, start, end: start + mins * 60000, svc: NETWORK_SERVICE[net] || null, url: show.officialSite || show.url, series: true, show, ep: e.season && e.number ? `S${e.season} E${e.number}` : '', note: `${net} · ${clock(new Date(start))}${e.season && e.number ? ` · S${e.season} E${e.number}` : ''}` });
+      out.push({ key: 'e' + e.id, title: show.name, net, start, end: start + mins * 60000, svc: NETWORK_SERVICE[net] || null, url: show.officialSite || show.url, series: true, show, ep: e.season && e.number ? `S${e.season} E${e.number}` : '', epName: e.name || '', note: `${net} · ${clock(new Date(start))}${e.season && e.number ? ` · S${e.season} E${e.number}` : ''}` });
     }
     S.airings = out; S.err = '';
   } catch { S.err = "Couldn't load listings. Check your connection."; }
@@ -539,6 +597,9 @@ document.addEventListener('click', e => {
   if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); if (t.hasAttribute('data-q') && $('q')) $('q').focus(); }
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.i != null && t.hasAttribute('data-go')) { const x = items[Number(t.dataset.i)]; if (!x.svc || hasIt(x.svc)) openIt(x); else { S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); } }
+  else if (t.dataset.gs) { const g = $('ggrid'); if (g) g.scrollBy({ left: Number(t.dataset.gs) * 568, behavior: 'smooth' }); }
+  else if (t.dataset.addlist != null) { toggleList(items[Number(t.dataset.addlist)].show); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null) { const x = items[Number(t.dataset.i)]; if (S.sel && S.sel.key === x.key) { if (!S.sel.svc || hasIt(S.sel.svc)) openIt(S.sel); return; } S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); enrich(x); }
   else if (t.dataset.rate) { const x = S.sel, k = rateKey(x), n = Number(t.dataset.rate); if (S.ratings[k] && S.ratings[k].score === n) delete S.ratings[k]; else S.ratings[k] = { title: x.title, img: x.img || (x.show && (x.show.img || (x.show.image && x.show.image.medium))) || null, kind: x.series ? 'Show' : 'Movie', score: n, at: Date.now() }; save('ratings', S.ratings); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.unrate) { delete S.ratings[t.dataset.unrate]; save('ratings', S.ratings); draw(); }
@@ -550,7 +611,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.unwatch) { S.history = S.history.filter(h => h.k !== t.dataset.unwatch); save('history', S.history); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.id === 'acct') acctPress();
   else if (t.hasAttribute('data-open')) openIt(S.sel);
-  else if (t.hasAttribute('data-save')) { const s = S.sel.show, have = S.list.some(x => x.id === s.id); S.list = have ? S.list.filter(x => x.id !== s.id) : [...S.list, { id: s.id, name: s.name, net: s.net || (s.network && s.network.name) || (s.webChannel && s.webChannel.name) || '', img: s.img || (s.image && s.image.medium) || null, url: s.url, at: 0 }]; save('list', S.list); dock(); loadEps(); }
+  else if (t.hasAttribute('data-save')) { toggleList(S.sel.show); dock(); }
 });
 document.addEventListener('change', e => { const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
