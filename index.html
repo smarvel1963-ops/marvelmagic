@@ -247,15 +247,21 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 .plc b{font-size:16px;line-height:1.2}.pln{font-size:12px;font-weight:800;color:#C9B8FF}.plw{margin-top:auto;font-size:13px;font-weight:700;color:#FFD36B}
 button.ft{text-align:left}
 /* uniform guide (Scott 11/14) */
-.cell.gap{background:rgba(28,36,71,.45);border:1px dashed #36407A;color:var(--dim)}.cell.gap b{font-weight:600}.cell.gap.on{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border-style:solid;color:#fff}
+.cell.isg{background:linear-gradient(90deg,#3A1426,#1C2447 70%);border-color:#7A2A44}.cell.gap{background:rgba(28,36,71,.45);border:1px dashed #36407A;color:var(--dim)}.cell.gap b{font-weight:600}.cell.gap.on{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border-style:solid;color:#fff}
 a.cell.plcell{display:flex;color:var(--text);text-decoration:none;background:linear-gradient(90deg,#2E1F66,#1C2447 60%)}a.cell.plcell b{color:#FFD36B}
-.gfree{margin-top:20px}.gfree .filters{flex:1}.gplut{max-height:560px;overflow-y:auto}.gplut .row{min-width:0!important}
+.cell.od{background:linear-gradient(180deg,#24325E,#1C2447)}.gond{max-height:none}.gfree{margin-top:20px}.gfree .filters{flex:1}.gplut{max-height:560px;overflow-y:auto}.gplut .row{min-width:0!important}
 .grid .cell .ci{display:block;max-width:100%;overflow:hidden}.grid .cell .ci b,.grid .cell .ci small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* CAST TO TV (11/14) */
 .castbtn{position:fixed;top:12px;right:16px;z-index:8;min-height:42px;padding:0 16px;border-radius:21px;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);color:#fff;font-weight:800;box-shadow:0 0 14px rgba(120,80,255,.6);border:1px solid #B9A8FF}
 .castol{margin:10px 0;padding-left:22px;line-height:1.6}
 @media (min-width:1000px){.htop{padding-right:170px}.sph,.hothero,.fyhero,.phero,.lounge,.gpv{margin-top:44px}}
 @media (max-width:760px){.castbtn{top:auto;bottom:calc(66px + env(safe-area-inset-bottom));right:12px;min-height:40px;padding:0 14px;font-size:14px}}
+/* team logos (11/14) */
+.tlg{width:22px;height:22px;object-fit:contain;vertical-align:-5px;margin-right:5px;filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
+.spvs i{font-style:normal;color:var(--dim);font-weight:600;margin:0 4px}
+.splg2{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+.hlg{display:block;width:56px;height:56px;object-fit:contain;margin:0 auto 4px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+@media (max-width:760px){.splg2{width:56px;height:56px}}
 </style>
 </head>
 <body>
@@ -382,6 +388,25 @@ function dock() {
     ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
     <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
 }
+// GUIDE DATA (Scott 11/14 "we need more usable data in it"): ESPN's channel names -> the guide's channel names, game lengths, channel types.
+const GNET = { SECN: 'SEC Network', ACCN: 'ACC Network', BTN: 'Big Ten Network', CBSSN: 'CBS Sports Network', 'NFL NET': 'NFL Network', 'NHL NET': 'NHL Network', 'MLB NET': 'MLB Network', 'NBA TV': 'NBA TV', TRUTV: 'truTV', truTV: 'truTV', 'USA Net': 'USA', 'USA NET': 'USA', 'ESPN+': 'ESPN+', 'SECN+': 'ESPN+', ACCNX: 'ESPN+', PEACOCK: 'Peacock', Peacock: 'Peacock', 'Prime Video': 'Prime Video', 'Apple TV': 'Apple TV' };
+const gnet = t => GNET[t] || GNET[String(t).toUpperCase()] || t;
+const GAME_MIN = { NFL: 200, 'College Football': 210, NBA: 150, 'College Basketball': 130, NHL: 155, MLB: 185 };
+const NEWS_NETS = new Set(['CNN', 'HLN', 'MS NOW', 'MSNBC', 'Fox News', 'CNBC', 'Bloomberg Television', 'ABC News Live', 'Local Now', 'NewsNation']);
+const SPORT_NETS = new Set(['ESPN', 'ESPN2', 'ESPN3', 'ESPNU', 'ESPN+', 'FS1', 'FS2', 'ACC Network', 'SEC Network', 'Big Ten Network', 'CBS Sports Network', 'NFL Network', 'NBA TV', 'NHL Network', 'MLB Network', 'Golf Channel']);
+const MOVIE_NETS = new Set(['AMC', 'IFC', 'TCM', 'Hallmark Channel', 'Lifetime', 'Freeform', 'Syfy', 'FX', 'FXX']);
+const gapWord = n => NEWS_NETS.has(n) ? 'Live news' : SPORT_NETS.has(n) ? 'Sports' : MOVIE_NETS.has(n) ? 'Movies & shows' : 'No listing';
+// a game as a guide listing on each of its channels (one card per channel it airs on)
+function gameAirings(t0, t1) {
+  const out = [];
+  for (const g of S.games) {
+    if (g.state === 'post' && Date.now() - g.when > 6 * 3600000) continue;
+    const len = (GAME_MIN[g.league] || 180) * 60000, end = g.state === 'in' ? Math.max(g.when + len, Date.now() + 20 * 60000) : g.state === 'post' ? g.when + len : g.when + len;
+    if (end <= t0 || g.when >= t1) continue;
+    for (const raw of (g.tv || [])) { const net = gnet(raw); out.push({ ...g, key: g.key + '@' + net, gkey: g.key, net, start: g.when, end, title: (g.away || '') + ' at ' + (g.home || ''), isGame: true }); }
+  }
+  return out;
+}
 // LIVE TV GUIDE (Scott 11/14 "Magic Guide" board): big preview of the picked show, the grid, the Magic Sports ticker. Art + summaries from TVmaze.
 const strip = h => String(h || '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
 const BG = {};
@@ -401,7 +426,7 @@ function ticker() {
   const live = S.games.filter(g => g.state === 'in'), g = live.find(mineGame) || live[0];
   const nx = S.games.filter(x => x.state === 'pre').sort((a, b) => (mineGame(b) - mineGame(a)) || a.when - b.when)[0];
   if (!g && !nx) return '';
-  return `<button class="tick" data-tab="2"><span class="tkb">MAGIC SPORTS</span>${g ? `<span class="glive">● LIVE</span><b>${esc(g.away)} vs ${esc(g.home)}</b><b class="tks">${esc(g.score)}</b><span>${esc(g.detail)}</span>` : ''}${nx ? `<span class="tkn">Next: ${esc(nx.title)} · ${esc(clock(new Date(nx.when)))}</span>` : ''}</button>`;
+  return `<button class="tick" data-tab="2"><span class="tkb">MAGIC SPORTS</span>${g ? `<span class="glive">● LIVE</span><b class="spvs">${tlogo(g.awayLogo)}${esc(g.away)} vs ${tlogo(g.homeLogo)}${esc(g.home)}</b><b class="tks">${esc(g.score)}</b><span>${esc(g.detail)}</span>` : ''}${nx ? `<span class="tkn">Next: ${esc(nx.title)} · ${esc(clock(new Date(nx.when)))}</span>` : ''}</button>`;
 }
 function preview(pv, now) {
   if (!pv) return '';
@@ -419,16 +444,18 @@ function guide() {
   if (!S.airings.length) return `<h1>Live TV Guide</h1><p class="fine">Loading tonight's listings…</p>`;
   const now = Date.now(), t0 = Math.floor(now / SLOT) * SLOT, span = SLOT * SLOTS, t1 = t0 + span, by = {};
   for (const a of S.airings) if (a.end > t0 && a.start < t1) (by[a.net] = by[a.net] || []).push(a);
+  for (const g of gameAirings(t0, t1)) { const L = by[g.net] = (by[g.net] || []).filter(a => a.isGame || a.end <= g.start || a.start >= g.end); L.push(g); }
+  for (const pk of Object.keys(LIVE_PKG)) if (S.mine.includes(pk) && Array.isArray(LIVE_PKG[pk])) for (const n of LIVE_PKG[pk]) if (!['ESPN3', 'Local Now', 'USA Network', 'ACCN', 'MSNBC'].includes(n)) by[n] = by[n] || [];
   // Only channels this account can reach (Scott 11/08). YouTube TV is a live bundle, so it opens every network; nothing set up yet = ask them to set up.
   if (!S.mine.length) return `<h1>Live TV Guide</h1><p>Your guide shows only the channels you can watch. Set up your streaming accounts to fill it in.</p><button class="btn" data-tab="3">Set up my accounts</button>`;
-  const canSee = n => !!livePkgFor(n) || (!['ABC', 'FX'].includes(n) && S.mine.includes(NETWORK_SERVICE[n]));   // plain Hulu has these on demand, not live
+  const canSee = n => !!livePkgFor(n) || (n === 'ESPN+' && S.mine.includes('ESPN')) || (!['ABC', 'FX'].includes(n) && S.mine.includes(NETWORK_SERVICE[n]));   // plain Hulu has these on demand, not live
   const nets = Object.keys(by).filter(n => canSee(n) && (!kidsOn() || KIDS_NETS.has(n))).sort((a, b) => a.localeCompare(b));
   const freeSet = FREE_TV.filter(([n]) => S.setup.includes(n) && n !== 'Pluto TV');
   const freeRows = freeSet.map(([n, u]) => `<div class="row"><div class="ch"><b class="chn">${esc(n)}</b><small>Free</small></div><div class="track"><a class="cell freecell" data-free="${esc(n)}" href="${esc(u)}" target="_blank" rel="noopener" style="left:0;width:100%">Open ${esc(n)} live guide</a></div></div>`).join('');
   const freeCards = freeSet.map(([n, u]) => `<a class="card freecard" data-free="${esc(n)}" href="${esc(u)}" target="_blank" rel="noopener"><span class="t"><small>Free</small><b>${esc(n)}</b><small>Open its live guide</small></span></a>`).join('');
   if (!nets.length && !freeSet.length) return `<h1>Live TV Guide</h1><p class="fine">None of your services have channel listings in the next 8 hours.</p>`;
   const onNow = nets.flatMap(n => by[n].filter(a => a.start <= now && a.end > now));
-  const pv = (S.sel && S.sel.net && !S.sel.sport) ? S.sel : onNow.sort((a, b) => ((b.show && b.show.weight) || 0) - ((a.show && a.show.weight) || 0))[0] || null;
+  const pv = (S.sel && S.sel.net) ? S.sel : onNow.sort((a, b) => ((b.show && b.show.weight) || 0) - ((a.show && a.show.weight) || 0))[0] || null;
   const nowPct = (now - t0) / span * 100;
   const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
   const rows = nets.map(n => {
@@ -436,11 +463,11 @@ function guide() {
     if (!own && pk) for (const a of by[n]) a.svc = pk;   // watch it live in the package you have
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
       const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100), on = pv && pv.key === a.key, live = a.start <= now && a.end > now;
-      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}"><span class="ci"><b>${esc(a.title)}</b><small>${esc(clock(new Date(a.start)))} – ${esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
+      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}${a.isGame ? ' isg' : ''}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%" title="${esc(a.title)}"><span class="ci"><b>${a.isGame ? '🏟 ' : ''}${esc(a.title)}</b><small>${a.isGame ? esc((a.state === 'in' ? 'LIVE ' + a.score + ' · ' + a.detail : a.state === 'post' ? 'Final ' + a.score : clock(new Date(a.start))) + ' · ' + a.league) : esc(clock(new Date(a.start))) + ' – ' + esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
     // Scott 11/14 "keep guide uniform easy to see": every hole in a row gets a plain box, so all rows read the same way
     let gaps = '', cur = t0;
-    const gapBox = (a, b) => { if (b - a < 10 * 60000) return; const x = { key: 'gap' + n + a, title: n + ' live', net: n, svc, start: a, end: b, series: false, url: svc && SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' }; const l = (a - t0) / span * 100, r = (b - t0) / span * 100; gaps += `<button class="cell gap ${pv && pv.key === x.key ? 'on' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${r - l}%"><span class="ci"><b>No listing</b><small>${svc ? 'Watch live on ' + esc(svc) : 'Live channel'}</small></span></button>`; };
+    const gapBox = (a, b) => { if (b - a < 10 * 60000) return; const x = { key: 'gap' + n + a, title: n + ' live', net: n, svc, start: a, end: b, series: false, url: svc && SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' }; const l = (a - t0) / span * 100, r = (b - t0) / span * 100; gaps += `<button class="cell gap ${pv && pv.key === x.key ? 'on' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${r - l}%"><span class="ci"><b>${esc(gapWord(n))}</b><small>${svc ? 'Watch live on ' + esc(svc) : 'Live channel'}</small></span></button>`; };
     for (const a of by[n].slice().sort((x, y) => x.start - y.start)) { if (a.start > cur) gapBox(cur, Math.min(a.start, t1)); cur = Math.max(cur, a.end); }
     if (cur < t1) gapBox(cur, t1);
     return `<div class="row"><div class="ch ${pv && pv.net === n ? 'on' : ''}"><b class="chn">${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}${gaps}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
@@ -453,7 +480,14 @@ function guide() {
   const plutoRows = pch.map(c => `<div class="row"><div class="ch"><b class="chn">${c[2] ? c[2] + ' · ' : ''}${esc(c[0])}</b><small>Pluto TV · Free</small></div><div class="track"><a class="cell plcell" href="${esc(plutoUrl(c[1]))}" target="_blank" rel="noopener" data-free="Pluto TV" style="left:0;width:100%"><b>▶ Watch live</b><small>${esc(pcat)} channel · always on</small></a></div></div>`).join('');
   const plutoCards = pch.map(c => `<a class="card freecard" href="${esc(plutoUrl(c[1]))}" target="_blank" rel="noopener" data-free="Pluto TV"><span class="t"><small>Pluto TV · Free${c[2] ? ' · ' + c[2] : ''}</small><b>${esc(c[0])}</b><small>▶ Watch live</small></span></a>`).join('');
   const plutoBar = pcats.length ? `<div class="gbar gfree"><span class="gday">📺 Free Pluto TV channels</span><div class="filters">${pcats.map(c => `<button class="chip ${c === pcat ? 'on' : ''}" data-plcat="${esc(c)}">${esc(c)}</button>`).join('')}</div></div>` : '';
+  // ON-DEMAND ROWS: a streaming service has no timetable, so its row shows what's on it (top movies + shows), each watch-anytime
+  const odSvcs = catSvcs().filter(n => n !== 'Pluto TV');
+  const od = odSvcs.map(n => { loadCat(n, 'movie'); loadCat(n, 'tv'); const k = kidsOn() ? 1 : 0, m = (S.cat[n + '|movie|' + k] || {}).items || [], t = (S.cat[n + '|tv|' + k] || {}).items || []; const mix = []; for (let i = 0; i < 6; i++) { if (m[i]) mix.push(m[i]); if (t[i]) mix.push(t[i]); } return [n, mix.slice(0, 8), S.cat[n + '|movie|' + k]]; });
+  const odRows = od.map(([n, mix, st]) => `<div class="row"><div class="ch"><b class="chn">${esc(n)}</b><small>${FREE_SVC.has(n) ? 'Free · ' : ''}On demand · anytime</small></div><div class="track">${mix.length ? mix.map((x, i) => `<button class="cell od ${S.sel && S.sel.key === x.key ? 'on' : ''}" data-i="${reg(x)}" style="left:${i * 12.5}%;width:12.5%" title="${esc(x.title)}"><span class="ci"><b>${esc(x.title)}</b><small>${esc((x.series ? 'Series' : 'Movie') + (x.note.match(/^\d{4}/) ? ' · ' + x.note.slice(0, 4) : ''))}</small></span></button>`).join('') : `<span class="cell gap" style="left:0;width:100%"><span class="ci"><b>${st && st.error ? 'Catalog not available' : 'Loading…'}</b><small>${esc(n)}</small></span></span>`}</div></div>`).join('');
+  const odCards = od.map(([n, mix]) => mix.slice(0, 4).map(x => `<button class="card" data-i="${reg(x)}"><span class="t"><small>${esc(n)} · anytime</small><b>${esc(x.title)}</b><small>${x.series ? 'Series' : 'Movie'}</small></span></button>`).join('')).join('');
+  const odBar = odRows ? '<div class="gbar gfree"><span class="gday">🎬 On your streaming services · watch anytime</span><span class="fine">What\'s popular on each service you ticked right now. Tap one to open it there.</span></div>' : '';
   const list = nets.map(n => {
+    if (!by[n].length) { const pk = livePkgFor(n), x = { key: 'gap' + n, title: n + ' live', net: n, svc: pk, start: now, end: now + SLOT, series: false }; return `<button class="card" data-i="${reg(x)}"><span class="t"><small>${esc(n)}${pk ? ' · ' + esc(pk) : ''}</small><b>${esc(gapWord(n))}</b><small>Watch live</small></span></button>`; }
     const sorted = by[n].sort((a, b) => a.start - b.start), cur = sorted.find(a => a.end > now) || sorted[0], next = sorted[sorted.indexOf(cur) + 1], ok = !cur.svc || hasIt(cur.svc);
     return `<button class="card ${S.sel && S.sel.key === cur.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(cur)}"><span class="t"><small>${esc(n)}${cur.svc ? ' · ' + esc(cur.svc) : ''}</small><b>${esc(cur.title)}</b><small>${cur.start <= now ? 'On now' : esc(clock(new Date(cur.start)))}${next ? ' · Next: ' + esc(next.title) : ''}</small></span></button>`;
   }).join('');
@@ -461,6 +495,7 @@ function guide() {
   for (const n of nets) { const pk = livePkgFor(n); if (pk && !(NETWORK_SERVICE[n] && S.mine.includes(NETWORK_SERVICE[n]))) for (const a of by[n]) a.svc = pk; }
   return `${preview(pv, now)}<div class="gbar"><span class="gday">📅 Today, ${esc(today)}</span><button class="pill gsb" data-gs="-1" aria-label="Earlier">‹</button><button class="pill gsb" data-gs="1" aria-label="Later">›</button><span class="fine">${nets.length} channel${nets.length === 1 ? '' : 's'} you can watch · next 8 hours${Object.keys(LIVE_PKG).some(pk => S.mine.includes(pk) && LIVE_PKG[pk] !== '*') ? ' · package channels can vary by plan and area' : ''}</span></div>
     <div class="grid" id="ggrid"><div class="times">${times}</div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>
+    ${odBar}<div class="grid gplut gond">${odRows}</div><div class="phone">${odCards}</div>
     ${plutoBar}<div class="grid gplut">${plutoRows}</div><div class="phone">${plutoCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
 }
 const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
@@ -480,7 +515,7 @@ function loadCat(svc, kind) {
   relay({ a: 'cat', svc, kind, kids: kid ? '1' : '0' })
     .then(j => { S.cat[k] = j.error ? { error: j.error } : { items: (j.items || []).map(r => catItem(r, svc, kind, kid)) }; })
     .catch(() => { S.cat[k] = { error: 'net' }; })
-    .then(() => { if (S.tab === 1 || S.tab === 9) { const y = window.scrollY; draw(); window.scrollTo(0, y); } });
+    .then(() => { if (S.tab === 1 || S.tab === 9 || S.tab === 0) { const y = window.scrollY; draw(); window.scrollTo(0, y); } });
 }
 function catSection() {
   const svcs = catSvcs();
@@ -556,6 +591,8 @@ function shows() {
 // SPORTS = WHERE'S MY GAME (Scott 11/14 board; "Where Can I Watch My Team?" 11/08). Team names + team colors from ESPN, no team logos (trademarks).
 // Prices are approximate monthly prices as of 11/2026, Claude's general knowledge, not a feed - services change them, so the page says "about" and "check".
 const PRICE = { Peacock: 10.99, 'Paramount+': 7.99, ESPN: 29.99, 'YouTube TV': 82.99, 'HBO Max': 10.99, 'Fox One': 19.99, 'Prime Video': 8.99, 'Apple TV': 12.99, Hulu: 9.99, Netflix: 7.99, 'Disney+': 9.99, 'Sling Orange': 45.99, 'Sling Blue': 50.99, 'Hulu + Live TV': 82.99, 'DirecTV Stream': 86.99, Fubo: 84.99 };
+// TEAM LOGOS (Scott 11/14 "sports teams should have logos"): from ESPN's game data. Fine for the test build; licensing comes before selling.
+const tlogo = (u, cls) => u ? `<img class="${cls || 'tlg'}" src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">` : '';
 const tcol = c => /^[0-9a-f]{6}$/i.test(String(c || '')) ? '#' + c : '';
 function sports() {
   const now = Date.now(), sel = x => S.sel && S.sel.key === x.key ? ' on' : '';
@@ -571,19 +608,19 @@ function sports() {
     const mid = f.state === 'pre' ? `<span class="spmid"><span class="ko">STARTS IN</span><span class="cd" data-when="${f.when}">${esc(cdText(f.when))}</span><small>${esc(f.detail)}</small></span>` : `<span class="spmid"><span class="spclock">${f.state === 'in' ? '● ' : ''}${esc(f.detail)}</span></span>`;
     const opts = (f.options || []).slice().sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)));
     hero = `<section class="spf" style="--ac:${tcol(f.awayColor) || '#2B4FD8'};--hc:${tcol(f.homeColor) || '#C8283C'}">${st}<div class="splg">${esc(f.note.split(' · ')[0])}</div>
-      <div class="spteams"><div class="spt"><b>${esc(f.away || f.title)}</b>${f.score ? `<span class="spsc">${esc(as)}</span>` : ''}</div>${mid}<div class="spt"><b>${esc(f.home || '')}</b>${f.score ? `<span class="spsc">${esc(hs)}</span>` : ''}</div></div>
+      <div class="spteams"><div class="spt">${tlogo(f.awayLogo, 'splg2')}<b>${esc(f.away || f.title)}</b>${f.score ? `<span class="spsc">${esc(as)}</span>` : ''}</div>${mid}<div class="spt">${tlogo(f.homeLogo, 'splg2')}<b>${esc(f.home || '')}</b>${f.score ? `<span class="spsc">${esc(hs)}</span>` : ''}</div></div>
       <div class="spwatch"><span>WATCH ON</span>${opts.length ? opts.map(o => `<a class="spw ${hasIt(o.svc) ? 'yours' : ''}" data-opt href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.svc)}${hasIt(o.svc) ? ' ✓' : ''}</a>`).join('') : '<em class="fine">Channel not announced yet</em>'}</div></section>`;
   }
   // today's games, filtered
   const flt = S.sf || 'all', rank = { in: 0, pre: 1, post: 2 };
   const shown = S.games.filter(g => flt === 'all' || (flt === 'live' && g.state === 'in') || (flt === 'up' && g.state === 'pre') || (flt === 'final' && g.state === 'post') || (flt === 'mine' && mineGame(g))).sort((a, b) => (mineGame(b) - mineGame(a)) || rank[a.state] - rank[b.state] || a.when - b.when);
-  const gc = g => `<button class="spc${sel(g)}${f && f.key === g.key ? ' feat' : ''}" data-i="${reg(g)}"><span class="spct ${g.state === 'in' ? 'l' : g.state === 'post' ? 'f' : 'u'}">${g.state === 'in' ? '● LIVE' : g.state === 'post' ? 'FINAL' : 'UPCOMING'}</span>${mineGame(g) ? '<span class="spstar">★</span>' : ''}<b>${esc(g.away)} vs ${esc(g.home)}</b><small>${g.state === 'pre' ? esc(clock(new Date(g.when))) : esc(g.score + ' · ' + g.detail)}</small><small class="spcl">${esc(g.note)}</small></button>`;
+  const gc = g => `<button class="spc${sel(g)}${f && f.key === g.key ? ' feat' : ''}" data-i="${reg(g)}"><span class="spct ${g.state === 'in' ? 'l' : g.state === 'post' ? 'f' : 'u'}">${g.state === 'in' ? '● LIVE' : g.state === 'post' ? 'FINAL' : 'UPCOMING'}</span>${mineGame(g) ? '<span class="spstar">★</span>' : ''}<b class="spvs">${tlogo(g.awayLogo)}${esc(g.away)} <i>vs</i> ${tlogo(g.homeLogo)}${esc(g.home)}</b><small>${g.state === 'pre' ? esc(clock(new Date(g.when))) : esc(g.score + ' · ' + g.detail)}</small><small class="spcl">${esc(g.note)}</small></button>`;
   const chips = [['all', 'All'], ['live', '● Live'], ['up', 'Upcoming'], ['final', 'Final'], ['mine', '★ My Teams']].map(([v, l]) => `<button class="chip ${flt === v ? 'on' : ''}" data-sf="${v}">${l}</button>`).join('');
   // right column
   const hits = S.teamHits ? `<div class="teamhits">${S.teamHits.length ? S.teamHits.map((t, i) => `<button class="chip" data-team="${i}" ${mine(t) ? 'disabled' : ''}>${esc(t.name)} · ${esc(t.league)}${mine(t) ? ' ✓' : ''}</button>`).join('') : '<p class="fine">No team found.</p>'}</div>` : '';
   const teamsBox = `<section class="sps"><h3>★ My Teams <small>${S.teams.length} picked</small></h3>${S.teams.map(t => `<div class="spmy"><span>★</span><b>${esc(t.name)}</b><small>${esc(t.league)}</small><button class="round" data-rmteam="${esc(t.path + '|' + t.id)}" aria-label="Remove ${esc(t.name)}">✕</button></div>`).join('')}
     <form class="search" id="teamfind" style="margin-top:10px"><input id="tq" aria-label="Find a team" placeholder="Add a team, like Razorbacks" value="${esc(S.tq || '')}"><button class="btn">Add</button></form>${hits}</section>`;
-  const upBox = `<section class="sps"><h3>📅 Upcoming Games</h3>${nextMine.length ? nextMine.slice(0, 4).map(g => `<button class="spup${sel(g)}" data-i="${reg(g)}"><span class="t"><b>${esc(g.away)} vs ${esc(g.home)}</b><small>${esc(g.detail)} · ${esc(g.note.split(' · ').slice(1).join(' · '))}</small></span><span class="spcd"><small>${new Date(g.when).toDateString() === new Date().toDateString() ? 'TONIGHT' : 'IN'}</small><b class="cd" data-when="${g.when}">${esc(cdText(g.when))}</b></span></button>`).join('') : `<p class="fine">${S.teams.length ? 'Looking up your teams’ games…' : 'Add a team and its next games show here.'}</p>`}</section>`;
+  const upBox = `<section class="sps"><h3>📅 Upcoming Games</h3>${nextMine.length ? nextMine.slice(0, 4).map(g => `<button class="spup${sel(g)}" data-i="${reg(g)}"><span class="t"><b class="spvs">${tlogo(g.awayLogo)}${esc(g.away)} <i>vs</i> ${tlogo(g.homeLogo)}${esc(g.home)}</b><small>${esc(g.detail)} · ${esc(g.note.split(' · ').slice(1).join(' · '))}</small></span><span class="spcd"><small>${new Date(g.when).toDateString() === new Date().toDateString() ? 'TONIGHT' : 'IN'}</small><b class="cd" data-when="${g.when}">${esc(cdText(g.when))}</b></span></button>`).join('') : `<p class="fine">${S.teams.length ? 'Looking up your teams’ games…' : 'Add a team and its next games show here.'}</p>`}</section>`;
   const fo = f ? (f.options || []) : [];
   const chanBox = `<section class="sps"><h3>📺 Channel Availability <small>this game</small></h3>${fo.length ? `<div class="spch">${fo.map(o => `<div class="${hasIt(o.svc) ? 'ok' : 'no'}"><b>${esc(o.svc)}</b><small>${hasIt(o.svc) ? '✓ You have it' : 'Not in your services'}</small></div>`).join('')}</div>` : '<p class="fine">Pick a game to see where it’s on.</p>'}</section>`;
   // costs + reminder
@@ -609,7 +646,7 @@ async function loadTeamGames() {
   const now = Date.now(), out = await Promise.all(S.teams.map(t => fetch(`https://site.api.espn.com/apis/site/v2/sports/${t.path}/teams/${t.id}/schedule`).then(r => r.json()).then(j => (j.events || []).filter(e => Date.parse(e.date) > now - 3 * 3600000).slice(0, 6).map(e => {
     const c = e.competitions[0], home = c.competitors.find(x => x.homeAway === 'home'), away = c.competitors.find(x => x.homeAway === 'away'), when = Date.parse(e.date);
     const tv = [...new Set((c.broadcasts || []).map(b => b.media && b.media.shortName).filter(Boolean))], options = optsFor(tv);
-    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, state: 'pre', detail: new Date(when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + clock(new Date(when)), when, score: '', options, svc: (options.find(o => hasIt(o.svc)) || options[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [t.league, tv.join(', ') || 'Channel not announced yet'].join(' · '), series: false, sport: true };
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, awayLogo: (away.team.logos && away.team.logos[0] && away.team.logos[0].href) || away.team.logo || null, homeLogo: (home.team.logos && home.team.logos[0] && home.team.logos[0].href) || home.team.logo || null, state: 'pre', detail: new Date(when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + clock(new Date(when)), when, score: '', options, svc: (options.find(o => hasIt(o.svc)) || options[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [t.league, tv.join(', ') || 'Channel not announced yet'].join(' · '), series: false, sport: true };
   })).catch(() => [])));
   const seen = new Set(); S.teamGames = out.flat().filter(g => !seen.has(g.key) && seen.add(g.key));
   if (S.tab === 2 || S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -735,7 +772,7 @@ function home() {
   const seen = new Set(), tonight = S.airings.filter(a => a.end > now && a.start < eod.getTime() && canSee(a.net) && kidOk(a) && a.show && !seen.has(a.show.id) && seen.add(a.show.id)).sort((a, b) => (b.show.weight || 0) - (a.show.weight || 0)).slice(0, 4).sort((a, b) => a.start - b.start);
   const otr = a => `<button class="otr${sel(a)}" data-i="${reg(a)}"><span class="net">${esc(a.net)}</span><span class="t"><b>${esc(a.title)}</b><small>${esc([a.ep, a.start <= now ? 'On now' : clock(new Date(a.start))].filter(Boolean).join(' · '))}</small></span></button>`;
   const g = homeGame(), today = S.games.filter(x => x.state !== 'post').length;
-  const gameBox = !g ? `<p class="fine">${S.gamesDone ? 'No games today. Add your teams on the Sports page.' : 'Loading games…'}</p>` : `<button class="gm${sel(g)}" data-i="${reg(g)}"><span class="lg">${esc(g.note.split(' · ')[0])}</span><span class="vs"><b>${esc(g.away || g.title)}</b><i>VS</i><b>${esc(g.home || '')}</b></span>${
+  const gameBox = !g ? `<p class="fine">${S.gamesDone ? 'No games today. Add your teams on the Sports page.' : 'Loading games…'}</p>` : `<button class="gm${sel(g)}" data-i="${reg(g)}"><span class="lg">${esc(g.note.split(' · ')[0])}</span><span class="vs"><b>${tlogo(g.awayLogo, 'hlg')}${esc(g.away || g.title)}</b><i>VS</i><b>${tlogo(g.homeLogo, 'hlg')}${esc(g.home || '')}</b></span>${
     g.state === 'in' ? `<span class="glive">● LIVE · ${esc(g.detail)}</span><span class="gsc">${esc(g.score)}</span>` : g.state === 'post' ? `<span class="ko">FINAL</span><span class="gsc">${esc(g.score)}</span>` : `<span class="ko">STARTS IN</span><span class="cd" data-when="${g.when}">${esc(cdText(g.when))}</span><small class="fine">${esc(g.detail)}</small>`}</button>${whereRow(g)}`;
   const paid = S.mine.filter(n => !FREE_SVC.has(n));
   const line = [fresh ? `${fresh} new episode${fresh === 1 ? '' : 's'} ready` : '', today ? `${today} game${today === 1 ? '' : 's'} on today` : ''].filter(Boolean).join(' · ') || 'Pick something and we open it in the right app.';
@@ -883,9 +920,9 @@ async function loadGames() {
     const c = e.competitions[0], st = e.status.type, home = c.competitors.find(t => t.homeAway === 'home'), away = c.competitors.find(t => t.homeAway === 'away');
     const tv = [...new Set([...(c.broadcasts || []).flatMap(b => b.names || []), ...(c.geoBroadcasts || []).map(g => g.media && g.media.shortName)].filter(Boolean))], net = tv.find(t => NETWORK_SERVICE[t]) || tv[0] || '';
     const started = st.state !== 'pre';
-    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', teams: [home.team.id, away.team.id], path: LEAGUES.find(l => l[0] === league)[1], options: optsFor(tv), svc: (optsFor(tv).find(o => hasIt(o.svc)) || optsFor(tv)[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true };
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, awayLogo: away.team.logo || null, homeLogo: home.team.logo || null, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', teams: [home.team.id, away.team.id], path: LEAGUES.find(l => l[0] === league)[1], options: optsFor(tv), svc: (optsFor(tv).find(o => hasIt(o.svc)) || optsFor(tv)[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true, tv, league };
   });
-  S.gamesDone = true; if (S.tab === 2 || S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  S.gamesDone = true; if (S.tab === 2 || S.tab === HOME || S.tab === 0) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
 function openIt(x) {
   armFull();
