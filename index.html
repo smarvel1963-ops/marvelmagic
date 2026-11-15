@@ -348,6 +348,7 @@ input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;width:20p
 input[type=checkbox]::before{content:"";width:10px;height:6px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform .12s}
 input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=checkbox]:checked::before{transform:translateY(-1px) rotate(-45deg) scale(1)}
 .fldot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#F04452;margin-right:5px;vertical-align:1px}
+.gbar.gfree{flex-direction:column;align-items:flex-start;gap:10px}.gfree .filters{justify-content:flex-start}.fsvcs .chip{font-weight:800}
 </style>
 </head>
 <body>
@@ -400,7 +401,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile', 'order', 'lastOpen', 'svcSince', 'svcSnooze', 'svcRemindOff', 'later', 'profiles', 'svcRate'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
-const S = { tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, paired: load('paired', null), pairCode: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
+const S = { freeSvc: load('freeSvc', /Tizen|SMART-TV.*Samsung|SamsungBrowser.*TV/i.test(navigator.userAgent) ? 'Samsung TV Plus' : 'All'), tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, paired: load('paired', null), pairCode: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
@@ -572,7 +573,10 @@ function guide() {
   }).join('');
   // FREE CHANNELS with real schedules (free_guide.json), one category at a time, on the same timeline; one row per channel, every service that has it
   loadFreeGuide();
-  const fall = FREE_G.ch || [], fcats = FREE_ORDER.filter(c => fall.some(r => r.g === c) && (!kidsOn() || c === 'Kids'));
+  const fsvcs = FREE_GSVC.filter(v => (FREE_G.ch || []).some(r => r.p.some(q => q[0] === v)));
+  const fsvc = fsvcs.includes(S.freeSvc) ? S.freeSvc : 'All';   // one service's own guide, or every free channel (Scott 11/14)
+  const fall = (FREE_G.ch || []).filter(r => fsvc === 'All' || r.p.some(q => q[0] === fsvc)).map(r => fsvc === 'All' ? r : { ...r, p: [...r.p.filter(q => q[0] === fsvc), ...r.p.filter(q => q[0] !== fsvc)] });
+  const fcats = FREE_ORDER.filter(c => fall.some(r => r.g === c) && (!kidsOn() || c === 'Kids'));
   const fcat = fcats.includes(S.freeCat) ? S.freeCat : (kidsOn() ? 'Kids' : 'Movies');
   const fch = fall.filter(r => r.g === fcat).slice(0, 150);
   const fRows = fch.map(r => {
@@ -585,7 +589,7 @@ function guide() {
     return `<div class="row"><div class="ch">${r.l ? `<img class="chlogo" src="${esc(r.l)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="cht"><b class="chn">${esc(r.n)}</b><small>Free · ${esc(r.p[0][0])}${r.p.length > 1 ? ' +' + (r.p.length - 1) : ''}</small></span></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
   }).join('');
   const fCards = fch.map(r => { const cur = r.s.find(q => q[1] * 1000 > now) || r.s[0]; if (!cur) return ''; const x = { key: 'f' + r.n + cur[0], title: cur[2] || r.n, net: r.n, start: cur[0] * 1000, end: cur[1] * 1000, svc: r.p[0][0], exact: r.p[0][1], options: r.p.map(q => ({ svc: q[0], url: q[1] })), series: false }; return `<button class="card" data-i="${reg(x)}"><span class="t"><small>${esc(r.n)} · Free</small><b>${esc(x.title)}</b><small>${cur[0] * 1000 <= now ? 'On now' : esc(clock(new Date(cur[0] * 1000)))}</small></span></button>`; }).join('');
-  const fBar = fcats.length ? `<div class="gbar gfree"><span class="gday">📺 Free channels · ${fall.length.toLocaleString()} with schedules</span><div class="filters">${fcats.map(c => `<button class="chip ${c === fcat ? 'on' : ''}" data-frcat="${esc(c)}">${esc(c)} <small>${fall.filter(r => r.g === c).length}</small></button>`).join('')}</div></div>` : (FREE_G.ch ? '' : '<p class="fine">Loading free channels…</p>');
+  const fBar = fcats.length ? `<div class="gbar gfree"><span class="gday">📺 Free channels · ${fall.length.toLocaleString()} with schedules</span>${fsvcs.length > 1 ? `<div class="filters fsvcs">${['All', ...fsvcs].map(v => `<button class="chip ${v === fsvc ? 'on' : ''}" data-frsvc="${esc(v)}">${esc(v === 'All' ? 'All free' : v)}</button>`).join('')}</div>` : ''}<div class="filters">${fcats.map(c => `<button class="chip ${c === fcat ? 'on' : ''}" data-frcat="${esc(c)}">${esc(c)} <small>${fall.filter(r => r.g === c).length}</small></button>`).join('')}</div></div>` : (FREE_G.ch ? '' : '<p class="fine">Loading free channels…</p>');
   // ON-DEMAND ROWS: a streaming service has no timetable, so its row shows what's on it (top movies + shows), each watch-anytime
   const odSvcs = catSvcs().filter(n => n !== 'Pluto TV' && n !== 'Samsung TV Plus');
   const od = odSvcs.map(n => { loadCat(n, 'movie'); loadCat(n, 'tv'); const k = kidsOn() ? 1 : 0, m = (S.cat[n + '|movie|' + k] || {}).items || [], t = (S.cat[n + '|tv|' + k] || {}).items || []; const mix = []; for (let i = 0; i < 6; i++) { if (m[i]) mix.push(m[i]); if (t[i]) mix.push(t[i]); } return [n, mix.slice(0, 8), S.cat[n + '|movie|' + k]]; });
@@ -672,8 +676,10 @@ function settingsPage() {
 // FREE CHANNEL GUIDE (Scott 11/14): free_guide.json is rebuilt every 3 hours by tools/build_free_guide.py (GitHub Actions) from the community
 // XMLTV mirror at i.mjh.nz - Pluto TV, Samsung TV Plus, Plex, Roku Channel. Test build only: not licensed; licensed data before selling.
 let FREE_G = null;
+const FREE_GSVC = ['Pluto TV', 'Samsung TV Plus', 'Plex', 'The Roku Channel'];
 function loadFreeGuide() { if (FREE_G) return; FREE_G = { ch: [] }; fetch('free_guide.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => {
-  if (inTvApp()) j.ch = (j.ch || []).map(r => ({ ...r, p: r.p.filter(q => q[0] !== 'Samsung TV Plus') })).filter(r => r.p.length);   // no Samsung TV Plus app on Fire TV / Android TV (Scott 11/14)
+  let sam = true; try { sam = !inTvApp() || MMNative.has('Samsung TV Plus'); } catch { sam = false; }
+  if (!sam) j.ch = (j.ch || []).map(r => ({ ...r, p: r.p.filter(q => q[0] !== 'Samsung TV Plus') })).filter(r => r.p.length);   // a TV without the Samsung TV Plus app (Fire TV) skips it (Scott 11/14)
   FREE_G = j; if (S.tab === 0 || S.tab === 4) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
 const FREE_ORDER = ['Movies', 'News', 'Sports', 'Drama', 'Comedy', 'Crime', 'Reality', 'Classic TV', 'Westerns', 'Sci-Fi', 'Kids', 'Food & Home', 'Nature & History', 'Music', 'En Español', 'Other'];
 // PLUTO CHANNELS (Scott 11/14): the channel list ships with the app (pluto_channels.json - name, slug, number, category; collected once from
@@ -1569,6 +1575,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.rmactor) { S.actors = S.actors.filter(a => a !== t.dataset.rmactor); save('actors', S.actors); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-pfsave')) { S.profile = { ...S.profile, name: ($('pfname').value || '').trim().slice(0, 40) }; save('profile', S.profile); draw(); }
   else if (t.hasAttribute('data-acct2')) acctPress();
+  else if (t.dataset.frsvc) { S.freeSvc = t.dataset.frsvc; save('freeSvc', S.freeSvc); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.frcat) { S.freeCat = t.dataset.frcat; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.plcat) { S.plutoCat = t.dataset.plcat; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-plgo')) { const g = document.querySelector('.plgrid'); if (g) g.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
