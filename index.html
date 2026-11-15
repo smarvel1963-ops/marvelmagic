@@ -398,7 +398,7 @@ const wayRank = svc => !S.mine.includes(svc) ? (FREE_SVC.has(svc) ? 1 : 3) : LIV
 const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase()] || (NETWORK_SERVICE[n] ? [NETWORK_SERVICE[n]] : [])))].sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc]('') }));
 // every way this household can watch live channel n: the live packages that carry it, then the network's own app (Scott 11/14)
 const waysFor = n => { const pk = Object.keys(LIVE_PKG).filter(k => S.mine.includes(k) && pkgHas(k, n)), app = NETWORK_SERVICE[n] && !['ABC', 'FX'].includes(n) ? [NETWORK_SERVICE[n]] : [], more = NET_OPTS[String(n).toUpperCase()] || [];
-  return [...new Set([...pk, ...app, ...more])].sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' })); };
+  return [...new Set([...pk, ...app, ...more])].filter(hasIt).sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' })); };
 const SERVICES = Object.keys(SERVICE_URL).filter(n => !FREE_SVC.has(n));
 const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
@@ -475,7 +475,8 @@ function logPick(x) { if (!x || x.series) return; logWatch({ k: rateKey(x) + '-'
 function countOpen(svc) { if (!svc) return; S.opens[svc] = (S.opens[svc] || 0) + 1; save('opens', S.opens); S.lastOpen[svc] = Date.now(); save('lastOpen', S.lastOpen); }
 function whereRow(x) {
   if (!x.options || !x.options.length) return '';
-  const o = x.options.slice().sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)));
+  const o = x.options.filter(p => hasIt(p.svc));   // only services you ticked (Scott 11/14)
+  if (!o.length) return '<div class="where"><span>Not on any of your services.</span></div>';
   return `<div class="where"><span>Watch on:</span>${o.map(p => `<a class="${hasIt(p.svc) ? 'yours' : 'notyours'}" data-opt href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.svc)}${hasIt(p.svc) ? ' ✓' : ''}</a>`).join('')}</div>`;
 }
 function dock() {
@@ -736,7 +737,7 @@ const placesBadge = x => x.svc ? `<span class="sv">${esc(x.svc)}${x.options && x
 function tasteOf() { const c = {}; for (const s of S.list) for (const g of (s.genres || [])) c[g] = (c[g] || 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]); }
 function todayShows() {
   const seen = new Set();
-  return S.airings.filter(a => a.show && a.end > Date.now() && !seen.has(a.show.id) && seen.add(a.show.id)).map(a => ({ ...showItem(a.show), big: a.show.image && (a.show.image.original || a.show.image.medium), when: a.start, chan: a.net, w: a.show.weight || 0 }));
+  return S.airings.filter(a => a.show && a.end > Date.now() && !seen.has(a.show.id) && seen.add(a.show.id)).map(a => ({ ...showItem(a.show), big: a.show.image && (a.show.image.original || a.show.image.medium), when: a.start, chan: a.net, w: a.show.weight || 0 })).filter(yours);   // only shows on a service you ticked (Scott 11/14)
 }
 function tonightPicks() {
   const taste = tasteOf(), have = new Set(S.list.map(s => s.id));
@@ -777,7 +778,7 @@ function sports() {
     const opts = (f.options || []).slice().sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)));
     hero = `<section class="spf" style="--ac:${tcol(f.awayColor) || '#2B4FD8'};--hc:${tcol(f.homeColor) || '#C8283C'}">${st}<div class="splg">${esc(f.note.split(' · ')[0])}</div>
       <div class="spteams"><div class="spt">${tlogo(f.awayLogo, 'splg2')}<b>${esc(f.away || f.title)}</b>${f.score ? `<span class="spsc">${esc(as)}</span>` : ''}</div>${mid}<div class="spt">${tlogo(f.homeLogo, 'splg2')}<b>${esc(f.home || '')}</b>${f.score ? `<span class="spsc">${esc(hs)}</span>` : ''}</div></div>
-      <div class="spwatch"><span>WATCH ON</span>${opts.length ? opts.map(o => `<a class="spw ${hasIt(o.svc) ? 'yours' : ''}" data-opt href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.svc)}${hasIt(o.svc) ? ' ✓' : ''}</a>`).join('') : '<em class="fine">Channel not announced yet</em>'}</div></section>`;
+      <div class="spwatch"><span>WATCH ON</span>${!opts.length ? '<em class="fine">Channel not announced yet</em>' : opts.some(o => hasIt(o.svc)) ? opts.filter(o => hasIt(o.svc)).map(o => `<a class="spw yours" data-opt href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.svc)} ✓</a>`).join('') : `<em class="fine">Not on your services (on ${esc(opts.map(o => o.svc).join(', '))})</em>`}</div></section>`;
   }
   // today's games, filtered
   const flt = S.sf || 'all', rank = { in: 0, pre: 1, post: 2 };
@@ -819,7 +820,7 @@ async function loadTeamGames() {
   const now = Date.now(), out = await Promise.all(S.teams.map(t => fetch(`https://site.api.espn.com/apis/site/v2/sports/${t.path}/teams/${t.id}/schedule`).then(r => r.json()).then(j => (j.events || []).filter(e => Date.parse(e.date) > now - 3 * 3600000).slice(0, 6).map(e => {
     const c = e.competitions[0], home = c.competitors.find(x => x.homeAway === 'home'), away = c.competitors.find(x => x.homeAway === 'away'), when = Date.parse(e.date);
     const tv = [...new Set((c.broadcasts || []).map(b => b.media && b.media.shortName).filter(Boolean))], options = optsFor(tv);
-    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, awayLogo: (away.team.logos && away.team.logos[0] && away.team.logos[0].href) || away.team.logo || null, homeLogo: (home.team.logos && home.team.logos[0] && home.team.logos[0].href) || home.team.logo || null, state: 'pre', detail: new Date(when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + clock(new Date(when)), when, score: '', options, svc: (options.find(o => hasIt(o.svc)) || options[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [t.league, tv.join(', ') || 'Channel not announced yet'].join(' · '), series: false, sport: true };
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, awayLogo: (away.team.logos && away.team.logos[0] && away.team.logos[0].href) || away.team.logo || null, homeLogo: (home.team.logos && home.team.logos[0] && home.team.logos[0].href) || home.team.logo || null, state: 'pre', detail: new Date(when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + clock(new Date(when)), when, score: '', options, svc: (options.find(o => hasIt(o.svc)) || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [t.league, tv.join(', ') || 'Channel not announced yet'].join(' · '), series: false, sport: true };
   })).catch(() => [])));
   const seen = new Set(); S.teamGames = out.flat().filter(g => !seen.has(g.key) && seen.add(g.key));
   if (S.tab === 2 || S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -1333,7 +1334,7 @@ function comingPage() {
   return `<img class="top50ban" src="banner_hot.jpg" alt="Coming Soon - HOT on Your Channels: new shows and seasons arriving on your services"><section class="hothero hothero-b"><div class="hothero-in"><p class="lsub2">New series and new seasons coming to the services you have, the next 3 weeks.${S.pool ? ` <b>${mine.length}</b> premieres for you, <b>${soon}</b> this week.` : ''}</p>
       <p class="fine" style="margin:0">Tap one and Save it: it goes on your watchlist and you get the New Episode alert the day it drops.</p></div></section>
     ${loading}${S.pool ? `<div class="hh" style="margin-top:18px"><h2>🔥 Premieres on Your Services</h2><button class="more" data-refpool>Refresh</button></div>${mine.length ? `<div class="lgrid">${mine.slice(0, 18).map(hposter).join('')}</div>` : `<p class="fine">${S.mine.length ? 'No premieres on your services in the next 3 weeks.' : ''}</p>`}
-    ${other.length && !kidsOn() ? `<div class="hh" style="margin-top:22px"><h2>Coming to Services You Don't Have</h2></div><div class="lgrid">${other.slice(0, 12).map(hposter).join('')}</div>` : ''}` : ''}
+    ` : ''}
     <p class="fine">Schedules from <a href="https://www.tvmaze.com/" target="_blank" rel="noopener">TVmaze</a> (CC BY-SA). Dates can change.</p>`;
 }
 const GENRES = ['Drama', 'Comedy', 'Crime', 'Thriller', 'Action', 'Adventure', 'Science-Fiction', 'Fantasy', 'Mystery', 'Romance', 'Horror', 'Family', 'Children', 'Anime', 'Food', 'Travel', 'Nature', 'History', 'Sports', 'Music', 'Medical', 'Legal', 'Western', 'War', 'Supernatural'];
@@ -1342,7 +1343,7 @@ function forYouPage() {
   const saved = new Set(S.list.map(s => s.id));
   catSvcs().slice(0, 3).forEach(n => { loadCat(n, 'movie'); loadCat(n, 'tv'); });
   const gen = x => (x.show ? x.show.genres : x.genres) || [];
-  const cands = mergeByTitle([...(S.pool || []).map(poolItem), ...todayShows().map(x => ({ ...x, img: x.big || x.img })), ...Object.values(S.cat).flatMap(c => c.items || [])].filter(x => !(x.show && saved.has(x.show.id)))).filter(kidOk);
+  const cands = mergeByTitle([...(S.pool || []).map(poolItem), ...todayShows().map(x => ({ ...x, img: x.big || x.img })), ...Object.values(S.cat).flatMap(c => c.items || [])].filter(x => !(x.show && saved.has(x.show.id)))).filter(x => kidOk(x) && yours(x));
   const score = x => gen(x).reduce((n, g) => n + (likes.includes(g) ? 3 : auto.includes(g) ? 1 : 0), 0) * 40 + (yours(x) ? 60 : 0) + (x.w || 0) / 5;
   const ranked = cands.filter(x => x.img).map(x => ({ x, s: score(x) })).sort((a, b) => b.s - a.s).map(r => r.x);
   const top = ranked.slice(0, 8), used = new Set(top.map(x => x.key));
@@ -1425,7 +1426,7 @@ async function loadGames() {
     const c = e.competitions[0], st = e.status.type, home = c.competitors.find(t => t.homeAway === 'home'), away = c.competitors.find(t => t.homeAway === 'away');
     const tv = [...new Set([...(c.broadcasts || []).flatMap(b => b.names || []), ...(c.geoBroadcasts || []).map(g => g.media && g.media.shortName)].filter(Boolean))], net = tv.find(t => NETWORK_SERVICE[t]) || tv[0] || '';
     const started = st.state !== 'pre';
-    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, awayLogo: away.team.logo || null, homeLogo: home.team.logo || null, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', teams: [home.team.id, away.team.id], path: LEAGUES.find(l => l[0] === league)[1], options: optsFor(tv), svc: (optsFor(tv).find(o => hasIt(o.svc)) || optsFor(tv)[0] || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true, tv, league };
+    return { key: 'g' + e.id, title: `${away.team.shortDisplayName} at ${home.team.shortDisplayName}`, away: away.team.shortDisplayName, home: home.team.shortDisplayName, awayColor: away.team.color, homeColor: home.team.color, awayLogo: away.team.logo || null, homeLogo: home.team.logo || null, state: st.state, detail: st.shortDetail, when: Date.parse(e.date), score: started ? `${away.score} - ${home.score}` : '', teams: [home.team.id, away.team.id], path: LEAGUES.find(l => l[0] === league)[1], options: optsFor(tv), svc: (optsFor(tv).find(o => hasIt(o.svc)) || {}).svc || null, url: (e.links && e.links[0] && e.links[0].href) || 'https://www.espn.com/', note: [league, net].filter(Boolean).join(' · '), series: false, sport: true, tv, league };
   });
   S.gamesDone = true; if (S.tab === 2 || S.tab === HOME || S.tab === 0) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
