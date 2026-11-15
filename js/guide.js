@@ -129,8 +129,11 @@ function loadCat(svc, kind) {
     .catch(() => { S.cat[k] = { error: 'net' }; })
     .then(() => { if (S.tab === 1 || S.tab === 9 || S.tab === 0 || S.tab === 4) { const y = window.scrollY; draw(); window.scrollTo(0, y); } });
 }
+// FREE-TRIAL SHELVES (Scott 11/15: "we show some of their programming when free or introductory"): with offers on, the big services you
+// don't have get a tab too, marked Free trial; their posters carry the Free trial tag and tapping one offers the trial.
+const TRY_CAT = ['Peacock', 'Paramount+', 'Hulu', 'Disney+', 'HBO Max', 'Prime Video', 'Netflix', 'Apple TV'];
 function catSection() {
-  const svcs = catSvcs();
+  const svcs = [...catSvcs(), ...(S.mine.length && offersOn() ? TRY_CAT.filter(n => !S.mine.includes(n) && OFFER[n]) : [])];
   if (!svcs.length) return `<div class="hh" style="margin-top:22px"><h2>On Your Services</h2></div><div class="hbox" style="padding:16px"><p class="fine" style="margin:0 0 10px">Pick the services you have and their movies and shows show up here.</p><button class="btn" data-tab="3">Set up my services</button></div>`;
   const svc = svcs.includes(S.catSvc) ? S.catSvc : svcs[0], kind = S.catKind || 'movie', k = svc + '|' + kind + '|' + (kidsOn() ? 1 : 0);
   loadCat(svc, kind);
@@ -141,7 +144,7 @@ function catSection() {
     : c.error ? '<p class="fine">Couldn’t load right now. Try again in a bit.</p>'
     : c.items.length ? `<div class="lgrid">${mergeByTitle([...c.items, ...Object.values(S.cat).flatMap(o => o.items || []).filter(o => o.svc !== svc && c.items.some(i => tkey(i) === tkey(o)))]).filter(x => !(S.hideT && S.hideT.has(tkey(x)))).map(x => lposter(x)).join('')}</div>` : '<p class="fine">Nothing listed.</p>';
   return `<div class="hh" style="margin-top:22px"><h2>On Your Services</h2><div class="filters"><button class="chip ${kind === 'movie' ? 'on' : ''}" data-catk="movie">Movies</button><button class="chip ${kind === 'tv' ? 'on' : ''}" data-catk="tv">Shows</button></div></div>
-    <div class="filters catsv">${svcs.map(n => `<button class="chip ${n === svc ? 'on' : ''}" data-cats="${esc(n)}">${esc(n)}${FREE_SVC.has(n) ? ' · Free' : ''}</button>`).join('')}</div>${body}
+    <div class="filters catsv">${svcs.map(n => `<button class="chip ${n === svc ? 'on' : ''}" data-cats="${esc(n)}">${esc(n)}${FREE_SVC.has(n) ? ' · Free' : !S.mine.includes(n) ? ' · Free trial' : ''}</button>`).join('')}</div>${!S.mine.includes(svc) && !FREE_SVC.has(svc) && OFFER[svc] ? `<div class="hbox" style="padding:12px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between"><span class="fine" style="margin:0">You don't have ${esc(svc)}. Watch these with a free trial.<br><small style="opacity:.7">Offer · Marvel Magic may earn a commission</small></span><button class="btn" data-offer="${esc(svc)}">Try ${esc(svc)} ›</button></div>` : ''}${body}
     <p class="fine">Popular titles from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>, where-to-watch by JustWatch. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>`;
 }
 // SETTINGS (Scott 11/14): profile, favorite teams, favorite actors, tick boxes for favorite movie + show types, moods, services, alerts, Kids Lock.
@@ -243,7 +246,7 @@ function tonightPicks() {
   const taste = tasteOf(), have = new Set(S.list.map(s => s.id));
   return todayShows().map(x => ({ x, sc: (x.show.genres || []).filter(g => taste.includes(g)).length * 100 + (have.has(x.show.id) ? -50 : 0) + x.w / 10 })).filter(r => r.x.big).sort((a, b) => b.sc - a.sc).map(r => r.x);
 }
-const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? ' off' : ''}" data-i="${reg(x)}">${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">🎬</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
+const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? (offersOn() && OFFER[x.svc] ? ' offer' : ' off') : ''}" data-i="${reg(x)}">${x.svc && !hasIt(x.svc) && offersOn() && OFFER[x.svc] ? '<span class="trialtag">Free trial</span>' : ''}${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">🎬</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
 function shows() {
   const taste = tasteOf(), picks = tonightPicks().filter(kidOk).slice(0, 4), pickKeys = new Set(picks.map(p => p.key));
   S.hideT = new Set(picks.map(tkey));
