@@ -672,7 +672,9 @@ function settingsPage() {
 // FREE CHANNEL GUIDE (Scott 11/14): free_guide.json is rebuilt every 3 hours by tools/build_free_guide.py (GitHub Actions) from the community
 // XMLTV mirror at i.mjh.nz - Pluto TV, Samsung TV Plus, Plex, Roku Channel. Test build only: not licensed; licensed data before selling.
 let FREE_G = null;
-function loadFreeGuide() { if (FREE_G) return; FREE_G = { ch: [] }; fetch('free_guide.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => { FREE_G = j; if (S.tab === 0 || S.tab === 4) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
+function loadFreeGuide() { if (FREE_G) return; FREE_G = { ch: [] }; fetch('free_guide.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => {
+  if (inTvApp()) j.ch = (j.ch || []).map(r => ({ ...r, p: r.p.filter(q => q[0] !== 'Samsung TV Plus') })).filter(r => r.p.length);   // no Samsung TV Plus app on Fire TV / Android TV (Scott 11/14)
+  FREE_G = j; if (S.tab === 0 || S.tab === 4) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
 const FREE_ORDER = ['Movies', 'News', 'Sports', 'Drama', 'Comedy', 'Crime', 'Reality', 'Classic TV', 'Westerns', 'Sci-Fi', 'Kids', 'Food & Home', 'Nature & History', 'Music', 'En Español', 'Other'];
 // PLUTO CHANNELS (Scott 11/14): the channel list ships with the app (pluto_channels.json - name, slug, number, category; collected once from
 // Pluto's public lineup, no schedules). A tap opens that channel already playing on Pluto, never Pluto's own guide.
