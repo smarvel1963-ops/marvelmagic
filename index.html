@@ -343,6 +343,10 @@ html.tvapp #acct,html.tvapp .castbtn,html.tvapp [data-acct2]{display:none!import
 /* QR pairing + sign a TV in (11/14) */
 .pairrow{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap}.pairqr{background:#fff;padding:12px;border-radius:14px;line-height:0}.pairqr img,.pairqr canvas{display:block}
 .pairpick{display:flex;flex-direction:column;gap:8px;margin:10px 0}.tvsign{display:flex;flex-wrap:wrap;gap:8px}.tvsign .btn{display:inline-flex;align-items:center;text-decoration:none}
+/* our own tick boxes (Scott 11/14: the Fire Stick drew big bright green ones over the words) - same size and color on every device */
+input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;width:20px!important;height:20px!important;margin:0 10px 0 0;border:2px solid #8E86B8;border-radius:5px;background:transparent;display:inline-grid;place-content:center;vertical-align:middle;cursor:pointer}
+input[type=checkbox]::before{content:"";width:10px;height:6px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform .12s}
+input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=checkbox]:checked::before{transform:translateY(-1px) rotate(-45deg) scale(1)}
 </style>
 </head>
 <body>
