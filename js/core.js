@@ -16,6 +16,8 @@ if (/[?&]samsung=1/.test(location.search) && window.parent !== window && typeof 
   window.addEventListener('message', e => {
     if (e.source !== window.parent || !e.data) return;
     if (e.data.mm === 'resume' && typeof cameBack === 'function') cameBack();
+    // remote arrows / OK pressed while the Samsung app's outer page has the keys (Scott 11/15 "round direction button dont move selection around")
+    if (e.data.mm === 'key') { if (e.data.dir && typeof moveFocus === 'function') moveFocus(e.data.dir); else if (e.data.ok && document.activeElement && document.activeElement !== document.body) document.activeElement.click(); }
     if (e.data.mm === 'back') { const handled = typeof window.mmBack === 'function' ? window.mmBack() : false; window.parent.postMessage({ mm: 'backed', handled }, '*'); }   // not handled on Home = the Samsung app closes
   });
 }
