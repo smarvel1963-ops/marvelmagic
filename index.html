@@ -96,7 +96,7 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 @media (min-width:1000px){.acct{margin-left:0}}
 .signgrid a{position:relative}.donechk{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#2FD07F;color:#06281A;font-size:12px;display:flex;align-items:center;justify-content:center}
 .setrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}.setrow span{flex:1;font-weight:600}.setrow .ok{color:#3DE08A;font-size:14px}.setrow .btn{display:flex;align-items:center;text-decoration:none}
-.where{display:flex;gap:6px;align-items:center;margin-top:6px;overflow-x:auto;white-space:nowrap}.where span{font-size:13px;color:var(--dim)}.where a{min-height:36px;padding:0 12px;border-radius:8px;display:inline-flex;align-items:center;font-size:13px;font-weight:700;text-decoration:none}.where a.yours{background:#167A4A;color:#fff}.where a.notyours{background:#2A3154;color:#C6CDE3}
+.where{display:flex;gap:6px;align-items:center;margin-top:6px;overflow-x:auto;white-space:nowrap}.where span{font-size:13px;color:var(--dim)}.where a{min-height:36px;padding:0 12px;border-radius:8px;display:inline-flex;align-items:center;font-size:13px;font-weight:700;text-decoration:none}.where a.yours{background:rgba(122,77,240,.45);border:1px solid #9F86FF;color:#fff}.where a.notyours{background:#2A3154;color:#C6CDE3}
 .where.rate button{min-width:36px;height:36px;border-radius:8px;background:#2A3154;text-align:center;font-weight:700;font-size:13px;flex:none}.where.rate button.on{background:#FFC24B;color:#0B1020}
 .freegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.freegrid a{min-height:150px;border-radius:14px;padding:18px;color:#fff;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}.freegrid b{font-size:24px}.freegrid span{font-size:14px}
 .rrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}.rrow .t{flex:1;min-width:0}.rrow b{display:block}.rrow small{font-size:13px;color:var(--dim)}.rrow img,.rrow .noimg{width:44px;height:64px;object-fit:cover;border-radius:6px;flex:none;background:var(--off)}.rnum{width:30px;font-size:20px;font-weight:800;color:#FFC24B;text-align:center;flex:none}.rscore{font-size:24px;font-weight:800}
@@ -393,7 +393,11 @@ const LIVE_PKG = {   // '*' = a full live bundle (every channel in the guide); a
 };
 const pkgHas = (pk, n) => { const v = LIVE_PKG[pk]; return v === '*' || (Array.isArray(v) ? v.includes(n) : !v.not.includes(n)); };
 const livePkgFor = n => Object.keys(LIVE_PKG).find(pk => S.mine.includes(pk) && pkgHas(pk, n)) || null;   // the live package of yours that carries channel n
-const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase()] || (NETWORK_SERVICE[n] ? [NETWORK_SERVICE[n]] : [])))].map(svc => ({ svc, url: SERVICE_URL[svc]('') }));
+const wayRank = svc => !S.mine.includes(svc) ? (FREE_SVC.has(svc) ? 1 : 3) : LIVE_PKG[svc] ? 0 : 2;   // your live package, then free, then your apps, then not yours
+const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase()] || (NETWORK_SERVICE[n] ? [NETWORK_SERVICE[n]] : [])))].sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc]('') }));
+// every way this household can watch live channel n: the live packages that carry it, then the network's own app (Scott 11/14)
+const waysFor = n => { const pk = Object.keys(LIVE_PKG).filter(k => S.mine.includes(k) && pkgHas(k, n)), app = NETWORK_SERVICE[n] && !['ABC', 'FX'].includes(n) ? [NETWORK_SERVICE[n]] : [], more = NET_OPTS[String(n).toUpperCase()] || [];
+  return [...new Set([...pk, ...app, ...more])].sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' })); };
 const SERVICES = Object.keys(SERVICE_URL).filter(n => !FREE_SVC.has(n));
 const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
@@ -558,15 +562,15 @@ function guide() {
   const nowPct = (now - t0) / span * 100;
   const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
   const rows = nets.map(n => {
-    const pk = livePkgFor(n), own = NETWORK_SERVICE[n] && S.mine.includes(NETWORK_SERVICE[n]) && !['ABC', 'FX'].includes(n), svc = own ? NETWORK_SERVICE[n] : pk || NETWORK_SERVICE[n], ok = !svc || hasIt(svc);
-    if (!own && pk) for (const a of by[n]) a.svc = pk;   // watch it live in the package you have
+    const ways = waysFor(n), mineW = ways.filter(w => S.mine.includes(w.svc)), svc = (mineW[0] || ways[0] || {}).svc || NETWORK_SERVICE[n] || null, ok = !svc || hasIt(svc);
+    for (const a of by[n]) if (!a.isGame) { a.svc = svc; a.options = ways; a.exact = null; }   // Watch = your first way in (live package before the network's app)
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
       const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100), on = pv && pv.key === a.key, live = a.start <= now && a.end > now;
       return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}${a.isGame ? ' isg' : ''}${live ? ' live' : ''}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%;--el:${live ? Math.round((now - a.start) / (a.end - a.start) * 100) : 0}%" title="${esc(a.title)}"><span class="ci"><b>${a.isGame ? '🏟 ' : ''}${esc(a.title)}</b><small>${a.isGame ? esc((a.state === 'in' ? 'LIVE ' + a.score + ' · ' + a.detail : a.state === 'post' ? 'Final ' + a.score : clock(new Date(a.start))) + ' · ' + a.league) : esc(clock(new Date(a.start))) + ' – ' + esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
     // Scott 11/14 "keep guide uniform easy to see": every hole in a row gets a plain box, so all rows read the same way
     let gaps = '', cur = t0;
-    const gapBox = (a, b) => { if (b - a < 10 * 60000) return; const x = { key: 'gap' + n + a, title: n + ' live', net: n, svc, start: a, end: b, series: false, url: svc && SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' }; const l = (a - t0) / span * 100, r = (b - t0) / span * 100; gaps += `<button class="cell gap ${pv && pv.key === x.key ? 'on' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${r - l}%"><span class="ci"><b>${esc(gapWord(n))}</b><small>${svc ? 'Watch live on ' + esc(svc) : 'Live channel'}</small></span></button>`; };
+    const gapBox = (a, b) => { if (b - a < 10 * 60000) return; const x = { key: 'gap' + n + a, title: n + ' live', net: n, svc, options: ways, start: a, end: b, series: false, url: svc && SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' }; const l = (a - t0) / span * 100, r = (b - t0) / span * 100; gaps += `<button class="cell gap ${pv && pv.key === x.key ? 'on' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${r - l}%"><span class="ci"><b>${esc(gapWord(n))}</b><small>${svc ? 'Watch live on ' + esc(svc) : 'Live channel'}</small></span></button>`; };
     for (const a of by[n].slice().sort((x, y) => x.start - y.start)) { if (a.start > cur) gapBox(cur, Math.min(a.start, t1)); cur = Math.max(cur, a.end); }
     if (cur < t1) gapBox(cur, t1);
     return `<div class="row"><div class="ch ${pv && pv.net === n ? 'on' : ''}"><b class="chn">${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}${gaps}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
@@ -602,7 +606,6 @@ function guide() {
     return `<button class="card ${S.sel && S.sel.key === cur.key ? 'on' : ok ? '' : 'off'}" data-i="${reg(cur)}"><span class="t"><small>${esc(n)}${cur.svc ? ' · ' + esc(cur.svc) : ''}</small><b>${esc(cur.title)}</b><small>${cur.start <= now ? 'On now' : esc(clock(new Date(cur.start)))}${next ? ' · Next: ' + esc(next.title) : ''}</small></span></button>`;
   }).join('');
   const today = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-  for (const n of nets) { const pk = livePkgFor(n); if (pk && !(NETWORK_SERVICE[n] && S.mine.includes(NETWORK_SERVICE[n]))) for (const a of by[n]) a.svc = pk; }
   return `${preview(pv, now)}<div class="gbar"><span class="gday">📅 Today, ${esc(today)}</span><button class="pill gsb" data-gs="-1" aria-label="Earlier">‹</button><button class="pill gsb" data-gs="1" aria-label="Later">›</button><span class="fine">${nets.length} channel${nets.length === 1 ? '' : 's'} you can watch · next 8 hours${Object.keys(LIVE_PKG).some(pk => S.mine.includes(pk) && LIVE_PKG[pk] !== '*') ? ' · package channels can vary by plan and area' : ''}</span></div>
     <div class="grid" id="ggrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW ${esc(clock(new Date(now)))}</span></div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>
     ${odBar}<div class="grid gplut gond">${odRows}</div><div class="phone">${odCards}</div>
