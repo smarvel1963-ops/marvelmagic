@@ -1,0 +1,164 @@
+// js/core.js
+// Save to: C:\MarvelApps\marvelmagic\js\core.js
+// Marvel Magic - start-up, constants, services, tracker, guide data (ESPN channel map).
+// Split out of index.html 2026-11-15 (sell-readiness pass). Plain script, shared global scope, loaded in order:
+// core -> guide -> sports -> home -> app. After editing, run  python tools\stamp_versions.py  then  python tests\smoke_test.py
+
+// Marvel Magic test build. Listings: TVmaze (free, credit required). Scores: ESPN's public scoreboard (personal test only, not for a paid release).
+// It opens each title on that service's own site or app; it never plays or stores a stream, and never holds a service's password.
+const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings', 'Watched', 'Home', 'Coming Soon', 'For You', 'Settings'];
+// Home (Scott 11/14) is page 7 so every older page number stays the same; it shows FIRST in the menu and the app opens on it.
+const HOME = 7, NAV_ORDER = [7, 0, 1, 8, 9, 2, 3, 4, 5, 6, 10];   // Coming Soon + For You (Scott 11/14) are pages 8 and 9
+const ICONS = ['<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l3-4M13 7l3-4"/>', '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/>', '<path d="M6 3h12v18l-6-4-6 4z"/>', '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>', '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>', '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/>', '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>', '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'];
+const icon = i => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[i]}</svg>`;
+const LEAGUES = [['NBA', 'basketball/nba'], ['College Basketball', 'basketball/mens-college-basketball'], ['NFL', 'football/nfl'], ['College Football', 'football/college-football'], ['NHL', 'hockey/nhl'], ['MLB', 'baseball/mlb']];
+const SERVICE_URL = {
+  Netflix: q => 'https://www.netflix.com/search?q=' + q, Hulu: q => 'https://www.hulu.com/search?q=' + q, 'Prime Video': q => 'https://www.amazon.com/s?i=instant-video&k=' + q,
+  'Disney+': () => 'https://www.disneyplus.com/', 'HBO Max': () => 'https://www.hbomax.com/', Peacock: () => 'https://www.peacocktv.com/', 'Paramount+': () => 'https://www.paramountplus.com/',
+  'Apple TV': q => 'https://tv.apple.com/search?term=' + q, ESPN: () => 'https://www.espn.com/watch/', 'YouTube TV': () => 'https://tv.youtube.com/', 'Fox One': () => 'https://www.fox.com/', 'Sling Orange': () => 'https://watch.sling.com/', 'Sling Blue': () => 'https://watch.sling.com/', 'Hulu + Live TV': () => 'https://www.hulu.com/live', 'DirecTV Stream': () => 'https://stream.directv.com/', Fubo: () => 'https://www.fubo.tv/',
+  'Samsung TV Plus': () => 'https://www.samsungtvplus.com/', 'Pluto TV': () => 'https://pluto.tv/', Tubi: () => 'https://tubitv.com/', Plex: () => 'https://watch.plex.tv/', 'Xumo Play': () => 'https://play.xumo.com/', 'The Roku Channel': () => 'https://therokuchannel.roku.com/'
+};
+// Free services need no account, so they always count as yours (Scott 11/08: "plus all free one")
+const FREE_SVC = new Set(['Pluto TV', 'Tubi', 'Plex', 'Xumo Play', 'The Roku Channel', 'Samsung TV Plus']);
+const NETWORK_SERVICE = { NBC: 'Peacock', Bravo: 'Peacock', USA: 'Peacock', CBS: 'Paramount+', 'CBS Sports Network': 'Paramount+', ABC: 'Hulu', FX: 'Hulu', HBO: 'HBO Max', TNT: 'HBO Max', TBS: 'HBO Max', TLC: 'HBO Max', Discovery: 'HBO Max', FOX: 'Fox One', FS1: 'Fox One', ESPN: 'ESPN', ESPN2: 'ESPN', ESPNU: 'ESPN', 'SEC Network': 'ESPN', ACCN: 'ESPN', Netflix: 'Netflix', Hulu: 'Hulu', 'Prime Video': 'Prime Video', 'Disney+': 'Disney+', 'HBO Max': 'HBO Max', Peacock: 'Peacock', 'Paramount+': 'Paramount+', 'Apple TV+': 'Apple TV', 'Apple TV': 'Apple TV' };
+// Where a TV network's live games can be streamed (Scott 11/08: "show where all can be watched based on your accounts"). Claude's general knowledge, not a data feed: carriage can vary by area.
+const YT = 'YouTube TV';
+const NET_OPTS = { CBS: ['Paramount+', YT], CBSSN: ['Paramount+', YT], FOX: ['Fox One', YT], FS1: ['Fox One', YT, 'Sling Blue'], FS2: ['Fox One', YT], BTN: ['Fox One', YT], NBC: ['Peacock', YT], USA: ['Peacock', YT, 'Sling Blue'], PEACOCK: ['Peacock'], ABC: ['ESPN', YT], ESPN: ['ESPN', YT, 'Sling Orange'], ESPN2: ['ESPN', YT, 'Sling Orange'], ESPNU: ['ESPN', YT], SECN: ['ESPN', YT], ACCN: ['ESPN', YT, 'Sling Orange'], 'ESPN+': ['ESPN'], 'SECN+': ['ESPN'], ACCNX: ['ESPN'], TNT: ['HBO Max', YT, 'Sling Orange', 'Sling Blue'], TBS: ['HBO Max', YT, 'Sling Orange', 'Sling Blue'], TRUTV: ['HBO Max', YT, 'Sling Orange', 'Sling Blue'], 'PRIME VIDEO': ['Prime Video'], 'APPLE TV': ['Apple TV'], 'NBA TV': [YT], 'NFL NET': [YT, 'Sling Blue'], 'NHL NET': [YT], 'MLB NET': [YT] };
+const SLING_BOTH = ['TNT', 'TBS', 'truTV', 'CNN', 'HLN', 'AMC', 'A&E', 'History', 'Lifetime', 'Food Network', 'HGTV', 'Travel Channel', 'Investigation Discovery', 'Comedy Central', 'Cartoon Network', 'Adult Swim', 'IFC', 'BBC America', 'Motor Trend', 'Vice', 'Bloomberg Television', 'Local Now'];
+const LIVE_PKG = {   // '*' = a full live bundle (every channel in the guide); a list = only those channels; { not: [...] } = all but those
+  'YouTube TV': '*', 'Hulu + Live TV': '*', 'DirecTV Stream': '*',
+  Fubo: { not: ['TNT', 'TBS', 'truTV', 'CNN', 'HLN', 'Cartoon Network', 'Adult Swim', 'TCM'] },
+  'Sling Orange': [...SLING_BOTH, 'ESPN', 'ESPN2', 'ESPN3', 'ACC Network', 'ACCN', 'Disney Channel', 'Freeform'],
+  'Sling Blue': [...SLING_BOTH, 'FOX', 'NBC', 'FS1', 'FX', 'FXX', 'USA', 'USA Network', 'Bravo', 'Syfy', 'E!', 'Oxygen True Crime', 'MS NOW', 'MSNBC', 'CNBC', 'Fox News', 'Discovery', 'TLC', 'Animal Planet', 'National Geographic', 'NFL Network']
+};
+const pkgHas = (pk, n) => { const v = LIVE_PKG[pk]; return v === '*' || (Array.isArray(v) ? v.includes(n) : !v.not.includes(n)); };
+const livePkgFor = n => Object.keys(LIVE_PKG).find(pk => S.mine.includes(pk) && pkgHas(pk, n)) || null;   // the live package of yours that carries channel n
+const wayRank = svc => !S.mine.includes(svc) ? (FREE_SVC.has(svc) ? 1 : 3) : LIVE_PKG[svc] ? 0 : 2;   // your live package, then free, then your apps, then not yours
+const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase()] || (NETWORK_SERVICE[n] ? [NETWORK_SERVICE[n]] : [])))].sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc]('') }));
+// every way this household can watch live channel n: the live packages that carry it, then the network's own app (Scott 11/14)
+const waysFor = n => { const pk = Object.keys(LIVE_PKG).filter(k => S.mine.includes(k) && pkgHas(k, n)), app = NETWORK_SERVICE[n] && !['ABC', 'FX'].includes(n) ? [NETWORK_SERVICE[n]] : [], more = NET_OPTS[String(n).toUpperCase()] || [];
+  return [...new Set([...pk, ...app, ...more])].filter(hasIt).sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' })); };
+// the household's own way in for anything (Scott 11/14 "i got asked to watch hbo max"): a ticked service as is; a live show -> your package
+// or app that carries its channel (TNT -> Sling, not HBO Max); else one of its options you have; null = not on any of yours
+const ownSvc = v => !!v && (S.mine.includes(v) || FREE_SVC.has(v));
+function bestSvc(x) {
+  if (!x) return null;
+  if (!S.mine.length) return x.svc || null;
+  const n = x.net || x.chan; if (n && !x.isGame) { const w = waysFor(n)[0]; if (w) return w.svc; }
+  if (ownSvc(x.svc)) return x.svc;
+  const o = (x.options || []).find(p => ownSvc(p.svc)); return o ? o.svc : null;
+}
+function notOnYours(svc) {
+  const b = $('back'); if (b.open) return;
+  b.innerHTML = `<b>Not on your services</b><p>${svc ? esc(svc) + ' isn’t' : 'That isn’t on any service'} ticked in your Settings, so Marvel Magic won’t open it. If you have it, tick it in ⚙ Settings → My Services.</p><div class="act"><button class="btn alt" data-nyok>OK</button><button class="btn" data-nyset>Open Settings</button></div>`;
+  b.querySelector('[data-nyok]').onclick = () => b.close(); b.querySelector('[data-nyset]').onclick = () => { b.close(); showTab(10); };
+  b.showModal();
+}
+const SERVICES = Object.keys(SERVICE_URL).filter(n => !FREE_SVC.has(n));
+const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile', 'order', 'lastOpen', 'svcSince', 'svcSnooze', 'svcRemindOff', 'later', 'profiles', 'svcRate'].includes(k)) queueSync(); };
+const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
+const S = { freeSvc: load('freeSvc', /Tizen|SMART-TV.*Samsung|SamsungBrowser.*TV/i.test(navigator.userAgent) ? 'Samsung TV Plus' : 'All'), tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, paired: load('paired', null), pairCode: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
+const items = [];   // what each on-screen button points at (data-i)
+const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
+const slug = t => encodeURIComponent(t);
+function linkFor(x) { if (x.exact) return x.exact; return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](slug(x.title)) : x.url; }
+const RELAY = 'https://script.google.com/macros/s/AKfycbzDFfE1Z_I8ZTYyQkCpMS45l2V8c7HTcm6-uwNxxgnUbX8VGSDw2-5t4_tqZiPcqW2zQQ/exec';
+const relay = q => fetch(RELAY + '?' + new URLSearchParams(q)).then(r => r.json());
+function svcOf(n) {
+  const t = String(n).toLowerCase();
+  if (t === 'the roku channel') return 'The Roku Channel';
+  if (/^tubi/.test(t)) return 'Tubi'; if (t === 'plex') return 'Plex'; if (/^xumo/.test(t)) return 'Xumo Play';
+  if (/via (amazon|apple|hulu)|channel/.test(t)) return null;   // add-on versions come after the service's own app
+  return /netflix/.test(t) ? 'Netflix' : /hulu/.test(t) ? 'Hulu' : /prime video/.test(t) ? 'Prime Video' : /disney/.test(t) ? 'Disney+' : /hbo max|^max$/.test(t) ? 'HBO Max' : /peacock/.test(t) ? 'Peacock' : /paramount/.test(t) ? 'Paramount+' : /^apple ?tv/.test(t) ? 'Apple TV' : /youtube tv/.test(t) ? 'YouTube TV' : /pluto/.test(t) ? 'Pluto TV' : /espn/.test(t) ? 'ESPN' : null;
+}
+async function enrich(x) {
+  if (x.looked || x.sport) return; x.looked = true;
+  try {
+    let id = x.wmId;
+    if (!id) {
+      const f = await relay({ a: 'find', q: x.title }), want = x.title.toLowerCase(), rows = f.results || [];
+      const hit = rows.find(r => r.name.toLowerCase() === want && /^tv/.test(r.type)) || rows.find(r => r.name.toLowerCase() === want); if (!hit) return; id = hit.id;
+    }
+    const w = await relay({ a: 'where', id }); if (!w.sources || !w.sources.length) return;
+    const rows = w.sources.filter(r => r.web).map(r => ({ ...r, svc: svcOf(r.name) }));
+    const seen = new Set(), own = rows.filter(r => r.svc && !seen.has(r.svc) && seen.add(r.svc)).sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)) || Number(b.type === 'sub') - Number(a.type === 'sub'));
+    const best = own[0] || rows[0]; if (!best) return;
+    x.exact = best.web; x.svc = best.svc; x.place = best.name;
+    x.options = own.map(r => ({ svc: r.svc, url: r.web }));
+    if (S.sel === x) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  } catch {}
+}
+const reg = x => (items.push(x), items.length - 1);
+
+// Scott 11/14 "when time moves it still shows whats playing": a show that started before the visible edge keeps its title readable
+function stickTitles() {
+  for (const id of ['ggrid', 'fgrid']) { const g = $(id); if (!g) continue;
+  const edge = g.getBoundingClientRect().left + 190;   // just right of the sticky channel column
+  for (const c of g.querySelectorAll('.cell')) { const r = c.getBoundingClientRect(); c.style.paddingLeft = (12 + Math.max(0, Math.min(edge - r.left, r.width - 70))) + 'px'; } }
+}
+function draw() {
+  const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0, fx = $('fgrid') ? $('fgrid').scrollLeft : 0;
+  items.length = 0;
+  document.body.classList.toggle('easy', activeEasy());
+  $('nav').innerHTML = NAV_ORDER.filter(i => !(kidsOn() && i === 2)).map(i => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${icon(i)}<span>${esc(TABS[i])}</span></button>`).join('');
+  $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage, home, comingPage, forYouPage, settingsPage][S.tab]();
+  $('signside').innerHTML = sideFoot();
+  document.body.dataset.tab = S.tab;
+  drawAcct();
+  dock();
+  if (gx && $('ggrid')) $('ggrid').scrollLeft = gx;   // Scott 11/14: the guide keeps your place when it refreshes
+  if (fx && $('fgrid')) $('fgrid').scrollLeft = fx;
+  drawPairQr(); if (linkPair) setTimeout(maybeApproveFromLink, 50);
+  for (const id of ['ggrid', 'fgrid']) if ($(id)) $(id).addEventListener('scroll', () => requestAnimationFrame(stickTitles), { passive: true });
+  stickTitles();
+  if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
+}
+const rateKey = x => x.show ? 's' + x.show.id : x.key;
+function rateRow(x) {
+  if (x.sport) return '';
+  const cur = (S.ratings[rateKey(x)] || {}).score;
+  return `<div class="where rate hearts sm"><span>My rating:</span>${[1, 2, 3, 4, 5].map(n => `<button class="${n <= (cur || 0) ? 'on' : ''}" data-rate="${n}" aria-label="${n} of 5 hearts">${n <= (cur || 0) ? '♥' : '♡'}</button>`).join('')}${cur ? `<span>${fmtH(cur)}</span>` : ''}</div>`;
+}
+// TRACKER (Scott 11/08: "a tracker on all things watched by me"). Services don't report viewing, so this logs what's opened or marked in Marvel Magic; anything wrong can be removed.
+const dayKey = t => new Date(t).toDateString();
+function logWatch(e) { const at = Date.now(); S.history = [{ ...e, at }, ...S.history.filter(h => h.k !== e.k)].slice(0, 1500); save('history', S.history); }
+function logPick(x) { if (!x || x.series) return; logWatch({ k: rateKey(x) + '-' + dayKey(Date.now()), title: x.title, kind: x.sport ? 'Sports' : 'Movie', svc: x.svc || x.place || '', img: x.img || null }); }
+function countOpen(svc) { if (!svc) return; S.opens[svc] = (S.opens[svc] || 0) + 1; save('opens', S.opens); S.lastOpen[svc] = Date.now(); save('lastOpen', S.lastOpen); }
+function whereRow(x) {
+  if (!x.options || !x.options.length) return '';
+  const o = x.options.filter(p => hasIt(p.svc));   // only services you ticked (Scott 11/14)
+  if (!o.length) return '<div class="where"><span>Not on any of your services.</span></div>';
+  return `<div class="where"><span>Watch on:</span>${o.map(p => `<a class="${hasIt(p.svc) ? 'yours' : 'notyours'}" data-opt href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.svc)}${hasIt(p.svc) ? ' ✓' : ''}</a>`).join('')}</div>`;
+}
+function dock() {
+  const d = $('dock'), x = S.sel; d.hidden = !x; if (!x) return;
+  const ok = !x.svc || hasIt(x.svc);
+  d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small>${whereRow(x)}${rateRow(x)}</div>
+    ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
+    <button class="btn alt" data-later>${isLater(x) ? '✓ Watch Later' : '⏰ Watch Later'}</button>
+    <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
+}
+// GUIDE DATA (Scott 11/14 "we need more usable data in it"): ESPN's channel names -> the guide's channel names, game lengths, channel types.
+const GNET = { SECN: 'SEC Network', ACCN: 'ACC Network', BTN: 'Big Ten Network', CBSSN: 'CBS Sports Network', 'NFL NET': 'NFL Network', 'NHL NET': 'NHL Network', 'MLB NET': 'MLB Network', 'NBA TV': 'NBA TV', TRUTV: 'truTV', truTV: 'truTV', 'USA Net': 'USA', 'USA NET': 'USA', 'ESPN+': 'ESPN+', 'SECN+': 'ESPN+', ACCNX: 'ESPN+', PEACOCK: 'Peacock', Peacock: 'Peacock', 'Prime Video': 'Prime Video', 'Apple TV': 'Apple TV' };
+const gnet = t => GNET[t] || GNET[String(t).toUpperCase()] || t;
+const GAME_MIN = { NFL: 200, 'College Football': 210, NBA: 150, 'College Basketball': 130, NHL: 155, MLB: 185 };
+const NEWS_NETS = new Set(['CNN', 'HLN', 'MS NOW', 'MSNBC', 'Fox News', 'CNBC', 'Bloomberg Television', 'ABC News Live', 'Local Now', 'NewsNation']);
+const SPORT_NETS = new Set(['ESPN', 'ESPN2', 'ESPN3', 'ESPNU', 'ESPN+', 'FS1', 'FS2', 'ACC Network', 'SEC Network', 'Big Ten Network', 'CBS Sports Network', 'NFL Network', 'NBA TV', 'NHL Network', 'MLB Network', 'Golf Channel']);
+const MOVIE_NETS = new Set(['AMC', 'IFC', 'TCM', 'Hallmark Channel', 'Lifetime', 'Freeform', 'Syfy', 'FX', 'FXX']);
+const gapWord = n => NEWS_NETS.has(n) ? 'Live news' : SPORT_NETS.has(n) ? 'Sports' : MOVIE_NETS.has(n) ? 'Movies & shows' : 'No listing';
+// a game as a guide listing on each of its channels (one card per channel it airs on)
+function gameAirings(t0, t1) {
+  const out = [];
+  for (const g of S.games) {
+    if (g.state === 'post' && Date.now() - g.when > 6 * 3600000) continue;
+    const len = (GAME_MIN[g.league] || 180) * 60000, end = g.state === 'in' ? Math.max(g.when + len, Date.now() + 20 * 60000) : g.state === 'post' ? g.when + len : g.when + len;
+    if (end <= t0 || g.when >= t1) continue;
+    for (const raw of (g.tv || [])) { const net = gnet(raw); out.push({ ...g, key: g.key + '@' + net, gkey: g.key, net, start: g.when, end, title: (g.away || '') + ' at ' + (g.home || ''), isGame: true }); }
+  }
+  return out;
+}
+// LIVE TV GUIDE (Scott 11/14 "Magic Guide" board): big preview of the picked show, the grid, the Magic Sports ticker. Art + summaries from TVmaze.

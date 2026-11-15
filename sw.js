@@ -5,8 +5,10 @@
 //    a copy older than 2 hours is not trusted - then the network goes first and the saved copy is only the fallback
 //  - our own pictures (hero art, banner, icons): saved copy first
 //  - the page itself: always the network first, so self-update keeps working; the saved copy only when offline
+//  - our code (styles.css, js/*.js - split out of index.html 11/15): saved copy first; each carries ?v=<hash of the file>, so a new
+//    version is a new address and never mixes with an old one; old versions expire after 2 days like old listings
 // Other sites' pictures and scripts are left to the browser's own cache (saving them here costs a lot of storage).
-const CACHE = 'mm-v2', MAX_AGE = 2 * 3600 * 1000;
+const CACHE = 'mm-v3', MAX_AGE = 2 * 3600 * 1000;
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 
@@ -32,6 +34,11 @@ async function ours(e) {
   if (r.ok) (await caches.open(CACHE)).put(key, r.clone()).catch(() => {});
   return r;
 }
+async function code(e) {
+  const key = keyOf(e.request), hit = await caches.match(key);
+  if (hit) return hit;
+  return save(key, await fetch(e.request));
+}
 async function page(e) {
   try { const r = await fetch(e.request); if (r.ok) (await caches.open(CACHE)).put(keyOf(e.request), r.clone()).catch(() => {}); return r; }
   catch (err) { const hit = await caches.match(keyOf(e.request), { ignoreSearch: true }); if (hit) return hit; throw err; }
@@ -42,5 +49,6 @@ self.addEventListener('fetch', e => {
   if ((mine && u.pathname.endsWith('free_guide.json')) || (u.hostname === 'api.tvmaze.com' && u.pathname.startsWith('/schedule'))) return e.respondWith(listings(e));
   if (req.mode === 'navigate') return e.respondWith(page(e));
   if (mine && /\.(jpg|jpeg|png|webp)$/i.test(u.pathname)) return e.respondWith(ours(e));
+  if (mine && /\.(css|js)$/i.test(u.pathname) && u.searchParams.has('v')) return e.respondWith(code(e));
   e.respondWith(fetch(req));
 });

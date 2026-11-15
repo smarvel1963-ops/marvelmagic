@@ -5,7 +5,7 @@
 # The Hubs (Day, Family, Money) show a "New on TV - from Marvel Magic" card from this file and every tap opens Marvel Magic.
 # Same source and the same rules as Marvel Magic's own page (index.html loadPool): TVmaze's US day schedules (TV + streaming),
 # one entry per show, kept if it has a premiere coming or TVmaze weight >= 60. The service for each network, the free services
-# and the kids rule are READ FROM index.html (NETWORK_SERVICE, FREE_SVC, KIDS_NETS, KID_G), so there is one copy of each.
+# and the kids rule are READ FROM the page code, index.html + js/*.js (NETWORK_SERVICE, FREE_SVC, KIDS_NETS, KID_G), so there is one copy of each.
 # TVmaze listings are CC BY-SA: every place that shows them says "Listings: TVmaze".
 # Run: python tools/build_new_on_tv.py [out.json]     (GitHub Actions runs it twice a day: .github/workflows/new_on_tv.yml)
 import json, re, sys, time, urllib.request
@@ -62,7 +62,7 @@ def get(url):
 
 
 def build():
-    net_svc, free_svc, kids_nets, kid_g = js_consts((ROOT / "index.html").read_text(encoding="utf-8"))
+    net_svc, free_svc, kids_nets, kid_g = js_consts(chr(10).join(f.read_text(encoding="utf-8") for f in [ROOT / "index.html", *sorted((ROOT / "js").glob("*.js"))]))   # the page code moved to js/*.js 11/15
     now = datetime.now(timezone.utc)
     days = [(now + timedelta(days=n)).strftime("%Y-%m-%d") for n in range(DAYS)]
     urls = [u for d in days for u in (f"https://api.tvmaze.com/schedule?country=US&date={d}", f"https://api.tvmaze.com/schedule/web?date={d}")]
