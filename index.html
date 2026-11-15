@@ -339,6 +339,9 @@ body.easy{zoom:1.18}   /* Scott 11/14: Easy Mode = the same screens, just bigger
 .pairask{display:flex;align-items:center;gap:14px;width:100%;margin-bottom:12px;padding:12px 18px;border-radius:14px;border:1px solid #4B3A9A;background:rgba(20,16,50,.85)}.pairask>span:first-child{font-size:26px}.pairask .t{flex:1;min-width:0}.pairask b{display:block}.pairask small{color:var(--dim)}
 .tvadd{margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--line)}.tvadd h4{margin:0 0 6px}
 html.tvapp #acct,html.tvapp .castbtn,html.tvapp [data-acct2]{display:none!important}
+/* QR pairing + sign a TV in (11/14) */
+.pairrow{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap}.pairqr{background:#fff;padding:12px;border-radius:14px;line-height:0}.pairqr img,.pairqr canvas{display:block}
+.pairpick{display:flex;flex-direction:column;gap:8px;margin:10px 0}.tvsign{display:flex;flex-wrap:wrap;gap:8px}.tvsign .btn{display:inline-flex;align-items:center;text-decoration:none}
 </style>
 </head>
 <body>
@@ -349,6 +352,7 @@ html.tvapp #acct,html.tvapp .castbtn,html.tvapp [data-acct2]{display:none!import
 </div>
 <button id="castbtn" class="castbtn" aria-label="Cast Marvel Magic to your TV">📺 Cast to TV</button>
 <dialog id="back"></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -441,6 +445,7 @@ function draw() {
   dock();
   if (gx && $('ggrid')) $('ggrid').scrollLeft = gx;   // Scott 11/14: the guide keeps your place when it refreshes
   if (fx && $('fgrid')) $('fgrid').scrollLeft = fx;
+  drawPairQr(); if (linkPair) setTimeout(maybeApproveFromLink, 50);
   for (const id of ['ggrid', 'fgrid']) if ($(id)) $(id).addEventListener('scroll', () => requestAnimationFrame(stickTitles), { passive: true });
   stickTitles();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
@@ -626,7 +631,7 @@ function catSection() {
 const WHOP_MM = 'https://whop.com/commander-marvel-por-picks/marvel-magic';   // Scott 11/14: $4.99/mo, 30-day free trial (prod_jXXGU9TnSIgHR)
 const MOODS = ['Funny', 'Action', 'Mystery', 'Romance', 'Scary', 'Feel-good', 'Family Night', 'True story'];
 function settingsPage() {
-  if (S.paired) return `${pageHero('pwatch', '⚙ SETTINGS', 'This TV', 'Set up for ' + esc(profName()) + '. Nothing to sign in to.')}<div style="margin-top:18px" class="glow plain" ><p>This screen belongs to <b>${esc(profName())}</b> in ${esc((S.house && S.house.name) || 'the household')}. To change it, the household owner removes it in their Settings.</p></div>`;
+  if (S.paired) return `${pageHero('pwatch', '⚙ SETTINGS', 'This TV', 'Set up for ' + esc(profName()) + '. Nothing to sign in to.')}<div style="margin-top:18px">${signTvBox()}</div><div style="margin-top:18px" class="glow plain" ><p>This screen belongs to <b>${esc(profName())}</b> in ${esc((S.house && S.house.name) || 'the household')}. To change it, the household owner removes it in their Settings.</p></div>`;
   if (kidsOn()) return `${pageHero('pwatch', '⚙ SETTINGS', 'Settings', 'Locked while Kids Lock is on.')}<div style="margin-top:18px">${kidsSection()}</div>`;
   const mineT = t => S.teams.some(x => x.path === t.path && x.id === t.id);
   const hits = S.teamHits ? `<div class="teamhits">${S.teamHits.length ? S.teamHits.map((t, i) => `<button class="chip" data-team="${i}" ${mineT(t) ? 'disabled' : ''}>${esc(t.name)} · ${esc(t.league)}${mineT(t) ? ' ✓' : ''}</button>`).join('') : '<p class="fine">No team found.</p>'}</div>` : '';
@@ -637,6 +642,7 @@ function settingsPage() {
     <div class="stgrid">
     ${box('🏠 My Household', houseBox(), 'stwide')}
     ${S.prof || S.profLock ? box('🔒 This TV', `<p class="fine">This TV opens as <b>${esc(profName())}</b> every time.</p><button class="btn ${S.profLock ? '' : 'alt'}" data-proflock>${S.profLock ? '🔒 Locked to ' + esc(profName()) + ' (PIN to unlock)' : 'Lock this TV to ' + esc(profName())}</button>`) : ''}
+    ${signTvBox()}
     ${box('⭐ Marvel Magic Membership', `<p style="margin:0 0 8px"><b>30 days free, then $4.99 a month</b> for the whole household. Cancel any time.</p><p class="fine" style="margin:0 0 10px">Have a code? Enter it at checkout.</p><a class="btn gold" href="${WHOP_MM}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Start my 30 days free ›</a>`, 'amber')}
     ${box('👤 Profile', `<label class="stlab">Your name<input id="pfname" class="stin" maxlength="40" value="${esc(S.profile.name || firstName() || '')}" placeholder="Your name"></label><button class="btn alt" data-pfsave style="margin-top:8px">Save name</button>
       <p class="fine" style="margin:12px 0 6px">${me ? '✓ Signed in as ' + esc(me.email || me.displayName || '') + '. Your settings follow you to every device.' : 'Sign in with Google and your settings follow you to every device.'}</p><button class="btn ${me ? 'alt' : ''}" data-acct2>${me ? 'Sign out' : 'Sign in with Google'}</button>`)}
@@ -1019,8 +1025,38 @@ async function approvePair(code, pid) {
   if (pid === 'owner') await db.collection('households').doc(me.uid).collection('profiles').doc('owner').set({ ...pick(), at: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });   // the TV starts with my lists
   await db.collection('pair').doc(code).update({ status: 'approved', hid: me.uid, pid, pname: m ? m.name : (firstName() || 'Me') });
 }
-const pairPanel = () => S.pairCode ? `<section class="pairbox"><div class="lk">📺 SET UP THIS TV</div><div class="paircode">${S.pairCode.slice(0, 3)} ${S.pairCode.slice(3)}</div><p>On your phone open Marvel Magic → <b>⚙ Settings → 🏠 My Household → Add a TV</b> and type this code.</p><p class="fine">This screen sets itself up as soon as you approve it.</p></section>`
+const pairPanel = () => S.pairCode ? `<section class="pairbox"><div class="lk">📺 SET UP THIS TV</div><div class="pairrow"><div id="pairqr" class="pairqr"></div><div><div class="paircode">${S.pairCode.slice(0, 3)} ${S.pairCode.slice(3)}</div><p><b>Point your phone's camera at the square</b> and tap the link,</p><p>or open Marvel Magic → ⚙ Settings → 🏠 My Household → Add a TV and type the code.</p></div></div><p class="fine">This screen sets itself up as soon as you approve it.</p></section>`
   : `<button class="pairask" data-paircode><span>📺</span><span class="t"><b>Setting this up for someone else's TV?</b><small>Show a code and approve it from your phone - nothing to sign in to here.</small></span><span class="fbgo">Show a TV code ›</span></button>`;
+// QR + LINK APPROVAL (Scott 11/14): the TV's QR opens #pair=<code> on the phone; signed in as the owner, one tap adds the TV
+function drawPairQr() {
+  const el = document.getElementById('pairqr'); if (!el || !S.pairCode || typeof QRCode === 'undefined' || el.dataset.code === S.pairCode) return;
+  el.innerHTML = ''; el.dataset.code = S.pairCode;
+  new QRCode(el, { text: location.origin + location.pathname + '#pair=' + S.pairCode, width: 220, height: 220, colorDark: '#0B1020', colorLight: '#ffffff' });
+}
+let linkPair = (location.hash.match(/^#pair=(\d{6})$/) || [])[1] || null;
+function maybeApproveFromLink() {
+  if (!linkPair || inTvApp() || S.paired) return;
+  const b = $('back'); if (b.open) return;
+  if (!me || me.isAnonymous) { b.innerHTML = `<b>📺 Add a TV</b><p>Sign in first, then this TV is added with one tap.</p><div class="act"><button class="btn" data-pairsignin>Sign in with Google</button></div>`; b.querySelector('[data-pairsignin]').onclick = () => { b.close(); acctPress(); }; b.showModal(); return; }
+  if (S.houseRole !== 'owner') { if (!S.house && S.houseRole === null && !S.houseErr) return; b.innerHTML = `<b>📺 Add a TV</b><p>${S.house ? 'Only the household owner can add a TV.' : 'Make your household first: Settings → 🏠 My Household → Create my household.'}</p><div class="act"><button class="btn" data-px>OK</button></div>`; b.querySelector('[data-px]').onclick = () => { b.close(); linkPair = null; history.replaceState(history.state, '', location.pathname); showTab(10); }; b.showModal(); return; }
+  const code = linkPair, opts = [['owner', 'Me (' + (S.house.ownerName || firstName() || 'owner') + ')'], ...((S.house.members || []).map(m => [m.id, m.name]))];
+  b.innerHTML = `<b>📺 Add this TV</b><p>Code ${code.slice(0, 3)} ${code.slice(3)}. Who watches on it?</p><div class="pairpick">${opts.map(([id, n]) => `<button class="btn ${id === 'owner' ? '' : 'alt'}" data-pp="${esc(id)}">${esc(n)}</button>`).join('')}</div><div class="act"><button class="btn alt" data-px>Cancel</button></div>`;
+  b.querySelectorAll('[data-pp]').forEach(x => x.onclick = () => { b.close(); approvePair(code, x.dataset.pp).then(() => { alert('Done! The TV changes by itself in a moment.'); draw(); }).catch(err => alert(err.message || 'Could not add that TV.')); linkPair = null; history.replaceState(history.state, '', location.pathname); });
+  b.querySelector('[data-px]').onclick = () => { b.close(); linkPair = null; history.replaceState(history.state, '', location.pathname); };
+  b.showModal();
+}
+addEventListener('hashchange', () => { const m = location.hash.match(/^#pair=(\d{6})$/); if (m) { linkPair = m[1]; maybeApproveFromLink(); } });
+// SIGN A TV IN (Scott 11/14): each service's own "activate with a code" page - the TV app shows the code, the phone (already signed in) enters it
+const ACTIVATE = { Netflix: 'https://www.netflix.com/tv8', Hulu: 'https://www.hulu.com/activate', 'Hulu + Live TV': 'https://www.hulu.com/activate', 'Disney+': 'https://www.disneyplus.com/begin',
+  'Prime Video': 'https://www.amazon.com/mytv', 'HBO Max': 'https://www.hbomax.com/tvsignin', Peacock: 'https://www.peacocktv.com/tv', 'Paramount+': 'https://www.paramountplus.com/activate/',
+  'Sling Orange': 'https://www.sling.com/activate', 'Sling Blue': 'https://www.sling.com/activate', 'YouTube TV': 'https://tv.youtube.com/start', ESPN: 'https://www.espn.com/watch/activate',
+  'Apple TV': 'https://activate.apple.com', Tubi: 'https://tubitv.com/activate', Plex: 'https://plex.tv/link', Fubo: 'https://www.fubo.tv/connect', 'DirecTV Stream': 'https://stream.directv.com/activate', 'Fox One': 'https://www.fox.com/activate' };
+const signSvcs = () => [...new Set(S.mine.filter(n => ACTIVATE[n] && !(n === 'Sling Blue' && S.mine.includes('Sling Orange'))))];
+function signTvBox() {
+  const list = signSvcs(); if (!list.length) return '';
+  if (inTvApp() || S.paired) return `<section class="glow amber stbox"><h3>📺 Sign this TV in to your services</h3><p class="fine">One time, no passwords here. Tap a service: its app opens and shows a short code. On your phone open Marvel Magic → ⚙ Settings → <b>Sign a TV in</b>, tap the same service and type the code.</p><div class="tvsign">${list.map(n => `<button class="btn alt" data-tvsignin="${esc(n)}">▶ ${esc(n.startsWith('Sling') ? 'Sling TV' : n)}</button>`).join('')}</div></section>`;
+  return `<section class="glow plain stbox stwide"><h3>📺 Sign a TV in to your services</h3><p class="fine">On the TV, open the service's app: it shows a short code. Tap the same service here (you're already signed in on this phone) and type that code. No passwords on the TV.</p><div class="tvsign">${list.map(n => `<a class="btn alt" href="${esc(ACTIVATE[n])}" target="_blank" rel="noopener" data-activate>${esc(n.startsWith('Sling') ? 'Sling TV' : n)} ↗</a>`).join('')}</div></section>`;
+}
 // HOUSEHOLD (Scott 11/14): "how many accounts ... owner can assign emails with profiles ... keep groups together but also replace people"
 const HOUSE_MAX = 6;   // owner + 5 (Netflix 5, Disney+ 7)
 // OWNER MIRROR (Scott 11/14 "this one is my tv"): keeps households/{me}/profiles/owner in step with my own lists for a TV set up as me
@@ -1506,6 +1542,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.svcrate) { svcRateBox(t.dataset.svcrate); }
   else if (t.dataset.thumb != null) { rateBox(items[Number(t.dataset.thumb)]); }
   else if (t.hasAttribute('data-paircode')) { startPair(); }
+  else if (t.dataset.tvsignin) { openWin(ACTIVATE[t.dataset.tvsignin] || '', t.dataset.tvsignin); }
   else if (t.dataset.rmdevice) { const dv = { ...(S.house.devices || {}) }; delete dv[t.dataset.rmdevice]; S.house.devices = dv; saveHouse({ devices: dv }).then(() => draw()).catch(() => {}); draw(); }
   else if (t.dataset.rkind) { S.rkind = t.dataset.rkind; draw(); }
   else if (t.dataset.rtab) { S.rtab = t.dataset.rtab; draw(); }
