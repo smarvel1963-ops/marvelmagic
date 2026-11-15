@@ -1173,7 +1173,7 @@ function ratingsPage() {
 }
 // HOME (Scott 11/14 board): everything on it is real data - his watchlist, tonight's listings, his teams' next game. No made-up titles or people.
 const firstName = () => (S.profile && S.profile.name) || (me ? ((me.displayName || me.email || '').split(/[ @]/)[0]) : '');
-const sideFoot = () => `<div class="sf"><div class="sfme"><span class="av">${esc((firstName() || 'G')[0].toUpperCase())}</span><b>${esc(firstName() || 'Guest')}</b></div>${kidsOn() ? '<button class="btn sfbtn" data-kids>🔒 Kids Lock ON</button>' : '<button class="btn alt sfbtn" data-tab="10">⚙ Settings</button>'}</div>`;
+const sideFoot = () => `<div class="sf"><div class="sfme"><span class="av">${esc((firstName() || 'G')[0].toUpperCase())}</span><b>${esc(firstName() || 'Guest')}</b></div>${kidsOn() ? '<button class="btn sfbtn" data-kids>🔒 Kids Lock ON</button>' : ''}</div>`;
 const greet = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const cdText = when => { const s = Math.max(0, Math.floor((when - Date.now()) / 1000)); if (!s) return 'Starting now'; const p = n => String(n).padStart(2, '0'); return s >= 86400 ? Math.floor(s / 86400) + 'd ' + p(Math.floor(s % 86400 / 3600)) + 'h' : p(Math.floor(s / 3600)) + ':' + p(Math.floor(s % 3600 / 60)) + ':' + p(s % 60); };
 function homeGame() {
