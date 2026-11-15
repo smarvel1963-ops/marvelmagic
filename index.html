@@ -350,6 +350,7 @@ input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=
 .fldot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#F04452;margin-right:5px;vertical-align:1px}
 .gbar.gfree{flex-direction:column;align-items:flex-start;gap:10px}.gfree .filters{justify-content:flex-start}.fsvcs .chip{font-weight:800}
 .wh-b{justify-content:flex-end;margin-top:-4px}.hothero-b{margin-top:0}
+.prevcard{border-color:#B98A2A;background:linear-gradient(90deg,#3A2A0C,#1A1030 70%)}
 </style>
 </head>
 <body>
@@ -1268,7 +1269,7 @@ function home() {
   const paid = S.mine.filter(n => !FREE_SVC.has(n));
   const line = [fresh ? `${fresh} new episode${fresh === 1 ? '' : 's'} ready` : '', today ? `${today} game${today === 1 ? '' : 's'} on today` : ''].filter(Boolean).join(' · ') || 'Pick something and we open it in the right app.';
   return `<div class="htop"><div class="hgreet">${esc(greet())}${firstName() ? ', ' + esc(firstName()) : ''}${houseKids().length && !S.profLock && !S.paired ? `<span class="whow"><small>Who's watching?</small><button class="av hhav ${S.prof ? '' : 'on'}" data-whome title="${esc(firstName() || 'Me')}">${esc((firstName() || 'M')[0].toUpperCase())}</button>${houseKids().map(k => `<button class="av hhav ${k.type === 'Kid' ? 'kid' : ''} ${S.prof === k.id ? 'on' : ''}" data-whoprof="${esc(k.id)}" title="${esc(k.name)}">${esc(k.name[0].toUpperCase())}</button>`).join('')}</span>` : ''}</div><button class="pill" data-tab="1" data-q>🔍 Search</button><button class="pill" data-kids>${kidsOn() ? '🔒 Kids ON' : '👪 Kids Lock'}</button>${kidsOn() ? '' : '<button class="pill" data-tab="10">⚙ Settings</button>'}<span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
-    ${!S.paired && (!me || me.isAnonymous) ? pairPanel() : ''}${unusedCards()}<section class="hero"><div class="hero-sky"></div><div class="hero-art"></div><div class="hero-planet"></div><div class="hero-hills"></div><div class="hero-in"><h1 class="ht">Tonight on<br><em>Marvel Magic</em></h1><p class="hs">${esc(line)}</p><div class="hb"><button class="btn gold" data-tab="1">▶ Find Something to Watch</button><button class="btn ghost" data-tab="0">Open Live TV Guide</button></div></div></section>
+    ${!S.paired && (!me || me.isAnonymous) ? pairPanel() : ''}${previewCards()}${unusedCards()}<section class="hero"><div class="hero-sky"></div><div class="hero-art"></div><div class="hero-planet"></div><div class="hero-hills"></div><div class="hero-in"><h1 class="ht">Tonight on<br><em>Marvel Magic</em></h1><p class="hs">${esc(line)}</p><div class="hb"><button class="btn gold" data-tab="1">▶ Find Something to Watch</button><button class="btn ghost" data-tab="0">Open Live TV Guide</button></div></div></section>
     <div class="hgrid"><section class="cwbox"><div class="hh"><h2>Continue Watching</h2><button class="more" data-tab="3">See all ›</button></div>${cont.length ? `<div class="cwrow">${cont.map(cw).join('')}</div>` : `<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">${S.list.length ? 'Loading your shows…' : 'Save a show in Movies &amp; Shows and it shows up here with where you left off.'}</p></div>`}</section>
       <section><div class="hh"><h2>On Tonight <small class="fine">for you</small></h2><button class="more" data-tab="0">Guide ›</button></div><div class="hbox">${teamGame ? otg(teamGame) : ''}${tonight.length ? tonight.slice(0, teamGame ? 3 : 4).map(otr).join('') : `<p class="fine" style="padding:14px;margin:0">${S.airings.length ? 'Nothing else on your channels tonight.' : 'Loading tonight’s listings…'}</p>`}</div></section>
       ${kidsOn() ? '<section class="game"><div class="hh"><h2>🔒 Kids Lock</h2></div><p class="fine">Kids\' channels and family shows only. Sports and settings are hidden.</p><button class="pill" data-kids>Turn off (PIN)</button></section>' : `<section class="game"><div class="hh"><h2>Where's My Game?</h2><button class="more" data-tab="2">All ›</button></div>${gameBox}</section>`}</div>
@@ -1510,6 +1511,22 @@ function unusedSvcs() {
     const days = Math.floor((now - (S.lastOpen[n] || S.svcSince[n])) / DAY), step = Math.floor(days / 30);
     return { n, days, step };
   }).filter(u => u.step >= 1 && u.step > (S.svcSnooze[u.n] || 0)).sort((a, b) => b.days - a.days);
+}
+// FREE PREVIEWS (Scott 11/14): free_previews.json lists them; Home announces the ones running now that this household can get
+let PREVIEWS = null;
+function loadPreviews() { if (PREVIEWS) return; PREVIEWS = []; fetch('free_previews.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => { PREVIEWS = j.previews || []; previewNotify(); if (S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
+const dayOf = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d).getTime(); };
+const previewsNow = () => (PREVIEWS || []).filter(v => { const now = Date.now(); return now >= dayOf(v.start) && now < dayOf(v.end) + 86400000 && (!v.for || S.mine.includes(v.for)); });
+function previewCards() {
+  loadPreviews(); const l = previewsNow(); if (!l.length) return '';
+  return `<div class="unused">${l.map(v => { const last = new Date(dayOf(v.end)).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+    return `<div class="uncard prevcard"><span class="unico">🎉</span><span class="t"><b>${esc(v.title)}</b><small>${esc(v.note || '')} Free through ${esc(last)}.</small></span>${v.url ? `<a class="btn gold" href="${esc(v.url)}" target="_blank" rel="noopener" data-rtry="${esc(v.svc || '')}">▶ Watch free</a>` : ''}</div>`; }).join('')}</div>`;
+}
+function previewNotify() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const told = load('prevTold', {}); let ch = false;
+  for (const v of previewsNow()) { if (told[v.id]) continue; told[v.id] = Date.now(); ch = true; try { new Notification('Free preview on now', { body: v.title, icon: 'icon-192.png' }); } catch {} }
+  if (ch) save('prevTold', told);
 }
 function unusedCards() {
   const u = unusedSvcs().slice(0, 2); if (!u.length) return '';

@@ -1,0 +1,16 @@
+{
+  "_about": "free_previews.json - Save to: C:\\MarvelApps\\marvelmagic\\free_previews.json. Free previews Marvel Magic announces on Home while they run (Scott 11/14: 'if anyone is running free previews we want to announce that when it happens'). One entry each: title, note, start/end (YYYY-MM-DD, inclusive), for = the service a viewer must have to get it (null = anyone), url = where to watch, svc = the app Watch opens. Claude adds entries as they are announced.",
+  "previews": [
+    {
+      "id": "directv-thanksgiving-2026",
+      "title": "Free preview: STARZ, Paramount+ with SHOWTIME, MGM+ and Cinemax",
+      "note": "DIRECTV's Thanksgiving free preview - premium channels free all week.",
+      "start": "2026-11-25",
+      "end": "2026-11-29",
+      "for": "DirecTV Stream",
+      "svc": "DirecTV Stream",
+      "url": "https://stream.directv.com/",
+      "source": "https://www.directv.com/insider/thanksgiving-free-preview-directv/"
+    }
+  ]
+}
