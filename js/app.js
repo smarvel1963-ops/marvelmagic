@@ -39,7 +39,9 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); moveFocus(KEY_DIR[e.key]); return;
   }
   if (e.key === 'Enter' && e.target.matches && e.target.matches('input[type=checkbox]')) { e.preventDefault(); e.target.click(); return; }
-  if (['Escape', 'GoBack', 'BrowserBack', 'MediaRewind'].includes(e.key) || e.keyCode === 461 || (e.key === 'Backspace' && !typing)) { e.preventDefault(); goBack(); return; }
+  if (e.keyCode === 10009 && window.MMNative && MMNative.platform && MMNative.platform() === 'samsung') {   // Samsung remote Back: a step back; on Home the Samsung app closes (Samsung's rule)
+    e.preventDefault(); if (!window.mmBack()) window.parent.postMessage({ mm: 'backed', handled: false }, '*'); return; }
+  if (['Escape', 'GoBack', 'BrowserBack', 'MediaRewind', 'XF86Back'].includes(e.key) || e.keyCode === 461 || e.keyCode === 10009 || (e.key === 'Backspace' && !typing)) { e.preventDefault(); goBack(); return; }   // 10009 / XF86Back = Samsung TV remote Back
   if (['GoForward', 'BrowserForward', 'MediaFastForward'].includes(e.key)) { e.preventDefault(); history.forward(); }
 });
 function showTab(n) { if (n === 2 && kidsOn()) n = HOME; if (n === 8 || n === 9) loadPool(); S.tab = n; save('tab', n); S.sel = null; draw(); window.scrollTo(0, 0); if (n === 3 || n === HOME) loadEps(); }

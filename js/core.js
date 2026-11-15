@@ -4,6 +4,21 @@
 // Split out of index.html 2026-11-15 (sell-readiness pass). Plain script, shared global scope, loaded in order:
 // core -> guide -> sports -> home -> app. After editing, run  python tools\stamp_versions.py  then  python tests\smoke_test.py
 
+// SAMSUNG TV APP BRIDGE (Scott 11/15, Samsung TV add-on): inside the Samsung app (marvelmagic_samsung, a Tizen web app) this page runs in a
+// frame opened with ?samsung=1. MMNative then asks the Samsung app (window.parent) to open the real streaming app, like the Fire TV app does.
+// The Samsung app tells this page when the viewer comes back ('mm-resume') and when the remote's Back is pressed outside the frame.
+if (/[?&]samsung=1/.test(location.search) && window.parent !== window && typeof window.MMNative === 'undefined') {
+  window.MMNative = {
+    open: (url, svc) => window.parent.postMessage({ mm: 'open', url, svc: svc || '' }, '*'),
+    platform: () => 'samsung',
+    has: () => true   // the Samsung app answers for real when it opens one; until then every app counts as on the TV
+  };
+  window.addEventListener('message', e => {
+    if (e.source !== window.parent || !e.data) return;
+    if (e.data.mm === 'resume' && typeof cameBack === 'function') cameBack();
+    if (e.data.mm === 'back') { const handled = typeof window.mmBack === 'function' ? window.mmBack() : false; window.parent.postMessage({ mm: 'backed', handled }, '*'); }   // not handled on Home = the Samsung app closes
+  });
+}
 // Marvel Magic test build. Listings: TVmaze (free, credit required). Scores: ESPN's public scoreboard (personal test only, not for a paid release).
 // It opens each title on that service's own site or app; it never plays or stores a stream, and never holds a service's password.
 const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings', 'Watched', 'Home', 'Coming Soon', 'For You', 'Settings'];
