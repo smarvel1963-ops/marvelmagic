@@ -536,6 +536,12 @@ function guide() {
   if (!S.airings.length) return `<h1>Live TV Guide</h1><p class="fine">Loading tonight's listings…</p>`;
   const now = Date.now(), t0 = Math.floor(now / SLOT) * SLOT, span = SLOT * SLOTS, t1 = t0 + span, by = {};
   for (const a of S.airings) if (a.end > t0 && a.start < t1) (by[a.net] = by[a.net] || []).push(a);
+  loadFreeGuide();   // CABLE listings (Scott 11/14 "load up with more channels"): HGTV, Food, TLC, Discovery, ID... fill the gaps TVmaze leaves
+  for (const [n, l] of Object.entries((FREE_G && FREE_G.cab) || {})) for (const q of l) {
+    const st = q[0] * 1000, en = q[1] * 1000; if (en <= t0 || st >= t1) continue;
+    const have = by[n] || []; if (have.some(a => a.start < en && a.end > st)) continue;
+    (by[n] = have).push({ key: 'c' + n + q[0], title: q[2], net: n, start: st, end: en, svc: NETWORK_SERVICE[n] || null, series: true, ep: q[4] || '', epName: q[3] || '', img: q[5] ? q[5].replace(/^http:/, 'https:') : null, note: `${n} · ${clock(new Date(st))}${q[3] ? ' · ' + q[3] : ''}` });
+  }
   for (const g of gameAirings(t0, t1)) { const L = by[g.net] = (by[g.net] || []).filter(a => a.isGame || a.end <= g.start || a.start >= g.end); L.push(g); }
   for (const pk of Object.keys(LIVE_PKG)) if (S.mine.includes(pk) && Array.isArray(LIVE_PKG[pk])) for (const n of LIVE_PKG[pk]) if (!['ESPN3', 'Local Now', 'USA Network', 'ACCN', 'MSNBC'].includes(n)) by[n] = by[n] || [];
   // Only channels this account can reach (Scott 11/08). YouTube TV is a live bundle, so it opens every network; nothing set up yet = ask them to set up.
