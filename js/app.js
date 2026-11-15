@@ -127,3 +127,14 @@ setInterval(() => {
 setTimeout(checkForUpdate, 3000); setInterval(checkForUpdate, 10 * 60000);
 try { if (sessionStorage.getItem('mm_updated')) { sessionStorage.removeItem('mm_updated'); setTimeout(() => { const n = document.createElement('div'); n.className = 'updtoast'; n.textContent = 'Marvel Magic updated ✨'; document.body.appendChild(n); setTimeout(() => n.remove(), 5000); }, 800); } } catch {}
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+// CLOSE ✕ ON EVERY POPUP (Scott 11/15: "when you come back to marvel and it ask pick something else it needs a close button as well"):
+// every popup in the shared #back box gets a ✕ in its corner. Closing "Did it play?" also forgets that open, so it is not asked again.
+(() => {
+  const b = $('back'), show = b.showModal.bind(b);
+  b.showModal = () => {
+    const kind = b.dataset.kind || ''; delete b.dataset.kind;
+    if (!b.querySelector(':scope > .dlgx')) b.insertAdjacentHTML('afterbegin', '<button class="dlgx" aria-label="Close" title="Close">✕</button>');
+    b.querySelector(':scope > .dlgx').onclick = () => { if (kind === 'rescue') save('pending', null); b.close(); };
+    show();
+  };
+})();

@@ -357,6 +357,7 @@ function askRescue(p) {
       ${sign ? `<a class="btn alt" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:6px" href="${esc(sign[1])}" target="_blank" rel="noopener">🔑 Sign in to ${esc(svc)}</a>` : ''}
       ${ACCOUNT_URL[svc] ? `<a class="btn alt" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:6px" href="${esc(ACCOUNT_URL[svc])}" target="_blank" rel="noopener">💳 ${esc(svc)} account &amp; payment</a>` : ''}
       <button class="btn alt" data-rpick style="width:100%;margin-top:6px">✨ Pick something else for me</button></div>`;
+  b.dataset.kind = 'rescue';
   b.querySelector('[data-rok]').onclick = () => { b.close(); save('pending', { ...p, at: Date.now() - 200000 }); };   // later return = normal flow
   b.querySelector('[data-rno]').onclick = () => { b.querySelector('#rfix').hidden = false; b.querySelector('.act').hidden = true; const f = b.querySelector('#rfix a, #rfix button'); if (f) f.focus(); };
   b.querySelector('[data-rpick]').onclick = () => { b.close(); showTab(1); const ps = tonightPicks().filter(kidOk); if (ps.length) { S.sel = ps[0]; draw(); enrich(S.sel); } };
