@@ -20,7 +20,8 @@ def stamp(check=False):
     stale = []
 
     def repl(m):
-        h = hashlib.sha1((ROOT / m.group(2)).read_bytes()).hexdigest()[:10]
+        # line endings ignored: git may check the files out with CRLF, GitHub serves LF - same code, same stamp
+        h = hashlib.sha1((ROOT / m.group(2)).read_bytes().replace(b'\r\n', b'\n')).hexdigest()[:10]
         if h != m.group(3):
             stale.append(f'{m.group(2)}: {m.group(3) or "(none)"} -> {h}')
         return f'{m.group(1)}{m.group(2)}?v={h}{m.group(4)}'
