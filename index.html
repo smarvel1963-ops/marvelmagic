@@ -399,6 +399,22 @@ const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase
 // every way this household can watch live channel n: the live packages that carry it, then the network's own app (Scott 11/14)
 const waysFor = n => { const pk = Object.keys(LIVE_PKG).filter(k => S.mine.includes(k) && pkgHas(k, n)), app = NETWORK_SERVICE[n] && !['ABC', 'FX'].includes(n) ? [NETWORK_SERVICE[n]] : [], more = NET_OPTS[String(n).toUpperCase()] || [];
   return [...new Set([...pk, ...app, ...more])].filter(hasIt).sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '' })); };
+// the household's own way in for anything (Scott 11/14 "i got asked to watch hbo max"): a ticked service as is; a live show -> your package
+// or app that carries its channel (TNT -> Sling, not HBO Max); else one of its options you have; null = not on any of yours
+const ownSvc = v => !!v && (S.mine.includes(v) || FREE_SVC.has(v));
+function bestSvc(x) {
+  if (!x) return null;
+  if (!S.mine.length) return x.svc || null;
+  const n = x.net || x.chan; if (n && !x.isGame) { const w = waysFor(n)[0]; if (w) return w.svc; }
+  if (ownSvc(x.svc)) return x.svc;
+  const o = (x.options || []).find(p => ownSvc(p.svc)); return o ? o.svc : null;
+}
+function notOnYours(svc) {
+  const b = $('back'); if (b.open) return;
+  b.innerHTML = `<b>Not on your services</b><p>${svc ? esc(svc) + ' isn’t' : 'That isn’t on any service'} ticked in your Settings, so Marvel Magic won’t open it. If you have it, tick it in ⚙ Settings → My Services.</p><div class="act"><button class="btn alt" data-nyok>OK</button><button class="btn" data-nyset>Open Settings</button></div>`;
+  b.querySelector('[data-nyok]').onclick = () => b.close(); b.querySelector('[data-nyset]').onclick = () => { b.close(); showTab(10); };
+  b.showModal();
+}
 const SERVICES = Object.keys(SERVICE_URL).filter(n => !FREE_SVC.has(n));
 const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
@@ -564,7 +580,7 @@ function guide() {
   const nowPct = (now - t0) / span * 100;
   const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
   const rows = nets.map(n => {
-    const ways = waysFor(n), mineW = ways.filter(w => S.mine.includes(w.svc)), svc = (mineW[0] || ways[0] || {}).svc || NETWORK_SERVICE[n] || null, ok = !svc || hasIt(svc);
+    const ways = waysFor(n), mineW = ways.filter(w => S.mine.includes(w.svc)), svc = (mineW[0] || ways[0] || {}).svc || null, ok = !svc || hasIt(svc);
     for (const a of by[n]) if (!a.isGame) { a.svc = svc; a.options = ways; a.exact = null; }   // Watch = your first way in (live package before the network's app)
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
       const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100), on = pv && pv.key === a.key, live = a.start <= now && a.end > now;
@@ -737,7 +753,7 @@ const placesBadge = x => x.svc ? `<span class="sv">${esc(x.svc)}${x.options && x
 function tasteOf() { const c = {}; for (const s of S.list) for (const g of (s.genres || [])) c[g] = (c[g] || 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]); }
 function todayShows() {
   const seen = new Set();
-  return S.airings.filter(a => a.show && a.end > Date.now() && !seen.has(a.show.id) && seen.add(a.show.id)).map(a => ({ ...showItem(a.show), big: a.show.image && (a.show.image.original || a.show.image.medium), when: a.start, chan: a.net, w: a.show.weight || 0 })).filter(yours);   // only shows on a service you ticked (Scott 11/14)
+  return S.airings.filter(a => a.show && a.end > Date.now() && !seen.has(a.show.id) && seen.add(a.show.id)).map(a => ({ ...showItem(a.show), big: a.show.image && (a.show.image.original || a.show.image.medium), when: a.start, chan: a.net, w: a.show.weight || 0 })).filter(yours).map(x => ({ ...x, svc: bestSvc(x) || x.svc }));   // only shows on a service you ticked, opened your way (Scott 11/14)
 }
 function tonightPicks() {
   const taste = tasteOf(), have = new Set(S.list.map(s => s.id));
@@ -1435,6 +1451,7 @@ async function loadGames() {
 let watchWin = null, watchTimer = null;
 const inTvApp = () => typeof window.MMNative !== 'undefined';
 function openWin(url, svc) {
+  if (svc && S.mine.length && !ownSvc(svc) && SERVICE_URL[svc]) { notOnYours(svc); return; }   // never open a service that isn't ticked
   if (inTvApp()) { try { MMNative.open(url, svc || ''); } catch {} if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); } return; }   // Fire TV: the real app
   const w = window.open(url, '_blank');
   if (!w) return;
@@ -1444,6 +1461,7 @@ function openWin(url, svc) {
   if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
 function openIt(x) {
+  { const v = bestSvc(x); if (S.mine.length && !v && !x.exact) { notOnYours(x.svc); return; } if (v && v !== x.svc) x = { ...x, svc: v, exact: null }; }
   if (x && x.fromList) scoreList(x.fromList, x);
   armFull();
   countOpen(x.svc);
