@@ -171,6 +171,8 @@ function settingsPage() {
     ${box('🎬 Favorite Movie &amp; Show Types', `<div class="stticks">${GENRES.map(g => tick(S.likes, 'likes', g)).join('')}</div><p class="fine">For You picks lean on these.</p>`, 'stwide')}
     ${box('😀 Moods I Like', `<div class="stticks">${MOODS.map(m => tick(S.moods, 'moods', m)).join('')}</div>`)}
     ${box('📺 My Services', `<p class="fine">Tick what you have. The guide, catalogs and picks show only these.</p><div class="svcs">${SERVICES.map(x => `<label><input type="checkbox" data-svc="${esc(x)}" ${S.mine.includes(x) ? 'checked' : ''}>${esc(x)}</label>`).join('')}</div><button class="btn alt" data-tab="3" style="margin-top:10px">Sign in to services ›</button>`, 'stwide')}
+    ${box('✨ Get more services', `<label class="fine" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-offersw ${offersOn() ? 'checked' : ''}> Show offers (free trials for services you don't have)</label>`
+      + (offersOn() ? `<div class="svcs" style="margin-top:8px">${SERVICES.filter(x => OFFER[x] && !S.mine.includes(x)).map(x => `<button class="btn alt" data-offer="${esc(x)}">${esc(x)} ›</button>`).join('')}</div><p class="fine" style="opacity:.7;margin-top:8px">${OFFER_NOTE}</p>` : ''), 'stwide')}
     ${box('🔔 Alerts', `<p class="fine">${notif}</p><label class="stck" style="margin-top:8px"><input type="checkbox" data-svcremind ${S.svcRemindOff ? '' : 'checked'}><span>Remind me when I haven't used a paid service for 30 days (again every 30)</span></label>`)}
     ${kidsSection()}
     </div>`;

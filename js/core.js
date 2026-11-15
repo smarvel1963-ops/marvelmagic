@@ -33,6 +33,10 @@ const SERVICE_URL = {
   Netflix: q => 'https://www.netflix.com/search?q=' + q, Hulu: q => 'https://www.hulu.com/search?q=' + q, 'Prime Video': q => 'https://www.amazon.com/s?i=instant-video&k=' + q,
   'Disney+': () => 'https://www.disneyplus.com/', 'HBO Max': () => 'https://www.hbomax.com/', Peacock: () => 'https://www.peacocktv.com/', 'Paramount+': () => 'https://www.paramountplus.com/',
   'Apple TV': q => 'https://tv.apple.com/search?term=' + q, ESPN: () => 'https://www.espn.com/watch/', 'YouTube TV': () => 'https://tv.youtube.com/', 'Fox One': () => 'https://www.fox.com/', 'Sling Orange': () => 'https://watch.sling.com/', 'Sling Blue': () => 'https://watch.sling.com/', 'Hulu + Live TV': () => 'https://www.hulu.com/live', 'DirecTV Stream': () => 'https://stream.directv.com/', Fubo: () => 'https://www.fubo.tv/',
+  Philo: () => 'https://www.philo.com/', Starz: () => 'https://www.starz.com/', 'MGM+': () => 'https://www.mgmplus.com/', 'AMC+': () => 'https://www.amcplus.com/',
+  BritBox: () => 'https://www.britbox.com/', 'Acorn TV': () => 'https://acorn.tv/', Shudder: () => 'https://www.shudder.com/', Crunchyroll: () => 'https://www.crunchyroll.com/',
+  'Discovery+': () => 'https://www.discoveryplus.com/', 'BET+': () => 'https://www.bet.plus/', 'Hallmark+': () => 'https://www.hallmarkplus.com/', 'Frndly TV': () => 'https://try.frndlytv.com/',
+  'ESPN+': () => 'https://plus.espn.com/',
   'Samsung TV Plus': () => 'https://www.samsungtvplus.com/', 'Pluto TV': () => 'https://pluto.tv/', Tubi: () => 'https://tubitv.com/', Plex: () => 'https://watch.plex.tv/', 'Xumo Play': () => 'https://play.xumo.com/', 'The Roku Channel': () => 'https://therokuchannel.roku.com/'
 };
 // SLING CHANNELS (Scott 11/15 'sling did not' go to what was clicked): Sling's own channel ids, read from Scott's paid Sling guide
@@ -74,11 +78,35 @@ function bestSvc(x) {
 }
 function notOnYours(svc) {
   const b = $('back'); if (b.open) return;
-  b.innerHTML = `<b>Not on your services</b><p>${svc ? esc(svc) + ' isn’t' : 'That isn’t on any service'} ticked in your Settings, so Marvel Magic won’t open it. If you have it, tick it in ⚙ Settings → My Services.</p><div class="act"><button class="btn alt" data-nyok>OK</button><button class="btn" data-nyset>Open Settings</button></div>`;
-  b.querySelector('[data-nyok]').onclick = () => b.close(); b.querySelector('[data-nyset]').onclick = () => { b.close(); showTab(10); };
+  b.innerHTML = `<b>Not on your services</b><p>${svc ? esc(svc) + ' isn’t' : 'That isn’t on any service'} ticked in your Settings, so Marvel Magic won’t open it. If you have it, tick it in ⚙ Settings → My Services.</p><div class="act"><button class="btn alt" data-nyok>OK</button><button class="btn" data-nyset>Open Settings</button></div>`
+    + (svc && OFFER[svc] && offersOn() ? `<button class="btn" data-nyoffer style="width:100%;margin-top:8px">✨ Try ${esc(svc)}</button><p class="fine" style="margin:6px 0 0;opacity:.7">${OFFER_NOTE}</p>` : '');
+  b.querySelector('[data-nyok]').onclick = () => b.close(); b.querySelector('[data-nyset]').onclick = () => { b.close(); showTab(10); }; const of = b.querySelector('[data-nyoffer]'); if (of) of.onclick = () => { b.close(); openOffer(svc); };
   b.showModal();
 }
 const SERVICES = Object.keys(SERVICE_URL).filter(n => !FREE_SVC.has(n));
+// OFFERS (Scott 11/15: "yes show offers, let them turn it off and we add all streaming possible in settings with affiliate links").
+// A show / game only on a service you don't have offers "Try it free"; Settings lists every service with a sign-up link. Viewers can turn
+// offers off (Settings). Links = each service's own trial / sign-up page UNTIL its affiliate program approves us - then swap in the tracked
+// link here (Fubo + Sling via Impact, Paramount+ / Peacock via FlexOffers, Philo...). Prime Video carries Scott's Amazon tag (usemart-20),
+// so Amazon's disclosure shows wherever offers show. Never type an Amazon price by hand.
+const AMZ_TAG = 'usemart-20';
+const OFFER = {
+  Fubo: 'https://www.fubo.tv/welcome', 'Sling Orange': 'https://www.sling.com/', 'Sling Blue': 'https://www.sling.com/', Philo: 'https://www.philo.com/',
+  'Paramount+': 'https://www.paramountplus.com/', Peacock: 'https://www.peacocktv.com/', Hulu: 'https://signup.hulu.com/', 'Hulu + Live TV': 'https://signup.hulu.com/live-tv',
+  'Prime Video': 'https://www.amazon.com/gp/video/storefront/?tag=' + AMZ_TAG, Starz: 'https://www.starz.com/', 'MGM+': 'https://www.mgmplus.com/', 'AMC+': 'https://www.amcplus.com/',
+  BritBox: 'https://www.britbox.com/', 'Acorn TV': 'https://acorn.tv/', Shudder: 'https://www.shudder.com/', Crunchyroll: 'https://www.crunchyroll.com/', 'Discovery+': 'https://www.discoveryplus.com/',
+  'BET+': 'https://www.bet.plus/', 'Hallmark+': 'https://www.hallmarkplus.com/', 'Frndly TV': 'https://try.frndlytv.com/', 'DirecTV Stream': 'https://streamtv.directv.com/',
+  'YouTube TV': 'https://tv.youtube.com/', 'Disney+': 'https://www.disneyplus.com/', 'HBO Max': 'https://www.hbomax.com/', Netflix: 'https://www.netflix.com/signup', 'Apple TV': 'https://tv.apple.com/',
+  'ESPN+': 'https://plus.espn.com/', ESPN: 'https://plus.espn.com/', 'Fox One': 'https://www.foxone.com/'
+};
+const offersOn = () => !load('offersOff', false);
+const OFFER_NOTE = 'Offer · Marvel Magic may earn a commission. As an Amazon Associate I earn from qualifying purchases.';
+function openOffer(svc) {
+  const u = OFFER[svc]; if (!u) return;
+  try { const o = load('offerClicks', {}); o[svc] = (o[svc] || 0) + 1; save('offerClicks', o); } catch {}
+  if (typeof inTvApp === 'function' && inTvApp()) { try { MMNative.open(u, svc); } catch {} return; }   // TV: its app (it signs you up) or its store page
+  const w = window.open(u, '_blank'); try { if (w) w.opener = null; } catch {}
+}
 const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

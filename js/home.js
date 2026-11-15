@@ -444,10 +444,11 @@ document.addEventListener('click', e => {
   else if (t.dataset.unwatch) { S.history = S.history.filter(h => h.k !== t.dataset.unwatch); save('history', S.history); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.id === 'acct') acctPress();
   else if (t.id === 'castbtn') castHelp();
+  else if (t.dataset.offer) openOffer(t.dataset.offer);   // Settings → Get more services
   else if (t.hasAttribute('data-open')) openIt(S.sel);
   else if (t.hasAttribute('data-save')) { toggleList(S.sel.show); dock(); }
 });
-document.addEventListener('change', e => { if (e.target.dataset.svc && S.houseRole === 'owner') setTimeout(() => saveHouse({}).catch(() => {}), 50); if (e.target.hasAttribute('data-svcremind')) { S.svcRemindOff = !e.target.checked; save('svcRemindOff', S.svcRemindOff); return; } const k = e.target.dataset.st; if (k === 'likes' || k === 'moods') { const v = e.target.value; S[k] = e.target.checked ? [...new Set([...S[k], v])] : S[k].filter(x => x !== v); save(k, S[k]); return; } const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
+document.addEventListener('change', e => { if (e.target.hasAttribute('data-offersw')) { save('offersOff', !e.target.checked); draw(); return; } if (e.target.dataset.svc && S.houseRole === 'owner') setTimeout(() => saveHouse({}).catch(() => {}), 50); if (e.target.hasAttribute('data-svcremind')) { S.svcRemindOff = !e.target.checked; save('svcRemindOff', S.svcRemindOff); return; } const k = e.target.dataset.st; if (k === 'likes' || k === 'moods') { const v = e.target.value; S[k] = e.target.checked ? [...new Set([...S[k], v])] : S[k].filter(x => x !== v); save(k, S[k]); return; } const s = e.target.dataset.svc; if (!s) return; S.mine = e.target.checked ? [...S.mine, s] : S.mine.filter(x => x !== s); save('mine', S.mine); });
 document.addEventListener('submit', async e => {
   if (e.target.id === 'pairform') { e.preventDefault(); const code = ($('pcode').value || '').replace(/\D/g, ''), pid = $('pprof').value; if (code.length !== 6) { alert('Type the 6 numbers shown on the TV.'); return; }
     approvePair(code, pid).then(() => { alert('Done! That TV is set up for ' + (pid === 'owner' ? 'you' : (houseMember(pid) || {}).name || 'them') + '. It will change by itself in a moment.'); draw(); }).catch(err => alert(err.message || 'Could not add that TV. Try again.')); return; }
