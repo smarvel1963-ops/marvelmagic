@@ -1348,7 +1348,7 @@ function forYouPage() {
   const top = ranked.slice(0, 8), used = new Set(top.map(x => x.key));
   const rows = want.slice(0, 3).map(g => { const r = ranked.filter(x => !used.has(x.key) && gen(x).includes(g) && yours(x)).slice(0, 6); r.forEach(x => used.add(x.key)); return [g, r]; }).filter(r => r[1].length);
   const fp = x => x.prem ? hposter(x) : lposter(x);
-  return `<section class="fyhero"><div class="lk" style="color:#B9A8FF">✨ FOR YOU</div><h1 class="hott" style="color:#E9E2FF">Made for You</h1><p class="lsub2">Tell Marvel Magic what you like. Picks come from your services first.</p>
+  return `<img class="top50ban" src="banner_foryou.jpg" alt="For You - Made for You: your taste, your services, your next favorite show"><section class="fyhero" style="margin-top:0"><p class="lsub2" style="margin-top:0">Tell Marvel Magic what you like. Picks come from your services first.</p>
       <div class="fyg">${GENRES.filter(g => !kidsOn() || ['Family', 'Children', 'Anime', 'Nature', 'Food', 'Music', 'Comedy', 'Adventure'].includes(g)).map(g => `<button class="chip ${likes.includes(g) ? 'on' : ''}" data-like="${esc(g)}">${likes.includes(g) ? '✓ ' : ''}${esc(g)}</button>`).join('')}</div>
       ${auto.length ? `<p class="fine" style="margin:10px 0 0">From the shows you saved: ${auto.map(esc).join(', ')}</p>` : ''}</section>
     ${!S.pool && !S.airings.length ? '<p class="fine">Loading shows…</p>' : ''}
