@@ -226,7 +226,7 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 .lp::after{content:"";position:absolute;inset:55% 0 0;background:linear-gradient(transparent,rgba(12,6,20,.95))}.lp .sv{z-index:1}
 .lpt{position:absolute;z-index:1;left:10px;right:10px;bottom:10px}.lpt b{display:block;font-size:16px;line-height:1.2}.lpt small{font-size:12px;color:#E8D6E8}
 .lp.big .lpt b{font-size:20px}.lp.on{outline:none;border:3px solid #FFB23E;box-shadow:0 0 22px rgba(255,170,60,.7)}.lp.off{opacity:.55}
-.lpno{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;font-family:Georgia,serif;font-size:22px;color:#FFE3C4}
+.lpno{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:22%;font-size:40px;opacity:.55;background:radial-gradient(circle at 50% 35%,rgba(138,63,240,.35),transparent 70%)}
 .lsub{margin:14px 0 8px;font-size:18px;color:#FFC98A}
 @media (max-width:1100px){.lgrid.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){.lounge{padding:20px 18px 90px;min-height:0}.lt{font-size:40px}.lounge-art{height:110px}.lgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
@@ -351,6 +351,7 @@ input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=
 .gbar.gfree{flex-direction:column;align-items:flex-start;gap:10px}.gfree .filters{justify-content:flex-start}.fsvcs .chip{font-weight:800}
 .wh-b{justify-content:flex-end;margin-top:-4px}.hothero-b{margin-top:0}
 .prevcard{border-color:#B98A2A;background:linear-gradient(90deg,#3A2A0C,#1A1030 70%)}
+.wlsub{margin:14px 0 8px;font-size:18px;color:#D9D2FF}.wlsub small{color:var(--dim);font-weight:600}
 </style>
 </head>
 <body>
@@ -726,12 +727,13 @@ const isLater = x => !!x && S.later.some(l => l.k === laterKey(x));
 function toggleLater(x) {
   if (!x) return; const k = laterKey(x);
   if (S.later.some(l => l.k === k)) S.later = S.later.filter(l => l.k !== k);
-  else S.later = [{ k, title: x.title, img: x.big || x.img || (x.show && x.show.img) || null, svc: x.svc || null, exact: x.exact || null, url: x.url || null, series: !!x.series, options: (x.options || []).slice(0, 8), when: x.start || x.when || null, at: Date.now() }, ...S.later].slice(0, 200);
+  else S.later = [{ k, title: x.title, img: x.big || x.img || (x.show && x.show.img) || null, svc: x.svc || null, exact: x.exact || null, url: x.url || null, series: !!x.series, options: (x.options || []).slice(0, 8), when: x.start || x.when || null, free: !!x.free || FREE_SVC.has(x.svc), at: Date.now() }, ...S.later].slice(0, 200);
   save('later', S.later);
 }
+const laterFree = l => !!l.free || FREE_SVC.has(l.svc);
 const laterItem = l => ({ key: 'WL' + l.k, title: l.title, img: l.img, big: l.img, svc: l.svc, exact: l.exact, url: l.url || 'https://www.google.com/search?q=' + encodeURIComponent(l.title + ' watch'), series: l.series, options: l.options, note: l.svc || '' });
-function laterRow(max) {
-  const its = S.later.slice(0, max || 12); if (!its.length) return '';
+function laterRow(max, which) {
+  const its = S.later.filter(l => which == null || laterFree(l) === which).slice(0, max || 12); if (!its.length) return '';
   return `<div class="lgrid six">${its.map(l => { const x = laterItem(l); return `<div class="wlwrap">${lposter(x)}<button class="round wlx" data-unlater="${esc(l.k)}" aria-label="Remove ${esc(l.title)} from Watch Later">✕</button></div>`; }).join('')}</div>`;
 }
 // ONE CARD PER TITLE: the same movie or show from several places becomes one card; options = every place, the ones you have first.
@@ -760,7 +762,7 @@ function tonightPicks() {
   const taste = tasteOf(), have = new Set(S.list.map(s => s.id));
   return todayShows().map(x => ({ x, sc: (x.show.genres || []).filter(g => taste.includes(g)).length * 100 + (have.has(x.show.id) ? -50 : 0) + x.w / 10 })).filter(r => r.x.big).sort((a, b) => b.sc - a.sc).map(r => r.x);
 }
-const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? ' off' : ''}" data-i="${reg(x)}">${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(x.title)}</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
+const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? ' off' : ''}" data-i="${reg(x)}">${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">🎬</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
 function shows() {
   const taste = tasteOf(), picks = tonightPicks().filter(kidOk).slice(0, 4), pickKeys = new Set(picks.map(p => p.key));
   S.hideT = new Set(picks.map(tkey));
@@ -877,7 +879,7 @@ function stuff() {
       <div class="whtabs"><button class="wtab ${f === 'Completed' ? '' : 'on'}" data-f="Watching">My Shows</button><button class="wtab" disabled title="Needs the paid feed">Movies</button><button class="wtab ${f === 'Completed' ? 'on' : ''}" data-f="Completed">Completed</button></div></div>
     <div class="wgrid"><div class="wmain"><div class="tiles">
       ${tile('blue', '▶', 'Watching', n('Watching') + (n('Watching') === 1 ? ' Show' : ' Shows'))}${tile('red', '🔔', 'New Episodes', alerts.length + ' Ready to Watch')}${tile('amber', '📅', 'Coming Soon', soon + ' This Week')}${tile('green', '✓', 'Completed', n('Completed') + (n('Completed') === 1 ? ' Show' : ' Shows'))}</div>
-      <div class="wlhead"><h2>⏰ Watch Later <small>(${S.later.length})</small></h2></div>${S.later.length ? laterRow(60) : '<p class="fine">Nothing saved yet. Pick anything and tap ⏰ Watch Later.</p>'}
+      <div class="wlhead"><h2>⏰ Watch Later <small>(${S.later.length})</small></h2></div>${S.later.length ? `${S.later.some(laterFree) ? `<h3 class="wlsub">🆓 Free to Watch <small>(${S.later.filter(laterFree).length})</small></h3>${laterRow(60, true)}` : ''}${S.later.some(l => !laterFree(l)) ? `<h3 class="wlsub">📺 On Your Services <small>(${S.later.filter(l => !laterFree(l)).length})</small></h3>${laterRow(60, false)}` : ''}` : '<p class="fine">Nothing saved yet. Pick anything and tap ⏰ Watch Later. Free movies, free channels and free previews go on their own Free to Watch shelf.</p>'}
       ${cont.length ? `<h2>Continue Watching</h2><div class="posters">${cont.map(poster).join('')}</div>` : ''}
       <div class="wlhead"><h2>My Watchlist <small>(All Shows)</small></h2><div class="filters">${chips.map(([v, l]) => `<button class="chip ${v === f ? 'on' : ''}" data-f="${v}">${l}</button>`).join('')}</div></div>
       <div class="wlbox">${S.list.length ? shown.map(row).join('') || '<p class="fine" style="padding:14px">Nothing here right now.</p>' : '<p class="fine" style="padding:14px">Nothing saved yet. Pick a show in Movies &amp; Shows and tap Save.</p>'}</div></div>
@@ -1319,7 +1321,7 @@ const poolItem = x => ({ key: 's' + x.id, title: x.name, svc: NETWORK_SERVICE[x.
 // "your channels": a service you ticked, a free service, or any TV network when you have YouTube TV (a live bundle)
 const yours = x => S.mine.length ? ((x.svc && hasIt(x.svc)) || !!livePkgFor(x.net || x.chan || '')) : true;
 const daysTo = t => { const d = Math.round((new Date(new Date(t).toDateString()) - new Date(new Date().toDateString())) / 86400000); return d <= 0 ? 'Today' : d === 1 ? 'Tomorrow' : 'In ' + d + ' days'; };
-const _hposter = x => `<button class="lp hp${S.sel && S.sel.key === x.key ? ' on' : ''}${yours(x) ? '' : ' off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : `<span class="lpno">${esc(x.title)}</span>`}${x.prem ? `<span class="hot">${x.prem.season === 1 ? 'NEW SERIES' : x.prem.season > 100 ? 'NEW SEASON' : 'SEASON ' + x.prem.season}</span>` : ''}<span class="lpt"><b>${esc(x.title)}</b>${x.svc || x.net ? `<span class="hsv">${esc(x.svc || x.net)}</span>` : ''}<small>${esc(new Date(x.when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }))} · <em>${esc(daysTo(x.when))}</em></small></span></button>`;
+const _hposter = x => `<button class="lp hp${S.sel && S.sel.key === x.key ? ' on' : ''}${yours(x) ? '' : ' off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : `<span class="lpno">🎬</span>`}${x.prem ? `<span class="hot">${x.prem.season === 1 ? 'NEW SERIES' : x.prem.season > 100 ? 'NEW SEASON' : 'SEASON ' + x.prem.season}</span>` : ''}<span class="lpt"><b>${esc(x.title)}</b>${x.svc || x.net ? `<span class="hsv">${esc(x.svc || x.net)}</span>` : ''}<small>${esc(new Date(x.when).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }))} · <em>${esc(daysTo(x.when))}</em></small></span></button>`;
 // HEARTS (Scott 11/14): a 👍 on every show / movie picture opens 1-5 hearts (scale 5.0); the rating feeds My Top 50 (move it with ▲▼ there)
 const fmtH = n => (Math.round(Number(n || 0) * 2) / 2).toFixed(1);
 const heartsTxt = n => '♥'.repeat(Math.round(n)) + '♡'.repeat(5 - Math.round(n));
@@ -1520,7 +1522,7 @@ const previewsNow = () => (PREVIEWS || []).filter(v => { const now = Date.now();
 function previewCards() {
   loadPreviews(); const l = previewsNow(); if (!l.length) return '';
   return `<div class="unused">${l.map(v => { const last = new Date(dayOf(v.end)).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-    return `<div class="uncard prevcard"><span class="unico">🎉</span><span class="t"><b>${esc(v.title)}</b><small>${esc(v.note || '')} Free through ${esc(last)}.</small></span>${v.url ? `<a class="btn gold" href="${esc(v.url)}" target="_blank" rel="noopener" data-rtry="${esc(v.svc || '')}">▶ Watch free</a>` : ''}</div>`; }).join('')}</div>`;
+    return `<div class="uncard prevcard"><span class="unico">🎉</span><span class="t"><b>${esc(v.title)}</b><small>${esc(v.note || '')} Free through ${esc(last)}.</small></span>${v.url ? `<a class="btn gold" href="${esc(v.url)}" target="_blank" rel="noopener" data-rtry="${esc(v.svc || '')}">▶ Watch free</a>` : ''}<button class="btn alt" data-laterx="${reg({ key: 'pv' + v.id, title: v.title.replace(/^Free( preview)?:\s*/, ''), svc: v.svc || null, exact: v.url || null, url: v.url || null, free: true, series: false })}">${isLater({ key: 'pv' + v.id, title: v.title.replace(/^Free( preview)?:\s*/, '') }) ? '✓ Saved' : '⏰ Watch Later'}</button></div>`; }).join('')}</div>`;
 }
 function previewNotify() {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
