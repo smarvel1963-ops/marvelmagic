@@ -75,8 +75,9 @@ function svcOf(n) {
   if (/via (amazon|apple|hulu)|channel/.test(t)) return null;   // add-on versions come after the service's own app
   return /netflix/.test(t) ? 'Netflix' : /hulu/.test(t) ? 'Hulu' : /prime video/.test(t) ? 'Prime Video' : /disney/.test(t) ? 'Disney+' : /hbo max|^max$/.test(t) ? 'HBO Max' : /peacock/.test(t) ? 'Peacock' : /paramount/.test(t) ? 'Paramount+' : /^apple ?tv/.test(t) ? 'Apple TV' : /youtube tv/.test(t) ? 'YouTube TV' : /pluto/.test(t) ? 'Pluto TV' : /espn/.test(t) ? 'ESPN' : null;
 }
-async function enrich(x) {
-  if (x.looked || x.sport) return; x.looked = true;
+// enrich(x) always hands back the same lookup, so a Watch click can wait for one that is already running (Scott 11/15 "it dont go to what you clicked")
+function enrich(x) { if (x.sport) return Promise.resolve(); if (!x.looked) { x.looked = true; x._look = enrichNow(x); } return x._look || Promise.resolve(); }
+async function enrichNow(x) {
   try {
     let id = x.wmId;
     if (!id) {
@@ -84,7 +85,9 @@ async function enrich(x) {
       const hit = rows.find(r => r.name.toLowerCase() === want && /^tv/.test(r.type)) || rows.find(r => r.name.toLowerCase() === want); if (!hit) return; id = hit.id;
     }
     const w = await relay({ a: 'where', id }); if (!w.sources || !w.sources.length) return;
-    const rows = w.sources.filter(r => r.web).map(r => ({ ...r, svc: svcOf(r.name) }));
+    // some links come wrapped in a tracking redirect (paramountplus.qflm.net/...?u=<real page>): use the real page, which the TV apps accept
+    const unwrap = u => { try { const q = new URL(u).searchParams.get('u'); return q && /^https?:\/\//.test(q) ? q : u; } catch { return u; } };
+    const rows = w.sources.filter(r => r.web).map(r => ({ ...r, web: unwrap(r.web), svc: svcOf(r.name) }));
     const seen = new Set(), own = rows.filter(r => r.svc && !seen.has(r.svc) && seen.add(r.svc)).sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)) || Number(b.type === 'sub') - Number(a.type === 'sub'));
     const best = own[0] || rows[0]; if (!best) return;
     x.exact = best.web; x.svc = best.svc; x.place = best.name;

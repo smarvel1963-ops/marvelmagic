@@ -242,25 +242,42 @@ async function loadGames() {
 // Marvel Magic brings itself back to the front (the come-back question still asks if it didn't play).
 let watchWin = null, watchTimer = null;
 const inTvApp = () => typeof window.MMNative !== 'undefined';
-function openWin(url, svc) {
-  if (svc && S.mine.length && !ownSvc(svc) && SERVICE_URL[svc]) { notOnYours(svc); return; }   // never open a service that isn't ticked
+function openWin(url, svc, pre) {   // pre = a tab already opened during the click (openIt), filled in here
+  if (svc && S.mine.length && !ownSvc(svc) && SERVICE_URL[svc]) { if (pre) try { pre.close(); } catch {} notOnYours(svc); return; }   // never open a service that isn't ticked
   if (inTvApp()) { try { MMNative.open(url, svc || ''); } catch {} if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); } return; }   // Fire TV: the real app
-  const w = window.open(url, '_blank');
+  let w = null;
+  if (pre && !pre.closed) { try { pre.location.href = url; w = pre; } catch {} }
+  if (!w) w = window.open(url, '_blank');
   if (!w) return;
   try { w.opener = null; } catch {}
   watchWin = w; clearInterval(watchTimer);
   watchTimer = setInterval(() => { if (!watchWin || watchWin.closed) { clearInterval(watchTimer); watchWin = null; try { window.focus(); } catch {} cameBack(); } }, 1000);
   if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
+// WATCH GOES TO THE TITLE (Scott 11/15 "when you click to watch something and it opens streamer app it dont go to what you clicked"):
+// a movie / show without its exact page yet waits for the lookup (enrich: the title's own page on each service, up to 10 seconds)
+// before opening, instead of opening the service's front page. Live listings and games keep their channel / app way in.
+// The browser tab is opened during the click (a tab opened after a wait gets blocked) and filled in when the page is known.
 function openIt(x) {
-  { const v = bestSvc(x); if (S.mine.length && !v && !x.exact) { notOnYours(x.svc); return; } if (v && v !== x.svc) x = { ...x, svc: v, exact: null }; }
+  if (x && x.title && !x.exact && !x.sport && !x.start && !x.net) {
+    const pre = inTvApp() ? null : window.open('about:blank', '_blank');
+    const note = document.createElement('div'); note.className = 'updtoast'; note.textContent = 'Finding “' + x.title + '”…'; document.body.appendChild(note);
+    // the lookup is two relay calls, about 3-4 seconds; after 10 the service's own page opens as before
+    Promise.race([enrich(x), new Promise(r => setTimeout(r, 10000))]).then(() => { note.remove(); openNow(x, pre); });
+    return;
+  }
+  openNow(x, null);
+}
+function openNow(x, pre) {
+  { const v = bestSvc(x); if (S.mine.length && !v && !x.exact) { if (pre) try { pre.close(); } catch {} notOnYours(x.svc); return; }
+    if (v && v !== x.svc) { const o = (x.options || []).find(o => o.svc === v && o.url && /^https?:\/\/[^/]+\/./.test(o.url)); x = { ...x, svc: v, exact: o ? o.url : null }; } }   // switching to your service keeps its title page when the lookup found one
   if (x && x.fromList) scoreList(x.fromList, x);
   armFull();
   countOpen(x.svc);
   logPick(x);
   const u = linkFor(x);
   save('pending', { title: x.title, series: x.series, sport: !!x.sport, rk: rateKey(x), img: x.img || null, url: linkFor(x), at: Date.now(), id: x.show && S.list.some(s => s.id === x.show.id) ? x.show.id : null, svc: x.svc || null, options: (x.options || []).slice(0, 8) });
-  openWin(u, x.svc || '');
+  openWin(u, x.svc || '', pre);
 }
 function askSetup() {
   const p = load('pendingSetup', null), b = $('back'); if (!p || Date.now() - p.at < 5000 || b.open) return false;
