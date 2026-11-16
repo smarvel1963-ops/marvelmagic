@@ -168,6 +168,7 @@ function freePage() {
     ${top.length ? `<div class="hh" style="margin-top:18px"><h2>Free &amp; Live Now, Picked for You</h2><button class="more" data-tab="0">Full guide ›</button></div><div class="flgrid">${top.map(card).join('')}</div>` : ''}
     ${catRows.map(([c, r]) => `<div class="hh" style="margin-top:20px"><h2>Free ${esc(c)} On Now</h2></div><div class="flgrid">${r.map(card).join('')}</div>`).join('')}
     ${od.length ? `<div class="hh" style="margin-top:22px"><h2>Free Movies &amp; Shows for You <small class="fine">watch anytime</small></h2></div><div class="lgrid six">${od.map(x => lposter(x)).join('')}</div>` : ''}
+    ${chDirectory()}
     <div class="frsv"><b>Free services:</b>${FREE_TV.map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-free="${esc(n)}">${esc(n)} ↗</a>`).join('')}</div>
     <p class="fine">Live schedules: community guide data (test build). Movies: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>.</p>`;
 }
@@ -442,3 +443,39 @@ function ratingsPage() {
     <aside class="wside">${mmTab ? bestHtml : ''}${shareBox}${listsBox}<section class="glow plain svcq"><h3>My Streaming Services</h3><p class="fine">Ranked by how much you use them, best to worst. Tap ♡ to rate each one's content.</p>${svcs.map(svc).join('')}</section></aside></div>`;
 }
 // HOME (Scott 11/14 board): everything on it is real data - his watchlist, tonight's listings, his teams' next game. No made-up titles or people.
+
+// CHANNEL DIRECTORY (Scott 11/15: master channel list from free data only - channels.json, rebuilt daily by tools/build_channels.py).
+// Three groups: Verified free (in a free service's live lineup today, with a schedule), Free - limited guide (opens, little schedule),
+// Subscription (which paid services carry it). Channels nobody can open never appear. Tap = open it where you can watch it.
+let CHS = null, CH_BUSY = false, CH_LIST = [];
+function loadChannels() {
+  if (CHS || CH_BUSY) return; CH_BUSY = true;
+  fetch('channels.json').then(r => r.ok ? r.json() : null).then(j => { CHS = j && Array.isArray(j.channels) ? j : { channels: [], counts: {} }; })
+    .catch(() => { CHS = { channels: [], counts: {} }; }).then(() => { CH_BUSY = false; if (S.tab === 4) { const y = window.scrollY; draw(); window.scrollTo(0, y); } });
+}
+const CH_G = [['free', '✅ Verified free'], ['thin', '📺 Free - limited guide'], ['sub', '💳 Subscription']];
+const chKid = c => (c.cat || []).some(x => /kids|family|animation|children|education/i.test(x));
+function chDirectory() {
+  loadChannels();
+  if (!CHS) return '<div class="hh" style="margin-top:22px"><h2>Channel Directory</h2></div><p class="fine">Loading channels…</p>';
+  if (!CHS.channels.length) return '';
+  const g = S.chg || 'free', q = (S.chq || '').trim().toLowerCase(), lim = S.chlim || 60;
+  const pool = CHS.channels.filter(c => !kidsOn() || chKid(c));
+  const list = pool.filter(c => c.grp === g && (!q || c.n.toLowerCase().includes(q) || (c.cat || []).some(x => x.toLowerCase().includes(q))));
+  CH_LIST = list.slice(0, lim);
+  const n = k => pool.filter(c => c.grp === k).length;
+  const row = (c, i) => { const ways = (c.where || []).map(w => w[0]), mine = ways.filter(hasIt);
+    return `<button class="chrow" data-chopen="${i}"><b>${esc(c.n)}</b><small>${esc((c.cat || []).join(' · '))}${c.sched ? '' : ' · no schedule yet'}</small><span class="chsv">${esc((mine.length ? mine : ways).slice(0, 3).join(', '))}${ways.length > 3 ? ' +' + (ways.length - 3) : ''}${c.grp === 'sub' && !mine.length ? ' · not on yours' : ''}</span></button>`; };
+  return `<div class="hh" style="margin-top:22px"><h2>Channel Directory <small class="fine">${CHS.channels.length.toLocaleString()} channels you can actually open</small></h2></div>
+    <div class="filters">${CH_G.map(([k, l]) => `<button class="chip ${k === g ? 'on' : ''}" data-chg="${k}">${l} (${n(k).toLocaleString()})</button>`).join('')}</div>
+    <input class="chq" data-chq placeholder="Search channels or kinds - e.g. westerns, news, cooking" value="${esc(S.chq || '')}">
+    <div class="chlist">${CH_LIST.map(row).join('') || '<p class="fine">No channels match.</p>'}</div>
+    ${list.length > lim ? `<button class="btn alt" data-chmore style="margin-top:8px">Show more (${(list.length - lim).toLocaleString()} more)</button>` : ''}
+    <p class="fine">Channel list: <a href="https://github.com/iptv-org/database" target="_blank" rel="noopener">iptv-org</a> (public domain) + each free service's own lineup, updated daily.</p>`;
+}
+function chOpen(i) {
+  const c = CH_LIST[i]; if (!c) return;
+  const ways = (c.where || []).filter(w => w[0]), have = ways.find(w => hasIt(w[0]) && w[1]) || ways.find(w => hasIt(w[0]));
+  if (have) { openWin(have[1] || (SERVICE_URL[have[0]] ? SERVICE_URL[have[0]]('') : ''), have[0]); return; }
+  const offer = ways.find(w => OFFER[w[0]]); notOnYours(offer ? offer[0] : (ways[0] || [])[0]);
+}

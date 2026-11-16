@@ -102,7 +102,14 @@ def main(out_path: Path):
         if net and not any(w[0] == net for w in r['where']) and c.get('website') and OFFICIAL.match(c['website']):
             r['where'].append([net, c['website']])
     # 3) paid services (subscription channels)
+    # not channels: the streaming services themselves (Apple TV+, Disney+...) and the guide's own nicknames for channels already listed
+    svc_names = set(re.findall(r"'([^']+)':\s*(?:\(\)|q)\s*=>", code)) | set(re.findall(r"[{,]\s*([A-Z][\w+]*):\s*(?:\(\)|q)\s*=>", code))
+    svc_names |= {'Apple TV', 'Apple TV+', 'Disney+', 'ESPN+', 'Max', 'HBO Max', 'Peacock', 'Paramount+', 'Netflix', 'Hulu', 'Prime Video'}
+    svc_names -= {'ESPN'}   # ESPN is a channel AND an app - keep the channel
+    ALIAS = {'ACCN', 'ESPN3', 'USA Network', 'MSNBC', 'Local Now', 'CBSSN', 'PEACOCK'}
     for name, svcs in paid.items():
+        if name in svc_names or name in ALIAS:
+            continue
         r = row(name)
         if not r:
             continue

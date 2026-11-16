@@ -343,3 +343,10 @@ input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=
 .wh-b{justify-content:flex-end;margin-top:-4px}.hothero-b{margin-top:0}
 .prevcard{border-color:#B98A2A;background:linear-gradient(90deg,#3A2A0C,#1A1030 70%)}
 .wlsub{margin:14px 0 8px;font-size:18px;color:#D9D2FF}.wlsub small{color:var(--dim);font-weight:600}
+
+/* Channel Directory (11/15) */
+.chq{width:100%;max-width:520px;margin:8px 0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:inherit;font-size:15px}
+.chlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.chrow{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}
+.chrow:hover,.chrow:focus{background:rgba(168,85,247,.18);outline:2px solid #a855f7}
+.chrow small{opacity:.75}.chrow .chsv{font-size:12px;color:#f5b400}
