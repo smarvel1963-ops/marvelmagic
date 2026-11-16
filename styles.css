@@ -350,3 +350,7 @@ input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=
 .chrow{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}
 .chrow:hover,.chrow:focus{background:rgba(168,85,247,.18);outline:2px solid #a855f7}
 .chrow small{opacity:.75}.chrow .chsv{font-size:12px;color:#f5b400}
+/* 11/15 (Scott: "marvel Magic doesnt size right on tablet but auto hub did"): from 761 to 999 wide (a tablet held upright) the tab row
+   neither scrolled (phones) nor became the side bar (1000+), so the 11 tabs pushed the page out to ~1850px and the tablet zoomed everything
+   out. Now the row scrolls sideways inside the header, like on a phone. */
+@media (min-width:761px) and (max-width:999px){nav{overflow-x:auto;min-width:0;flex:1 1 auto;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav button{flex:0 0 auto}.acct{white-space:nowrap;flex:none}.castbtn{top:auto;bottom:calc(20px + env(safe-area-inset-bottom));right:16px}}
