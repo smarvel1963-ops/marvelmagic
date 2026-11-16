@@ -1,0 +1,25 @@
+# .github/workflows/channels.yml
+# Save to: C:\MarvelApps\marvelmagic\.github\workflows\channels.yml
+# Rebuilds channels.json - Marvel Magic's master channel list (Scott 11/15: "it needs data we dont pay for") - once a day.
+# Free sources only: iptv-org database (public domain), free_guide.json (free services' live lineups), the app's service map.
+name: channels
+on:
+  schedule:
+    - cron: "41 9 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/build_channels.py channels.json
+      - run: |
+          git config user.name "marvel-magic-guide-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add channels.json
+          git diff --cached --quiet || (git commit -m "channels refresh" && git push)
