@@ -159,7 +159,9 @@ function draw() {
   const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0, fx = $('fgrid') ? $('fgrid').scrollLeft : 0;
   items.length = 0;
   document.body.classList.toggle('easy', activeEasy());
-  $('nav').innerHTML = NAV_ORDER.filter(i => !(kidsOn() && i === 2)).map(i => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${icon(i)}<span>${esc(TABS[i])}</span></button>`).join('');
+  // 11/15 (Scott: "also on mm on left menu a search bar button"): Search sits under Home - same as Home's Search button (Movies & Shows, cursor in the box)
+  const navSearch = `<button data-tab="1" data-q class="navsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4.5-4.5"/></svg><span>Search</span></button>`;
+  $('nav').innerHTML = NAV_ORDER.filter(i => !(kidsOn() && i === 2)).map((i, k) => `<button data-tab="${i}" ${i === S.tab ? 'aria-current="page"' : ''}>${icon(i)}<span>${esc(TABS[i])}</span></button>` + (k === 0 ? navSearch : '')).join('');
   $('view').innerHTML = [guide, shows, sports, stuff, freePage, ratingsPage, watchedPage, home, comingPage, forYouPage, settingsPage][S.tab]();
   $('signside').innerHTML = sideFoot();
   document.body.dataset.tab = S.tab;
