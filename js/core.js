@@ -68,7 +68,7 @@ const waysFor = n => { const pk = Object.keys(LIVE_PKG).filter(k => S.mine.inclu
   return [...new Set([...pk, ...app, ...more])].filter(hasIt).sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: chanUrl(svc, n) })); };
 // the household's own way in for anything (Scott 11/14 "i got asked to watch hbo max"): a ticked service as is; a live show -> your package
 // or app that carries its channel (TNT -> Sling, not HBO Max); else one of its options you have; null = not on any of yours
-const ownSvc = v => !!v && (S.mine.includes(v) || FREE_SVC.has(v));
+const ownSvc = v => !!v && (S.mine.includes(v) || FREE_SVC.has(v) || v === 'YouTube');   // YouTube's free movies (ytfree.js) are free for everyone
 function bestSvc(x) {
   if (!x) return null;
   if (!S.mine.length) return x.svc || null;
@@ -115,7 +115,7 @@ const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
 const S = { freeSvc: load('freeSvc', /Tizen|SMART-TV.*Samsung|SamsungBrowser.*TV/i.test(navigator.userAgent) ? 'Samsung TV Plus' : 'All'), tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, paired: load('paired', null), pairCode: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
 const items = [];   // what each on-screen button points at (data-i)
-const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc);   // nothing ticked yet = show everything as available
+const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc) || svc === 'YouTube';   // nothing ticked yet = show everything as available
 const slug = t => encodeURIComponent(t);
 function linkFor(x) { if (x.exact) return x.exact; const sc = x.svc && String(x.svc).startsWith('Sling') && slingCh(x.net || x.chan); if (sc) return sc; return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](slug(x.title)) : x.url; }
 const RELAY = 'https://script.google.com/macros/s/AKfycbzDFfE1Z_I8ZTYyQkCpMS45l2V8c7HTcm6-uwNxxgnUbX8VGSDw2-5t4_tqZiPcqW2zQQ/exec';
@@ -140,6 +140,9 @@ async function enrichNow(x) {
     // some links come wrapped in a tracking redirect (paramountplus.qflm.net/...?u=<real page>): use the real page, which the TV apps accept
     const unwrap = u => { try { const q = new URL(u).searchParams.get('u'); return q && /^https?:\/\//.test(q) ? q : u; } catch { return u; } };
     const rows = w.sources.filter(r => r.web).map(r => ({ ...r, web: unwrap(r.web), svc: svcOf(r.name) }));
+    // Free on YouTube (ytfree.js, 11/16): open the movie's own free YouTube page
+    const ytRow = x.yt && rows.find(r => r.type === 'free' && /^youtube$/i.test(r.name));
+    if (ytRow) { x.exact = ytRow.web; x.svc = 'YouTube'; x.place = 'YouTube'; x.options = [{ svc: 'YouTube', url: ytRow.web }]; if (S.sel === x) { const y = window.scrollY; draw(); window.scrollTo(0, y); } return; }
     const seen = new Set(), own = rows.filter(r => r.svc && !seen.has(r.svc) && seen.add(r.svc)).sort((a, b) => Number(hasIt(b.svc)) - Number(hasIt(a.svc)) || Number(b.type === 'sub') - Number(a.type === 'sub'));
     const best = own[0] || rows[0]; if (!best) return;
     x.exact = best.web; x.svc = best.svc; x.place = best.name;

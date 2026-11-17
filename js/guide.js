@@ -248,6 +248,7 @@ function tonightPicks() {
 }
 const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? (offersOn() && OFFER[x.svc] ? ' offer' : ' off') : ''}" data-i="${reg(x)}">${x.svc && !hasIt(x.svc) && offersOn() && OFFER[x.svc] ? '<span class="trialtag">Free trial</span>' : ''}${x.big || x.img ? `<img src="${esc(x.big || x.img)}" alt="" loading="lazy">` : `<span class="lpno">🎬</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
 function shows() {
+  if (S.ytAll) return ytAllPage();   // Free on YouTube, See all (ytfree.js)
   const taste = tasteOf(), picks = tonightPicks().filter(kidOk).slice(0, 4), pickKeys = new Set(picks.map(p => p.key));
   S.hideT = new Set(picks.map(tkey));
   const rest = todayShows().filter(x => !pickKeys.has(x.key) && kidOk(x) && !S.hideT.has(tkey(x))).slice(0, 24);
@@ -256,8 +257,8 @@ function shows() {
   return `<section class="lounge"><div class="lounge-art"></div><div class="lounge-theater"></div><div class="lounge-in"><div class="lk">🛋 THE LOUNGE</div><h1 class="lt">Movie Night</h1><p class="lsub2">Settle in and find something good tonight, from the services you have.</p>
       <div class="lb"><button class="btn gold" data-pick>▶ Find Tonight's Pick</button><form class="search lsearch" id="find"><input id="q" aria-label="Search movies and shows" placeholder="Search any movie or show" value="${esc(S.q || '')}"><button class="btn">Search</button></form></div>
       <div class="ltaste">${taste.length ? `<b>Your taste:</b>${taste.map(g => `<span>${esc(g)}</span>`).join('')}` : '<span class="fine">Save a few shows and Marvel Magic learns your taste.</span>'}</div></div></section>
-    ${found}
+    ${found}${res ? ytFound(S.q) : ''}
     <div class="hh" style="margin-top:18px"><h2>${taste.length ? 'Picked for Your Lounge' : 'Popular Tonight'}</h2></div>${picks.length ? `<div class="lgrid four">${picks.map(x => lposter(x, true)).join('')}</div>` : `<p class="fine">${S.airings.length ? 'Nothing with artwork on tonight.' : 'Loading tonight’s shows…'}</p>`}
-    ${catSection()}${rest.length ? `<div class="hh" style="margin-top:18px"><h2>On Today</h2><button class="more" data-tab="0">Guide ›</button></div><div class="lgrid">${rest.map(x => lposter(x)).join('')}</div>` : ''}${credit()}`;
+    ${catSection()}${ytShelf(12)}${rest.length ? `<div class="hh" style="margin-top:18px"><h2>On Today</h2><button class="more" data-tab="0">Guide ›</button></div><div class="lgrid">${rest.map(x => lposter(x)).join('')}</div>` : ''}${credit()}`;
 }
 // SPORTS = WHERE'S MY GAME (Scott 11/14 board; "Where Can I Watch My Team?" 11/08). Team names + team colors from ESPN, no team logos (trademarks).

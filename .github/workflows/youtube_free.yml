@@ -1,0 +1,30 @@
+# .github/workflows/youtube_free.yml
+# Save to: C:\MarvelApps\marvelmagic\.github\workflows\youtube_free.yml
+# Rebuilds youtube_free.json + youtube_free_top.json (every movie free on YouTube in the US - Marvel Magic's "Free on YouTube" shelf)
+# once a week, Monday morning. Scott 11/16: "Yes, build it". ~28 Watchmode credits a run (account allows 2,500 a month).
+# Needs two repository secrets (Settings > Secrets and variables > Actions): WATCHMODE_KEY and TMDB_KEY. Without them the run stops
+# with a red X and the old files stay.
+name: youtube free
+on:
+  schedule:
+    - cron: "23 10 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/build_youtube_free.py youtube_free.json
+        env:
+          WATCHMODE_KEY: ${{ secrets.WATCHMODE_KEY }}
+          TMDB_KEY: ${{ secrets.TMDB_KEY }}
+      - run: |
+          git config user.name "marvel-magic-guide-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add youtube_free.json youtube_free_top.json
+          git diff --cached --quiet || (git commit -m "youtube free refresh" && git pull --rebase && git push)

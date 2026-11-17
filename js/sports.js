@@ -168,6 +168,7 @@ function freePage() {
     ${top.length ? `<div class="hh" style="margin-top:18px"><h2>Free &amp; Live Now, Picked for You</h2><button class="more" data-tab="0">Full guide ›</button></div><div class="flgrid">${top.map(card).join('')}</div>` : ''}
     ${catRows.map(([c, r]) => `<div class="hh" style="margin-top:20px"><h2>Free ${esc(c)} On Now</h2></div><div class="flgrid">${r.map(card).join('')}</div>`).join('')}
     ${od.length ? `<div class="hh" style="margin-top:22px"><h2>Free Movies &amp; Shows for You <small class="fine">watch anytime</small></h2></div><div class="lgrid six">${od.map(x => lposter(x)).join('')}</div>` : ''}
+    ${ytShelf(12)}
     ${chDirectory()}
     <div class="frsv"><b>Free services:</b>${FREE_TV.map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-free="${esc(n)}">${esc(n)} ↗</a>`).join('')}</div>
     <p class="fine">Live schedules: community guide data (test build). Movies: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>.</p>`;
