@@ -87,8 +87,8 @@ def tmdb_movie(k, tid):
 def main():
     out_path = Path(sys.argv[1] if len(sys.argv) > 1 else "youtube_free.json")
     wk, tk = key("WATCHMODE_KEY", wm_key), key("TMDB_KEY", tmdb_key)
-    if not wk:
-        sys.exit("WATCHMODE_KEY is not set (GitHub: Settings > Secrets and variables > Actions)")
+    if not wk or not tk:   # 11/17: a run without TMDB_KEY once shipped a list with no posters (empty shelf) - both keys or stop
+        sys.exit("WATCHMODE_KEY and TMDB_KEY are both needed (GitHub: Settings > Secrets and variables > Actions) - keeping the old files")
     titles, quota = watchmode_titles(wk)
     seen, rows = set(), []
     for t in titles:
@@ -100,15 +100,14 @@ def main():
     if len(rows) < 1000:
         sys.exit(f"only {len(rows)} movies came back - keeping the old {out_path.name}")
     det = {}
-    if tk:
-        ids = sorted({t["tmdb_id"] for t in rows if t.get("tmdb_id") and t.get("tmdb_type") in (None, "movie")})
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
-            for tid, d in zip(ids, ex.map(lambda i: tmdb_movie(tk, i), ids)):
-                if d:
-                    det[tid] = d
-        print(f"TMDB: details for {len(det)} of {len(ids)}")
-    else:
-        print("TMDB_KEY not set - no posters this run")
+    ids = sorted({t["tmdb_id"] for t in rows if t.get("tmdb_id") and t.get("tmdb_type") in (None, "movie")})
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
+        for tid, d in zip(ids, ex.map(lambda i: tmdb_movie(tk, i), ids)):
+            if d:
+                det[tid] = d
+    print(f"TMDB: details for {len(det)} of {len(ids)}")
+    if len(det) < len(ids) * 0.8:   # a bad TMDB key or a TMDB outage: never ship a list without posters
+        sys.exit(f"TMDB answered for only {len(det)} of {len(ids)} movies - keeping the old {out_path.name}")
     m = []
     for t in rows:
         d = det.get(t.get("tmdb_id")) or {}
