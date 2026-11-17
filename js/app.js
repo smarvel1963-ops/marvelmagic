@@ -29,7 +29,7 @@ function moveFocus(dir) {
 function goBack() {
   if ($('back').open) { $('back').close(); return; }
   if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); return; }
-  if (S.ytAll) { S.ytAll = false; draw(); window.scrollTo(0, 0); return; }   // Free on YouTube, See all
+  if (S.mlAll) { S.mlAll = null; draw(); window.scrollTo(0, 0); return; }   // a full movie list, See all (catalogs.js)
   history.back();
 }
 const KEY_DIR = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
@@ -105,7 +105,7 @@ setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
 window.mmBack = () => {
   if ($('back').open) { $('back').close(); return true; }
   if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); return true; }
-  if (S.ytAll) { S.ytAll = false; draw(); window.scrollTo(0, 0); return true; }
+  if (S.mlAll) { S.mlAll = null; draw(); window.scrollTo(0, 0); return true; }
   if (S.tab !== HOME) { showTab(HOME); return true; }
   return false;
 };

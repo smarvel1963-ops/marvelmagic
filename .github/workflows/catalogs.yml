@@ -1,0 +1,31 @@
+# .github/workflows/catalogs.yml
+# Save to: C:\MarvelApps\marvelmagic\.github\workflows\catalogs.yml
+# Rebuilds every streaming service's full movie list (catalogs/*.json - Netflix, Prime Video, HBO Max, Hulu, Paramount+, Disney+,
+# Peacock, Apple TV, Tubi, The Roku Channel, Pluto TV, Freevee, Plex) on the 1st and 15th of each month (Scott 11/16:
+# "Yes, every 2 weeks"). ~335 Watchmode credits a run (account allows 2,500 a month). YouTube's free movies refresh weekly on their own
+# (youtube_free.yml). Needs repo secrets WATCHMODE_KEY and TMDB_KEY; without them the run stops with a red X and the old lists stay.
+name: catalogs
+on:
+  schedule:
+    - cron: "47 10 1,15 * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/build_catalogs.py
+        env:
+          WATCHMODE_KEY: ${{ secrets.WATCHMODE_KEY }}
+          TMDB_KEY: ${{ secrets.TMDB_KEY }}
+      - run: |
+          git config user.name "marvel-magic-guide-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add catalogs
+          git diff --cached --quiet || (git commit -m "catalogs refresh" && git pull --rebase && git push)
