@@ -13,7 +13,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings', 'Watched', 'Home',
-        'Coming Soon', 'For You', 'Settings']
+        'Coming Soon', 'For You', 'Settings', 'Browse Movies']
 SIZES = {'tv': (1672, 941), 'phone': (390, 844)}
 
 

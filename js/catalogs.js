@@ -28,7 +28,7 @@ function mlItem(svc, r) {
   const yt = svc === 'YouTube', o = yt ? { wm: r[0], t: r[1], y: r[2], p: r[4], g: r[5], s: r[6], m: r[7] } : { wm: r[0], t: r[1], y: r[2], p: r[3], g: r[4], m: r[5], s: r[6] };
   const g = o.g || [];
   return { key: 'c' + o.wm, wmId: o.wm, pref: svc, yt, title: o.t, year: o.y, svc, series: false,
-    note: [o.y || '', o.m ? Math.floor(o.m / 60) + 'h ' + (o.m % 60) + 'm' : '', (mlFreeSvc(svc) ? 'Free on ' : 'On ') + svc].filter(Boolean).join(' · '),
+    note: [o.y || '', o.m ? (o.m >= 60 ? Math.floor(o.m / 60) + 'h ' : '') + (o.m % 60) + 'm' : '', (mlFreeSvc(svc) ? 'Free on ' : 'On ') + svc].filter(Boolean).join(' · '),
     img: ML_IMG(o.p), big: ML_IMG(o.p), sum: o.s || '', genres: g.map(x => TMDB_G[x]).filter(Boolean), gids: g,
     kid: g.includes(10751) && !g.some(x => ML_NOKID.includes(x)),
     url: yt ? ytSearch(o.t, o.y) : svc === 'Freevee' ? 'https://www.amazon.com/gp/video/search?phrase=' + encodeURIComponent(o.t) : '' };
@@ -80,8 +80,8 @@ function mlFound(q) {
   for (const s of svcs) for (const x of ((ML[s + '|all'] || {}).items || [])) {
     if (!x.title.toLowerCase().includes(q) || !kidOk(x)) continue;
     const h = by.get(x.wmId);
-    if (!h) by.set(x.wmId, { ...x, options: [{ svc: s, url: '' }] });
-    else if (!h.options.some(o => o.svc === s)) { h.options.push({ svc: s, url: '' }); h.pref = null; h.yt = false; h.note = [h.year || '', h.options.length + ' services'].filter(Boolean).join(' · '); }
+    if (!h) by.set(x.wmId, { ...x, options: [{ svc: s, url: mlUrl(s, x.title, x.year) }] });
+    else if (!h.options.some(o => o.svc === s)) { h.options.push({ svc: s, url: mlUrl(s, x.title, x.year) }); h.pref = null; h.yt = false; h.note = [h.year || '', h.options.length + ' services'].filter(Boolean).join(' · '); }
   }
   const hits = [...by.values()].slice(0, 24);
   if (!hits.length) return busy ? '<h3 class="lsub">Watch Now</h3><p class="fine">Searching every movie list…</p>' : '';

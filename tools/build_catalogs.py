@@ -9,6 +9,11 @@
 # Writes, per service:  catalogs/<slug>.json      every movie [wm, title, year, poster, genres, minutes]
 #                       catalogs/<slug>_top.json  the 300 most popular with posters, plus a short summary (the shelves)
 #                       catalogs/index.json       counts per service (Free TV's buttons)
+# and, across all 14 lists (YouTube's from youtube_free.json), ONE ROW PER MOVIE (Scott 11/16 Browse Movies "Yes, build both"):
+#                       catalogs/browse.json      [wm, title, year, poster, genres, minutes, services bits, popularity, rating, votes, added, tmdb]
+#                       catalogs/browse_top.json  the 3,000 most popular (the Browse page shows these while the rest loads)
+#                       catalogs/free_tonight.json  the best free movies (free somewhere, TMDB 6.5+ with 300+ votes) for Home's Free Tonight
+#   'added' = the date a movie first showed up in a refresh (blank for the first build, 11/16).
 # Keys: WATCHMODE_KEY / TMDB_KEY env (GitHub secrets) or, on the PC, marvelmagic_pc\watchmode.key + the TMDB line of Code.gs.
 # A service that comes back with under half its old count keeps its old files (never ships a half-empty list).
 # Run:  python tools\build_catalogs.py            (all)      python tools\build_catalogs.py netflix tubi   (some)
@@ -28,6 +33,9 @@ SERVICES = [
     ("Freevee", 365, "freevee", True), ("Plex", 439, "plex", True),
 ]
 TOP_N, TOP_PICK = 300, 400      # shelf size; how many of the most popular get a summary looked up
+BROWSE_SVCS = ["YouTube", "Tubi", "The Roku Channel", "Pluto TV", "Freevee", "Plex", "Netflix", "Prime Video", "HBO Max", "Hulu",
+               "Paramount+", "Disney+", "Peacock", "Apple TV"]   # bit 0 = YouTube ... ; the first 6 are free
+FREE_MASK = (1 << 6) - 1
 
 
 def env_key(name, fallback):
@@ -115,8 +123,20 @@ def main():
     top_ids = set()
     for slug, free, rows in lists.values():
         top_ids.update(str(t["tmdb_id"]) for t in rows[:TOP_PICK] if t.get("tmdb_id"))
-    need = sorted({str(t["tmdb_id"]) for _, _, rows in lists.values() for t in rows if t.get("tmdb_id")
-                   and (str(t["tmdb_id"]) not in cache or (str(t["tmdb_id"]) in top_ids and cache[str(t["tmdb_id"])] and cache[str(t["tmdb_id"])][3] is None))})
+    yt_rows = []
+    ytp = ROOT / "youtube_free.json"
+    if ytp.exists():
+        yt_rows = json.loads(ytp.read_text(encoding="utf-8")).get("m") or []
+    all_ids = {str(t["tmdb_id"]) for _, _, rows in lists.values() for t in rows if t.get("tmdb_id")} | {str(r[3]) for r in yt_rows if r[3]}
+
+    def stale(tid):
+        c = cache.get(tid)
+        if c is None:
+            return True
+        if c == 0:
+            return False
+        return len(c) < 7 or (tid in top_ids and c[3] is None)
+    need = sorted(t for t in all_ids if stale(t))
     print(f"TMDB: {len(need)} movies to look up ({len(cache)} cached)", flush=True)
     done = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as ex:
@@ -125,7 +145,8 @@ def main():
                 cache[tid] = 0
             else:
                 cache[tid] = [d.get("poster_path") or "", [g["id"] for g in d.get("genres") or [] if "id" in g][:3], d.get("runtime") or 0,
-                              short(d.get("overview")) if tid in top_ids else None]
+                              short(d.get("overview")) if tid in top_ids else None,
+                              round(float(d.get("popularity") or 0), 1), round(float(d.get("vote_average") or 0), 1), int(d.get("vote_count") or 0)]
             done += 1
             if done % 3000 == 0:
                 cpath.write_text(json.dumps(cache, separators=(",", ":")), encoding="utf-8")
@@ -139,7 +160,7 @@ def main():
             c = cache.get(str(t.get("tmdb_id"))) if t.get("tmdb_id") else None
             if c == 0:
                 continue                                     # adult title or gone from TMDB
-            poster, genres, mins, ov = (c or ["", [], 0, None])
+            poster, genres, mins, ov = (c or ["", [], 0, None])[:4]
             full.append([t["id"], t.get("title") or "", t.get("year") or 0, poster, genres, mins])
             if poster and len(top) < TOP_N:
                 top.append([t["id"], t.get("title") or "", t.get("year") or 0, poster, genres, mins, ov or ""])
@@ -153,6 +174,58 @@ def main():
     index["about"] = "Marvel Magic - full movie lists per service (tools/build_catalogs.py, 1st + 15th of each month)"
     ipath.write_text(json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
     print("index:", {k: v["count"] for k, v in index["services"].items()})
+    if len(lists) == len(SERVICES):
+        build_browse(lists, yt_rows, cache, made)
+    else:
+        print("browse.json not rebuilt (only some services were refreshed)")
+
+
+def build_browse(lists, yt_rows, cache, made):
+    members = {}
+
+    def add(name, wm, title, year, tmdb):
+        e = members.get(wm)
+        if e is None:
+            e = members[wm] = {"t": title, "y": year, "tm": tmdb, "b": 0}
+        e["b"] |= 1 << BROWSE_SVCS.index(name)
+        if not e["tm"] and tmdb:
+            e["tm"] = tmdb
+    for r in yt_rows:
+        add("YouTube", r[0], r[1], r[2], r[3])
+    for name, (slug, free, rows) in lists.items():
+        for t in rows:
+            add(name, t["id"], t.get("title") or "", t.get("year") or 0, t.get("tmdb_id") or 0)
+    bp = OUT / "browse.json"
+    prev = {}
+    if bp.exists():
+        try:
+            prev = {r[0]: r[10] for r in json.loads(bp.read_text(encoding="utf-8"))["m"]}
+        except Exception:
+            prev = {}
+    today = made[:10]
+    out = []
+    for wm, e in members.items():
+        c = cache.get(str(e["tm"])) if e["tm"] else None
+        if c == 0:
+            continue
+        c = (c or ["", [], 0, None]) + [0, 0, 0]
+        out.append([wm, e["t"], e["y"], c[0], c[1], c[2], e["b"], c[4], c[5], c[6], prev.get(wm, today if prev else ""), e["tm"]])
+    out.sort(key=lambda r: -(r[7] or 0))
+    head = {"made": made, "services": BROWSE_SVCS, "free_mask": FREE_MASK, "count": len(out),
+            "fields": ["wm", "title", "year", "poster", "genres", "minutes", "services", "popularity", "rating", "votes", "added", "tmdb"],
+            "credit": "Listings: Watchmode. Posters, popularity and ratings: TMDB."}
+    bp.write_text(json.dumps(dict(head, m=out), ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    (OUT / "browse_top.json").write_text(json.dumps(dict(head, m=out[:3000]), ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    ft = []
+    for r in out:
+        if r[6] & FREE_MASK and r[3] and r[8] >= 6.5 and r[9] >= 300:
+            c = cache.get(str(r[11])) or [None] * 4
+            ft.append(r[:10] + [c[3] or ""])
+            if len(ft) >= 240:
+                break
+    (OUT / "free_tonight.json").write_text(json.dumps(dict(head, fields=head["fields"][:10] + ["summary"], count=len(ft), m=ft),
+                                                      ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"browse: {len(out)} different movies ({bp.stat().st_size // 1024} KB); free tonight {len(ft)}", flush=True)
 
 
 if __name__ == "__main__":

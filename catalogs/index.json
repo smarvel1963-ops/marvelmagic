@@ -4,81 +4,81 @@
    "slug": "appletv",
    "free": false,
    "count": 103,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Netflix": {
    "slug": "netflix",
    "free": false,
    "count": 3712,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Prime Video": {
    "slug": "prime",
    "free": false,
    "count": 15181,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "HBO Max": {
    "slug": "hbomax",
    "free": false,
    "count": 1311,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Hulu": {
    "slug": "hulu",
    "free": false,
    "count": 998,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Paramount+": {
    "slug": "paramount",
    "free": false,
    "count": 980,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Disney+": {
    "slug": "disney",
    "free": false,
    "count": 858,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Peacock": {
    "slug": "peacock",
    "free": false,
    "count": 596,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Tubi": {
    "slug": "tubi",
    "free": true,
    "count": 27766,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "The Roku Channel": {
    "slug": "roku",
    "free": true,
    "count": 11492,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Pluto TV": {
    "slug": "pluto",
    "free": true,
    "count": 7638,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Freevee": {
    "slug": "freevee",
    "free": true,
    "count": 7504,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   },
   "Plex": {
    "slug": "plex",
    "free": true,
    "count": 4549,
-   "made": "2026-11-17T05:25:43+00:00"
+   "made": "2026-11-17T05:52:25+00:00"
   }
  },
- "made": "2026-11-17T05:25:43+00:00",
+ "made": "2026-11-17T05:52:25+00:00",
  "about": "Marvel Magic - full movie lists per service (tools/build_catalogs.py, 1st + 15th of each month)"
 }
