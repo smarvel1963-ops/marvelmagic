@@ -47,25 +47,36 @@
   }
 
   // ---------------------------------------------------------------- the lock screen
+  // v11/18 the pay-to-stay page in the Job / Cooking / Family Hub style (Scott: "build both now same style"): the theater over a
+  // positive headline, what this household has actually done in Marvel Magic (real counts from this device, nothing made up),
+  // what stays together, the one household price, Keep the Magic, the QR for a TV. Same ids and keys as before, so the TV remote
+  // and the unlock steps work exactly as they did. On a wide screen (a TV) the pitch sits left and joining sits right.
   let STEP = 'join', BUYER = '', MSG = '';
+  const n = k => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return Array.isArray(v) ? v.length : 0; } catch (e) { return 0; } };
+  function stats() {
+    const pl = (c, w, ws) => c === 1 ? w : ws;
+    return [[n('history'), '🍿', 'watched', 'watched'], [n('list'), '⭐', 'on My List', 'on My List'], [n('teams'), '🏟️', 'team followed', 'teams followed']]
+      .filter(x => x[0] > 0).map(([c, i, w, ws]) => `<span><i aria-hidden="true">${i}</i><b>${c}</b><small>${pl(c, w, ws)}</small></span>`).join('');
+  }
   function html() {
-    const left = daysLeft();
+    const left = daysLeft(), st = stats(), feat = (i, l) => `<span class="mml-f"><i aria-hidden="true">${i}</i><b>${l}</b></span>`;
     return `<div class="mml-card" role="dialog" aria-modal="true" aria-label="Marvel Magic membership">
-      <img class="mml-logo" src="logo.png" alt="Marvel Magic">
-      <h2>${left ? 'Join Marvel Magic' : 'Your 30 free days are up'}</h2>
-      <p class="mml-pitch">Marvel Magic is <b>$4.99 a month</b> for your whole household - every TV and phone. Your guide, your channels and every game on its channel. Cancel any time.</p>
-      <div class="mml-row">
-        <div class="mml-go"><a class="mml-join" href="${escH(JOIN)}" target="_blank" rel="noopener">Join Marvel Magic - $4.99/month</a>
-          <p class="mml-fine">On a TV? Scan the code with your phone to join.</p></div>
-        <div class="mml-qr" id="mmlQr" aria-label="QR code for joining Marvel Magic"></div>
-      </div>
+      <div class="mml-l"><div class="mml-hero"><img class="mml-heroimg" src="hero_theater.jpg" alt=""><img class="mml-logo" src="logo.png" alt="Marvel Magic"></div>
+        <div class="mml-pitchbox"><div class="mml-badge" aria-hidden="true">✨</div>
+          <h2>${left ? 'Join Marvel Magic' : 'Keep the magic playing.'}</h2><p class="mml-sub">${left ? `${left} free day${left === 1 ? '' : 's'} left` : 'Your 30 free days are up.'}</p>
+          ${st ? `<div class="mml-stats" aria-label="What your household has done">${st}</div><p class="mml-me">You've made Marvel Magic your own. Keep your guide, your channels and your games together.</p>` : ''}
+          <div class="mml-feats">${feat('📺', 'Your TV guide')}${feat('⭐', 'Your channels')}${feat('🏟️', 'Every game on its channel')}${feat('🎬', 'Free movies & shows')}</div></div></div>
+      <div class="mml-r">
+        <div class="mml-row"><div class="mml-price"><em>ONE PRICE · WHOLE HOUSEHOLD</em><b>$4.99</b><small>a month · cancel any time</small><p>Every TV and phone in your home, up to 6.</p></div>
+          <div class="mml-qrbox"><div class="mml-qr" id="mmlQr" aria-label="QR code for joining Marvel Magic"></div><small>On a TV? Scan with your phone to join.</small></div></div>
+        <a class="mml-join" href="${escH(JOIN)}" target="_blank" rel="noopener">Keep the Magic - $4.99/month</a>
       ${STEP === 'code' ? `<form class="mml-form" id="mmlCode"><label for="mmlCodeIn">We emailed a 6-digit code to <b>${escH(BUYER)}</b>. Enter it here:</label>
           <div class="mml-in"><input id="mmlCodeIn" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456"><button class="mml-btn">Confirm</button></div></form>`
         : `<form class="mml-form" id="mmlEmail"><label for="mmlEmailIn">Already joined? Enter the email you joined with:</label>
           <div class="mml-in"><input id="mmlEmailIn" type="email" autocomplete="email" placeholder="you@example.com" value="${escH(BUYER)}"><button class="mml-btn">Unlock</button></div></form>`}
       <p class="mml-msg" role="status">${escH(MSG)}</p>
-      <p class="mml-fine">Everything you set up is safe on this device and opens again the moment you unlock.</p>
-    </div>`;
+      <p class="mml-safe"><span aria-hidden="true">🔒</span>Everything you set up stays safe on this device. It all opens again the moment you unlock.</p>
+    </div></div>`;
   }
   function draw() {
     let el = document.getElementById('mmLock');
@@ -73,7 +84,7 @@
     if (!el) { el = document.createElement('div'); el.id = 'mmLock'; document.body.appendChild(el); }
     document.documentElement.classList.add('mm-locked');
     el.innerHTML = html();
-    try { if (window.QRCode) new QRCode(document.getElementById('mmlQr'), { text: JOIN, width: 168, height: 168, colorDark: '#0b0b1a', colorLight: '#ffffff' }); } catch (e) { /* no QR library: the button still works */ }
+    try { if (window.QRCode) new QRCode(document.getElementById('mmlQr'), { text: JOIN, width: 132, height: 132, colorDark: '#0b0b1a', colorLight: '#ffffff' }); } catch (e) { /* no QR library: the button still works */ }
     const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : '.mml-join'); if (first) setTimeout(() => first.focus(), 30);
   }
   async function onSubmit(e) {
@@ -125,30 +136,60 @@
     draw();
   }
 
-  // The look lives here so the whole lock is one file (dark Marvel Magic purple, gold Join button, TV-sized focus rings).
+  // The look lives here so the whole lock is one file: Marvel Magic purple and gold, the theater up top, TV-sized focus rings.
   const CSS = `html.mm-locked, html.mm-locked body { overflow: hidden !important; }
-#mmLock { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 20px 16px; overflow-y: auto; box-sizing: border-box;
-  background: radial-gradient(circle at 30% 18%, #3a1d6e, #0b0b1a 72%); color: #fff; }
-#mmLock .mml-card { width: min(640px, 100%); box-sizing: border-box; background: rgba(20, 16, 40, .94); border: 1px solid rgba(255, 215, 120, .35); border-radius: 24px;
-  padding: 26px 24px; text-align: center; box-shadow: 0 30px 80px rgba(0, 0, 0, .5); }
-#mmLock .mml-logo { height: 84px; width: auto; max-width: 260px; border-radius: 14px; object-fit: contain; }
-#mmLock h2 { margin: 12px 0 8px; font-size: 28px; line-height: 1.2; }
-#mmLock .mml-pitch { margin: 0 0 18px; line-height: 1.5; color: #e9e4ff; }
-#mmLock .mml-row { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; }
-#mmLock .mml-go { flex: 1 1 240px; }
-#mmLock .mml-join { display: block; padding: 16px; border-radius: 999px; background: linear-gradient(135deg, #ffd76a, #f5a623); color: #1a1030; font-weight: 900; font-size: 18px; text-decoration: none; }
-#mmLock a:focus, #mmLock button:focus, #mmLock input:focus { outline: 3px solid #7fd8ff; outline-offset: 3px; }
-#mmLock .mml-qr { background: #fff; padding: 10px; border-radius: 14px; width: 168px; height: 168px; box-sizing: content-box; }
+#mmLock { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: start center; padding: 16px 12px 24px; overflow-y: auto; box-sizing: border-box;
+  background: radial-gradient(circle at 30% 12%, #4a2287, #150a33 55%, #07061a); color: #fff; font-family: "Inter", system-ui, sans-serif; }
+#mmLock .mml-card { width: min(560px, 100%); box-sizing: border-box; border-radius: 28px; overflow: hidden; text-align: center;
+  background: linear-gradient(180deg, #24124d, #160b36 60%, #0f0828); border: 2px solid rgba(255, 205, 100, .55); box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 40px rgba(255, 190, 70, .18); }
+#mmLock .mml-hero { position: relative; height: 210px; overflow: hidden; }
+#mmLock .mml-heroimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; display: block; }
+#mmLock .mml-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 6, 30, .55), rgba(10, 6, 30, 0) 42%, rgba(22, 11, 54, .2) 70%, #24124d); }
+#mmLock .mml-logo { position: absolute; z-index: 1; left: 50%; top: 12px; transform: translateX(-50%); height: 64px; width: auto; max-width: 70%; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .6)); }
+#mmLock .mml-pitchbox { position: relative; margin: -34px 12px 0; padding: 30px 14px 6px; }
+#mmLock .mml-badge { position: absolute; left: 50%; top: -30px; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 30px;
+  background: radial-gradient(circle at 35% 30%, #5b33a8, #24124d); box-shadow: 0 0 0 3px #ffcf5c, 0 6px 18px rgba(255, 190, 70, .4); }
+#mmLock h2 { margin: 6px 0 4px; font: 900 30px/1.12 "Inter", system-ui, sans-serif; background: linear-gradient(180deg, #fff1c4, #ffcf5c 60%, #f5a623); -webkit-background-clip: text; background-clip: text; color: transparent; }
+#mmLock .mml-sub { margin: 0 0 12px; font-size: 17px; font-weight: 700; color: #ddd3ff; }
+#mmLock .mml-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin: 0 0 10px; }
+#mmLock .mml-stats span { display: grid; justify-items: center; gap: 1px; padding: 10px 6px; border-radius: 18px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 207, 92, .3); }
+#mmLock .mml-stats i { font-style: normal; font-size: 22px; } #mmLock .mml-stats b { font-size: 26px; font-weight: 900; line-height: 1; color: #ffe08a; } #mmLock .mml-stats small { font-size: 12px; font-weight: 700; color: #cfc6f5; }
+#mmLock .mml-me { margin: 0 4px 12px; font-size: 15px; line-height: 1.45; font-weight: 600; color: #e9e4ff; }
+#mmLock .mml-feats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#mmLock .mml-f { display: flex; align-items: center; gap: 8px; padding: 12px 10px; border-radius: 18px; text-align: left; background: linear-gradient(135deg, rgba(91, 51, 168, .55), rgba(36, 18, 77, .8)); border: 1px solid rgba(255, 255, 255, .12); }
+#mmLock .mml-f i { font-style: normal; font-size: 28px; line-height: 1; flex: none; } #mmLock .mml-f b { font-size: 15px; font-weight: 800; line-height: 1.2; color: #fff; }
+#mmLock .mml-r { padding: 16px 14px 18px; }
+#mmLock .mml-row { display: flex; gap: 12px; align-items: stretch; }
+#mmLock .mml-price { position: relative; flex: 1; display: grid; justify-items: center; align-content: center; padding: 18px 10px 12px; border-radius: 20px; border: 2px solid #ffcf5c;
+  background: linear-gradient(135deg, rgba(255, 207, 92, .16), rgba(255, 207, 92, .05)); box-shadow: 0 0 22px rgba(255, 190, 70, .2); }
+#mmLock .mml-price em { position: absolute; top: -11px; padding: 3px 10px; border-radius: 999px; background: linear-gradient(90deg, #f5a623, #ffcf5c); color: #1a1030; font: 900 10.5px "Inter", sans-serif; letter-spacing: 1px; font-style: normal; white-space: nowrap; }
+#mmLock .mml-price b { font-size: 44px; font-weight: 900; line-height: 1; color: #fff; } #mmLock .mml-price small { font-size: 14px; font-weight: 800; color: #ffcf5c; }
+#mmLock .mml-price p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.35; font-weight: 600; color: #ddd3ff; }
+#mmLock .mml-qrbox { flex: none; display: grid; justify-items: center; align-content: center; gap: 6px; width: 150px; }
+#mmLock .mml-qrbox small { font-size: 11.5px; line-height: 1.3; color: #cfc6f5; }
+#mmLock .mml-qr { background: #fff; padding: 8px; border-radius: 14px; width: 132px; height: 132px; box-sizing: content-box; border: 2px solid #ffcf5c; }
 #mmLock .mml-qr img, #mmLock .mml-qr canvas { display: block; }
-#mmLock .mml-form { margin: 20px 0 0; text-align: left; }
+#mmLock .mml-join { display: block; margin-top: 16px; padding: 16px; border-radius: 999px; text-decoration: none; font-weight: 900; font-size: 20px; color: #1a1030;
+  background: linear-gradient(180deg, #ffe08a, #ffc53d 55%, #f0a020); box-shadow: 0 8px 22px rgba(240, 160, 32, .4), inset 0 1px 0 rgba(255, 255, 255, .5); }
+#mmLock a:focus, #mmLock button:focus, #mmLock input:focus { outline: 3px solid #7fd8ff; outline-offset: 3px; }
+#mmLock .mml-form { margin: 18px 0 0; text-align: left; }
 #mmLock .mml-form label { display: block; font-size: 14px; color: #cfc8f0; margin-bottom: 6px; }
 #mmLock .mml-in { display: flex; gap: 8px; }
 #mmLock .mml-in input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .08); color: #fff; font-size: 16px; }
 #mmLock .mml-btn { padding: 12px 18px; border-radius: 12px; border: 0; background: #7fd8ff; color: #0b0b1a; font-weight: 800; font-size: 16px; cursor: pointer; }
 #mmLock .mml-btn:disabled { opacity: .6; }
 #mmLock .mml-msg { min-height: 1.2em; margin: 10px 0 0; color: #ffd76a; font-weight: 700; }
-#mmLock .mml-fine { margin: 10px 0 0; font-size: 13px; color: #b9b2dc; }
-@media (max-width: 560px) { #mmLock .mml-qr { display: none; } #mmLock h2 { font-size: 24px; } }`;
+#mmLock .mml-safe { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0 0; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06);
+  font-size: 13px; line-height: 1.4; color: #cfc6f5; text-align: left; }
+#mmLock .mml-safe span { font-size: 20px; }
+@media (max-width: 380px) { #mmLock .mml-row { flex-direction: column; align-items: center; } #mmLock .mml-qrbox { width: auto; } #mmLock h2 { font-size: 26px; } }
+@media (min-width: 900px) and (orientation: landscape) {
+  #mmLock { place-items: center; }
+  #mmLock .mml-card { width: min(1080px, 96vw); display: grid; grid-template-columns: 1.05fr 1fr; text-align: center; }
+  #mmLock .mml-l { display: flex; flex-direction: column; border-right: 1px solid rgba(255, 207, 92, .25); }
+  #mmLock .mml-r { display: flex; flex-direction: column; justify-content: center; padding: 24px 24px; }
+}
+@media (max-width: 560px) { #mmLock .mml-qrbox { display: none; } }   /* a phone can't scan its own screen */`;
   if (!document.getElementById('mmLockCss')) { const st = document.createElement('style'); st.id = 'mmLockCss'; st.textContent = CSS; document.head.appendChild(st); }
 
   window.mmMembership = { daysLeft, locked, member: () => member(), draw };

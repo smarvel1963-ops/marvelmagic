@@ -58,7 +58,11 @@ def main():
         old = f"localStorage.setItem('mm.trialStart', String(Date.now() - 31 * {DAY}));"
         ctx, pg, st, errs = open_app(b, port, (1672, 941), old)
         t = pg.inner_text("#mmLock") if pg.query_selector("#mmLock") else ""
-        check("locked: one screen with the price", pg.evaluate("mmMembership.locked()") and "Your 30 free days are up" in t and "$4.99 a month" in t, t[:200])
+        check("locked: one screen with the price", pg.evaluate("mmMembership.locked()") and "Your 30 free days are up" in t and "$4.99" in t and "a month" in t, t[:200])
+        check("v11/18 Scott's style: 'Keep the magic playing.' over the theater, what stays together, one household price, Keep the Magic",
+              "Keep the magic playing." in t and pg.evaluate("(document.querySelector('#mmLock .mml-heroimg') || {}).getAttribute('src')") == "hero_theater.jpg"
+              and "ONE PRICE" in t and "up to 6" in t and "Your TV guide" in t and "Keep the Magic - $4.99/month" in t, t[:400])
+        check("a TV-wide screen: the pitch on the left, joining on the right", pg.evaluate("(() => { const l = document.querySelector('#mmLock .mml-l').getBoundingClientRect(), r = document.querySelector('#mmLock .mml-r').getBoundingClientRect(); return r.left >= l.right - 1; })()"))
         check("the Join button goes to the Whop checkout in a new tab", pg.evaluate("(() => { const a = document.querySelector('#mmLock .mml-join'); return a && a.href === 'https://whop.com/commander-marvel-por-picks/marvel-magic' && a.target === '_blank'; })()"))
         check("a QR code of the same link for the TV", pg.evaluate("!!document.querySelector('#mmlQr img, #mmlQr canvas')"))
         check("it covers the whole screen", pg.evaluate("(() => { const r = document.getElementById('mmLock').getBoundingClientRect(); return r.width >= innerWidth && r.height >= innerHeight; })()"))
@@ -82,7 +86,7 @@ def main():
         stale = old + f"localStorage.setItem('mm.member', JSON.stringify({{ buyer: 'x@y.com', ok: true, checked: Date.now() - 22 * {DAY} }}));"
         ctx, pg, st, errs = open_app(b, port, (390, 844), stale)
         check("locks again (weekly check + 2 weeks of grace both passed)", pg.evaluate("mmMembership.locked()") and pg.query_selector("#mmLock") is not None)
-        check("on a phone the QR is hidden (tap Join instead)", pg.evaluate("getComputedStyle(document.getElementById('mmlQr')).display") == "none")
+        check("on a phone the QR is hidden (tap Join instead)", pg.evaluate("getComputedStyle(document.querySelector('#mmLock .mml-qrbox')).display") == "none" and pg.evaluate("document.getElementById('mmlQr').offsetParent") is None)
         if shots: pg.screenshot(path=str(Path(__file__).parent / "shots" / "lock_phone.png"))
         ctx.close()
         fresh = old + f"localStorage.setItem('mm.member', JSON.stringify({{ buyer: '{GOOD}', ok: true, checked: Date.now() - 2 * {DAY} }}));"
