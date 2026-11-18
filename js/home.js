@@ -186,14 +186,37 @@ function pinBox(title, then) {
   b.showModal(); b.querySelector('#pin').focus();
 }
 // CAST TO TV (Scott 11/14): puts the Marvel Magic screen on the TV. Netflix etc. cast their own videos from their own apps.
+// Scott 11/17: "cast button to work on all formats other than tvs like tablets". iPads say "Macintosh" (told to use desktop Chrome),
+// Android tablets were sent to a Chrome menu that has no Cast item, Samsung (Smart View) and Fire tablets had no steps.
+// A web page cannot start screen casting itself, so each device gets its own real steps + the TV-browser fallback.
+function castDevice(ua = navigator.userAgent, touch = navigator.maxTouchPoints || 0) {
+  const mac = /Macintosh/.test(ua);
+  if (/iPad/.test(ua) || (mac && touch > 0)) return 'ipad';
+  if (/iPhone|iPod/.test(ua)) return 'iphone';
+  if (/Silk|; KF[A-Z]{2,}/.test(ua)) return 'fire';
+  if (/Android/.test(ua)) return (/SamsungBrowser|SAMSUNG|SM-[A-Z0-9]/.test(ua) ? 'samsung' : 'android') + (/Mobile/.test(ua) ? '' : '-tab');
+  if (/Edg\//.test(ua)) return 'edge';
+  if (/Chrome\//.test(ua)) return 'chrome';
+  return mac ? 'mac' : 'other';
+}
 function castHelp() {
   const b = $('back'); if (b.open) b.close();
-  const ua = navigator.userAgent, ios = /iPhone|iPad/.test(ua), android = /Android/.test(ua), chrome = /Chrome\//.test(ua) && !/Edg\//.test(ua);
-  const steps = ios ? ['Open Control Center (swipe down from the top-right corner).', 'Tap Screen Mirroring.', 'Pick your Apple TV or AirPlay TV.']
-    : android ? ['Open the Google Home app, or Chrome menu ⋮.', 'Tap Cast (in Google Home: your TV, then Cast my screen).', 'Pick your TV. Marvel Magic shows on the TV.']
-    : chrome ? ['Click the Chrome menu ⋮ at the top-right of the window.', 'Click Cast, save, and share → Cast…', 'Pick your TV. Under Sources choose Cast tab.']
-    : ['Open Marvel Magic in Google Chrome (casting is built into Chrome).', 'Click the Chrome menu ⋮ → Cast, save, and share → Cast…', 'Pick your TV.'];
-  b.innerHTML = `<b>📺 Put Marvel Magic on your TV</b><ol class="castol">${steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol><p class="fine">Works with Chromecast, Google TV and TVs with Chromecast built in${ios ? ', and AirPlay TVs from an iPhone' : ''}. You keep driving from this ${ios || android ? 'phone' : 'computer'}. When you open Netflix, Hulu or another service, use the Cast button inside that service to send its video.</p><div class="act"><button class="btn" data-castok>Got it</button></div>`;
+  const d = castDevice(), kind = d.replace('-tab', '');
+  const what = d === 'ipad' || d.endsWith('-tab') || d === 'fire' ? 'tablet' : d === 'iphone' || /^(samsung|android)$/.test(d) ? 'phone' : 'computer';
+  const AIR = ['Open Control Center (swipe down from the top-right corner).', 'Tap Screen Mirroring (the two-rectangles button).', 'Pick your Apple TV or AirPlay TV (most new Samsung, LG, Sony and Roku TVs have AirPlay).'];
+  const STEPS = {
+    ipad: AIR, iphone: AIR,
+    samsung: ['Swipe down twice from the top of the screen to open Quick Settings.', 'Tap Smart View (swipe left if you don’t see it).', 'Pick your TV and tap Start now. Marvel Magic shows on the TV.'],
+    android: ['Swipe down twice from the top of the screen to open Quick Settings.', 'Tap Cast or Screen cast (or open the Google Home app → your TV → Cast my screen).', 'Pick your TV and tap Start now. Marvel Magic shows on the TV.'],
+    fire: ['On the Fire TV: Settings → Display & Audio → Enable Display Mirroring.', 'On this tablet: Settings → Display → Display Mirroring, then pick the Fire TV.', 'No Display Mirroring on your tablet? Use the TV’s own browser (below).'],
+    chrome: ['Click the Chrome menu ⋮ at the top-right of the window.', 'Click Cast, save, and share → Cast…', 'Pick your TV. Under Sources choose Cast tab.'],
+    edge: ['Click the Edge menu … at the top-right of the window.', 'Click More tools → Cast media to device.', 'Pick your TV.'],
+    mac: ['Click Control Center (top-right of the menu bar).', 'Click Screen Mirroring.', 'Pick your Apple TV or AirPlay TV.'],
+    other: ['Open Marvel Magic in Google Chrome (casting is built into Chrome).', 'Click the Chrome menu ⋮ → Cast, save, and share → Cast…', 'Pick your TV.'],
+  };
+  const works = { ipad: 'Apple TV and AirPlay TVs', iphone: 'Apple TV and AirPlay TVs', mac: 'Apple TV and AirPlay TVs', samsung: 'Samsung TVs, Chromecast and most smart TVs', fire: 'Fire TV', edge: 'Chromecast and TVs with Chromecast built in' }[kind] || 'Chromecast, Google TV and TVs with Chromecast built in';
+  const site = (location.origin + location.pathname).replace(/index\.html$/, '').replace(/^https?:\/\//, '');
+  b.innerHTML = `<b>📺 Put Marvel Magic on your TV</b><ol class="castol">${STEPS[kind].map(x => `<li>${esc(x)}</li>`).join('')}</ol><p class="fine">Works with ${works}. You keep driving from this ${what}. When you open Netflix, Hulu or another service, use the Cast button inside that service to send its video.</p><p class="fine"><b>No cast on your TV?</b> Open the TV's web browser (Fire TV Silk, Samsung Internet, LG Web Browser) and go to <b>${esc(site)}</b>. It runs full screen with the remote, and Settings → My Household → Add a TV links it to this ${what}.</p><div class="act"><button class="btn" data-castok>Got it</button></div>`;
   b.querySelector('[data-castok]').onclick = () => b.close(); b.showModal();
 }
 function kidsPress() {
