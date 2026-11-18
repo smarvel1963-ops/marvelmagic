@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- receiver.html
+     Save to: C:\MarvelApps\marvelmagic\receiver.html  (live: https://smarvel1963-ops.github.io/marvelmagic/receiver.html)
+     Marvel Magic on a Chromecast / Google TV (Scott 11/18: "already have google account we paid for" -> Google Cast app 697A9867,
+     Custom Receiver, registered to this exact address - do not move or rename this file without changing it in the Cast console).
+     The tablet/phone taps Cast to TV -> the Chromecast loads this page -> it frames the app in TV mode (index.html?tv=1&cast=1).
+     The tablet is the remote: its messages (namespace below) are passed into the frame on the same bridge the Samsung TV app uses
+     (js/core.js top): {mm:'key',dir|ok}, {mm:'back'}, {mm:'tab',tab}. A title picked on the TV comes back as {mm:'open',url,svc}
+     and is sent to the tablet, which shows a Watch button (a Chromecast can't run Netflix etc. itself).
+     First message from the tablet = 'seed': its saved services, lists and membership, so the TV shows the same household. -->
+<html lang="en"><head><meta charset="utf-8"><title>Marvel Magic</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+<style>
+html,body{margin:0;height:100%;background:#0b0820;overflow:hidden;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+iframe{border:0;width:100%;height:100%;display:block}
+#wait{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:18px}
+#wait img{width:150px;height:150px;border-radius:30px;box-shadow:0 0 40px rgba(140,90,255,.7)}
+#wait b{font-size:40px;letter-spacing:.5px}#wait span{font-size:22px;color:#B9A8FF}
+</style></head>
+<body>
+<div id="wait"><img src="logo.png" alt=""><b>Marvel Magic</b><span>Getting your guide ready…</span></div>
+<iframe id="f" hidden allow="autoplay"></iframe>
+<script>
+const NS = 'urn:x-cast:com.marvelmagic.remote';
+const f = document.getElementById('f');
+let loaded = false;
+function go() { if (loaded) return; loaded = true; f.src = 'index.html?tv=1&cast=1'; f.hidden = false; f.onload = () => { document.getElementById('wait').remove(); }; }
+function toApp(m) { if (loaded && f.contentWindow) f.contentWindow.postMessage(m, '*'); }
+const ctx = cast.framework.CastReceiverContext.getInstance();
+ctx.addCustomMessageListener(NS, ev => {
+  const m = ev.data || {};
+  if (m.seed) {   // the tablet's saved household (only mm_* app keys and the membership keys are written)
+    for (const [k, v] of Object.entries(m.seed)) if (/^(mm_|mm\.(member|trialStart)$)/.test(k) && typeof v === 'string') try { localStorage.setItem(k, v); } catch (e) {}
+    if (loaded) f.contentWindow.location.reload(); else go();
+    return;
+  }
+  if (m.mm) toApp(m);
+});
+// the app inside the frame asks to open a title -> hand it to whichever tablet/phone is connected
+window.addEventListener('message', e => {
+  if (e.source !== f.contentWindow || !e.data || e.data.mm !== 'open') return;
+  try { ctx.sendCustomMessage(NS, undefined, { mm: 'open', url: String(e.data.url || ''), svc: String(e.data.svc || '') }); } catch (err) {}
+});
+// a Google TV remote pressed on the receiver itself drives the app too
+const DIR = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+document.addEventListener('keydown', e => {
+  if (DIR[e.key]) { e.preventDefault(); toApp({ mm: 'key', dir: DIR[e.key] }); }
+  else if (e.key === 'Enter') { e.preventDefault(); toApp({ mm: 'key', ok: true }); }
+  else if (['Escape', 'Backspace', 'GoBack', 'BrowserBack'].includes(e.key)) { e.preventDefault(); toApp({ mm: 'back' }); }
+});
+const opts = new cast.framework.CastReceiverOptions();
+opts.disableIdleTimeout = true;
+opts.customNamespaces = { [NS]: cast.framework.system.MessageType.JSON };
+ctx.start(opts);
+setTimeout(go, 5000);   // no seed from the tablet in 5 s: open anyway (a fresh guide)
+</script>
+</body></html>

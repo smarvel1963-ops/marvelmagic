@@ -354,3 +354,15 @@ input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=
    neither scrolled (phones) nor became the side bar (1000+), so the 11 tabs pushed the page out to ~1850px and the tablet zoomed everything
    out. Now the row scrolls sideways inside the header, like on a phone. */
 @media (min-width:761px) and (max-width:999px){nav{overflow-x:auto;min-width:0;flex:1 1 auto;scrollbar-width:none}nav::-webkit-scrollbar{display:none}nav button{flex:0 0 auto}.acct{white-space:nowrap;flex:none}.castbtn{top:auto;bottom:calc(20px + env(safe-area-inset-bottom));right:16px}}
+/* CAST REMOTE (Scott 11/18, js/cast.js): this tablet/phone drives Marvel Magic on the TV */
+.castremote{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:9;width:236px;padding:12px;border-radius:18px;background:rgba(20,14,48,.96);border:1px solid #6E58E8;box-shadow:0 10px 34px rgba(0,0,0,.6),0 0 18px rgba(120,80,255,.45);color:#fff}
+.castremote button{min-height:46px;border-radius:12px;background:#2A2160;color:#fff;font-weight:800;font-size:18px;border:1px solid #4B3CA8}
+.castremote button:active{background:#5C3DF0}
+.crhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.crhead button{min-height:32px;width:36px;font-size:20px}
+.crpad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.crok{background:linear-gradient(135deg,#5C3DF0,#8A3FF0)!important}
+.crrow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.crrow button{font-size:15px}
+.crstop{width:100%;margin-top:6px;min-height:38px!important;font-size:14px!important;background:transparent!important;border-color:#7A5A9A!important}
+.crwatch:empty{display:none}.crgo{display:block;text-align:center;margin-bottom:8px;padding:12px 8px;border-radius:12px;background:linear-gradient(135deg,#FFC94D,#F5A623);color:#1a1030!important;font-weight:800;text-decoration:none!important;border:0}
+.castremote.min .crwatch,.castremote.min .crpad,.castremote.min .crrow,.castremote.min .crstop{display:none}
+.castremote.min{width:auto}.castremote.min .crhead{margin:0;gap:12px}
+html.tvapp .castremote{display:none!important}

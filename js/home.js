@@ -467,7 +467,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.wf) { S.wf = t.dataset.wf; draw(); }
   else if (t.dataset.unwatch) { S.history = S.history.filter(h => h.k !== t.dataset.unwatch); save('history', S.history); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.id === 'acct') acctPress();
-  else if (t.id === 'castbtn') castHelp();
+  else if (t.id === 'castbtn') { if (typeof castPress === 'function') castPress(); else castHelp(); }   // cast.js: one-tap Google Cast in Chrome, else the steps
   else if (t.dataset.offer) openOffer(t.dataset.offer);
   else if (t.dataset.chg) { S.chg = t.dataset.chg; S.chlim = 60; const y = window.scrollY; draw(); window.scrollTo(0, y); }   // Channel Directory
   else if (t.dataset.chopen != null) chOpen(Number(t.dataset.chopen));

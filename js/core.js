@@ -7,10 +7,12 @@
 // SAMSUNG TV APP BRIDGE (Scott 11/15, Samsung TV add-on): inside the Samsung app (marvelmagic_samsung, a Tizen web app) this page runs in a
 // frame opened with ?samsung=1. MMNative then asks the Samsung app (window.parent) to open the real streaming app, like the Fire TV app does.
 // The Samsung app tells this page when the viewer comes back ('mm-resume') and when the remote's Back is pressed outside the frame.
-if (/[?&]samsung=1/.test(location.search) && window.parent !== window && typeof window.MMNative === 'undefined') {
+// CAST (Scott 11/18, Google Cast app 697A9867): receiver.html on the Chromecast frames this page with ?tv=1&cast=1 and speaks the same
+// bridge - the tablet/phone remote's keys arrive as 'key' / 'back', and a title picked on the TV comes back as 'open' for the tablet to play.
+if (/[?&](samsung|cast)=1/.test(location.search) && window.parent !== window && typeof window.MMNative === 'undefined') {
   window.MMNative = {
     open: (url, svc) => window.parent.postMessage({ mm: 'open', url, svc: svc || '' }, '*'),
-    platform: () => 'samsung',
+    platform: () => /[?&]cast=1/.test(location.search) ? 'cast' : 'samsung',
     has: () => true   // the Samsung app answers for real when it opens one; until then every app counts as on the TV
   };
   window.addEventListener('message', e => {
@@ -18,6 +20,7 @@ if (/[?&]samsung=1/.test(location.search) && window.parent !== window && typeof 
     if (e.data.mm === 'resume' && typeof cameBack === 'function') cameBack();
     // remote arrows / OK pressed while the Samsung app's outer page has the keys (Scott 11/15 "round direction button dont move selection around")
     if (e.data.mm === 'key') { if (e.data.dir && typeof moveFocus === 'function') moveFocus(e.data.dir); else if (e.data.ok && document.activeElement && document.activeElement !== document.body) document.activeElement.click(); }
+    if (e.data.mm === 'tab' && typeof showTab === 'function') showTab(Number(e.data.tab));   // the remote's Home button (cast)
     if (e.data.mm === 'back') { const handled = typeof window.mmBack === 'function' ? window.mmBack() : false; window.parent.postMessage({ mm: 'backed', handled }, '*'); }   // not handled on Home = the Samsung app closes
   });
 }
