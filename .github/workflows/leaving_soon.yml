@@ -1,0 +1,30 @@
+# .github/workflows/leaving_soon.yml
+# Save to: C:\MarvelApps\marvelmagic\.github\workflows\leaving_soon.yml
+# Rebuilds leaving_soon.json (titles leaving a streaming service in the next 30 days) for the Home "Leaving Soon" strip (Scott 11/19).
+# Source: Streaming Availability API on RapidAPI, FREE Basic plan. The browser app never calls it; only this job does, with the
+# RAPIDAPI_KEY repository secret (Settings > Secrets and variables > Actions). No secret / API trouble = last good file kept, job passes.
+# Budget: 4 requests a run (25 changes a page, 4 pages) x 2 runs a week (Mon + Thu) = about 8 a week, about 35 a month. The run logs the
+# plan's remaining-quota headers so the real limit shows in the log. The app counts days left itself, so a twice-a-week file stays accurate.
+name: leaving soon
+on:
+  schedule:
+    - cron: "17 11 * * 1,4"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/build_leaving_soon.py leaving_soon.json
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+      - run: |
+          git config user.name "marvel-magic-guide-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add leaving_soon.json
+          git diff --cached --quiet || (git commit -m "leaving soon refresh" && git pull --rebase && git push)

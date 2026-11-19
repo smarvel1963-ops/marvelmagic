@@ -65,6 +65,7 @@ function home() {
       <section><div class="hh"><h2>On Tonight <small class="fine">for you</small></h2><button class="more" data-tab="0">Guide ›</button></div><div class="hbox">${teamGame ? otg(teamGame) : ''}${tonight.length ? tonight.slice(0, teamGame ? 3 : 4).map(otr).join('') : `<p class="fine" style="padding:14px;margin:0">${S.airings.length ? 'Nothing else on your channels tonight.' : 'Loading tonight’s listings…'}</p>`}</div></section>
       ${kidsOn() ? '<section class="game"><div class="hh"><h2>🔒 Kids Lock</h2></div><p class="fine">Kids\' channels and family shows only. Sports and settings are hidden.</p><button class="pill" data-kids>Turn off (PIN)</button></section>' : `<section class="game"><div class="hh"><h2>Where's My Game?</h2><button class="more" data-tab="2">All ›</button></div>${gameBox}</section>`}</div>
     ${catchUp(3, '⏩ Catch Up', true)}
+    ${leavingSoon(3, '⏳ Leaving Soon', true)}
     ${freeTonight()}
     ${(() => {   // Scott 11/14: "mention free tv in the guide, not waste all that room ... something far cooler in that spot"
       const hot = (S.pool || []).filter(x => x.prem).map(poolItem).filter(x => kidOk(x) && yours(x) && x.img && x.when - now < 8 * 86400000).sort((a, b) => b.w - a.w).slice(0, 6);
@@ -354,6 +355,26 @@ function previewCards() {
   loadPreviews(); const l = previewsNow(); if (!l.length) return '';
   return `<div class="unused">${l.map(v => { const last = new Date(dayOf(v.end)).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
     return `<div class="uncard prevcard"><span class="unico">🎉</span><span class="t"><b>${esc(v.title)}</b><small>${esc(v.note || '')} Free through ${esc(last)}.</small>${(() => { const t0 = new Date(); t0.setHours(0, 0, 0, 0); const n = Math.round((dayOf(v.end) - t0.getTime()) / 86400000); return n <= 3 ? `<small class="prevend">⏳ Free preview ending ${n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days'}</small>` : ''; })()}</span>${v.url ? `<a class="btn gold" href="${esc(v.url)}" target="_blank" rel="noopener" data-rtry="${esc(v.svc || '')}">▶ Watch free</a>` : ''}<button class="btn alt" data-laterx="${reg({ key: 'pv' + v.id, title: v.title.replace(/^Free( preview)?:\s*/, ''), svc: v.svc || null, exact: v.url || null, url: v.url || null, free: true, series: false })}">${isLater({ key: 'pv' + v.id, title: v.title.replace(/^Free( preview)?:\s*/, '') }) ? '✓ Saved' : '⏰ Watch Later'}</button></div>`; }).join('')}</div>`;
+}
+// LEAVING SOON (Scott 11/19, Streaming Availability free plan): leaving_soon.json is written by the Action (tools/build_leaving_soon.py), never by the
+// browser, and lists titles leaving a service within 30 days. Home shows the ones on THIS household's services (soonest first); My Stuff shows more.
+// Hidden when empty (no key yet / nothing leaving). Kids Lock keeps only titles tagged Children. Watch = openIt with the service's own title link.
+let LEAVING = null;
+function loadLeaving() { if (LEAVING) return; LEAVING = []; fetch('leaving_soon.json?v=' + Math.floor(Date.now() / 3600000)).then(r => r.json()).then(j => { LEAVING = (j && j.items) || []; if (S.tab === HOME || S.tab === 3) { const y = window.scrollY; draw(); window.scrollTo(0, y); } }).catch(() => {}); }
+function leavingRows() {
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  return (LEAVING || []).filter(v => v && v.title && v.img && v.svc && v.leave && ownSvc(v.svc) && (!S.mine.length || S.mine.includes(v.svc) || FREE_SVC.has(v.svc)) && kidOk({ genres: v.genres || [] }))
+    .map(v => ({ v, days: Math.round((dayOf(v.leave) - t0.getTime()) / 86400000) })).filter(r => r.days >= 0 && r.days <= 31).sort((a, b) => a.days - b.days || a.v.title.localeCompare(b.v.title));
+}
+function leavingSoon(limit, head, more) {
+  loadLeaving(); const rows = leavingRows(); if (!rows.length) return '';
+  const card = r => { const v = r.v, when = r.days === 0 ? 'Last day today' : r.days === 1 ? 'Leaves tomorrow' : 'Leaves in ' + r.days + ' days';
+    const x = { key: 'ls' + v.id + v.svc, title: v.title, svc: v.svc, exact: v.link || null, url: v.link || null, series: v.type === 'show', year: v.year || null, genres: v.genres || [] };
+    return `<div class="cu"><div class="cuart"><img src="${esc(v.img)}" alt="" loading="lazy"><span class="sv">${esc(v.svc)}</span><span class="cub ${r.days <= 3 ? 'lshot' : 'lssoon'}">${when}</span></div>
+      <div class="cut"><b>${esc(v.title)}</b><small>${v.type === 'show' ? 'Series' : 'Movie'}${v.year ? ' · ' + esc(v.year) : ''} · until ${esc(new Date(dayOf(v.leave)).toLocaleDateString([], { month: 'short', day: 'numeric' }))}</small></div>
+      <div class="cubtn"><button class="btn watch" data-cuw="${reg(x)}">▶ Watch</button></div></div>`; };
+  return `<section class="cusec"><div class="hh" style="margin-top:22px"><h2>${head || '⏳ Leaving Soon'} <small class="fine">${rows.length} title${rows.length === 1 ? '' : 's'} on your services</small></h2>${more ? '<button class="more" data-tab="3">See all ›</button>' : ''}</div><div class="cugrid">${rows.slice(0, limit).map(card).join('')}</div>
+    <p class="fine" style="margin:8px 2px 0;opacity:.75">Dates from Streaming Availability; services can change them.</p></section>`;
 }
 function previewNotify() {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
