@@ -367,3 +367,13 @@ input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=
 .castremote.min{width:auto}.castremote.min .crhead{margin:0;gap:12px}
 html.tvapp .castremote{display:none!important}
 .flart .flnm{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:14px;font-weight:800;font-size:18px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}.flart:not(:has(img)) .flnm{display:flex}
+
+/* Series Catch-Up (11/19) */
+.cugrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cu{display:flex;flex-direction:column;border-radius:12px;overflow:hidden;background:var(--panel);border:1px solid var(--line);min-width:0}
+.cuart{position:relative;height:150px;background:var(--off)}.cuart img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}.cuart .sv{top:8px;right:8px}
+.cub{position:absolute;left:8px;bottom:8px;padding:4px 10px;border-radius:999px;background:#E5342A;color:#fff;font-weight:700;font-size:13px}
+.cut{padding:10px 12px 4px}.cut b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cut small{display:block;font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cubtn{display:flex;gap:8px;padding:8px 12px 12px;margin-top:auto}.cubtn .btn{flex:1;min-height:44px;padding:0 10px;font-size:15px}.cubtn .btn.watch{min-height:44px;font-size:15px;padding:0 10px}
+@media (max-width:760px){.cugrid{grid-template-columns:minmax(0,1fr)}}
+@media (min-width:761px) and (max-width:1100px){.cugrid{grid-template-columns:repeat(2,minmax(0,1fr))}}

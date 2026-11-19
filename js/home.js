@@ -64,6 +64,7 @@ function home() {
     <div class="hgrid"><section class="cwbox"><div class="hh"><h2>Continue Watching</h2><button class="more" data-tab="3">See all ›</button></div>${cont.length ? `<div class="cwrow">${cont.map(cw).join('')}</div>` : `<div class="hbox" style="padding:16px"><p class="fine" style="margin:0">${S.list.length ? 'Loading your shows…' : 'Save a show in Movies &amp; Shows and it shows up here with where you left off.'}</p></div>`}</section>
       <section><div class="hh"><h2>On Tonight <small class="fine">for you</small></h2><button class="more" data-tab="0">Guide ›</button></div><div class="hbox">${teamGame ? otg(teamGame) : ''}${tonight.length ? tonight.slice(0, teamGame ? 3 : 4).map(otr).join('') : `<p class="fine" style="padding:14px;margin:0">${S.airings.length ? 'Nothing else on your channels tonight.' : 'Loading tonight’s listings…'}</p>`}</div></section>
       ${kidsOn() ? '<section class="game"><div class="hh"><h2>🔒 Kids Lock</h2></div><p class="fine">Kids\' channels and family shows only. Sports and settings are hidden.</p><button class="pill" data-kids>Turn off (PIN)</button></section>' : `<section class="game"><div class="hh"><h2>Where's My Game?</h2><button class="more" data-tab="2">All ›</button></div>${gameBox}</section>`}</div>
+    ${catchUp(3, '⏩ Catch Up', true)}
     ${freeTonight()}
     ${(() => {   // Scott 11/14: "mention free tv in the guide, not waste all that room ... something far cooler in that spot"
       const hot = (S.pool || []).filter(x => x.prem).map(poolItem).filter(x => kidOk(x) && yours(x) && x.img && x.when - now < 8 * 86400000).sort((a, b) => b.w - a.w).slice(0, 6);
@@ -410,6 +411,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.tab != null) { const n = Number(t.dataset.tab); if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n); if (t.hasAttribute('data-q') && $('q')) $('q').focus(); }
   else if (t.dataset.f) { S.filter = t.dataset.f; const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.cuw != null) openIt(items[Number(t.dataset.cuw)]);
   else if (t.dataset.w) { step(Number(t.dataset.w), Number(t.dataset.d)); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.i != null && t.hasAttribute('data-go')) { const x = items[Number(t.dataset.i)]; if (!x.svc || hasIt(x.svc)) openIt(x); else { S.sel = x; const y = window.scrollY; draw(); window.scrollTo(0, y); } }
   else if (t.dataset.gs) { for (const id of ['ggrid', 'fgrid']) { const g = $(id); if (g) g.scrollBy({ left: Number(t.dataset.gs) * 568, behavior: 'smooth' }); } }

@@ -107,12 +107,27 @@ function stuff() {
     <div class="wgrid"><div class="wmain"><div class="tiles">
       ${tile('blue', '▶', 'Watching', n('Watching') + (n('Watching') === 1 ? ' Show' : ' Shows'))}${tile('red', '🔔', 'New Episodes', alerts.length + ' Ready to Watch')}${tile('amber', '📅', 'Coming Soon', soon + ' This Week')}${tile('green', '✓', 'Completed', n('Completed') + (n('Completed') === 1 ? ' Show' : ' Shows'))}</div>
       <div class="wlhead"><h2>⏰ Watch Later <small>(${S.later.length})</small></h2></div>${S.later.length ? `${S.later.some(laterFree) ? `<h3 class="wlsub">🆓 Free to Watch <small>(${S.later.filter(laterFree).length})</small></h3>${laterRow(60, true)}` : ''}${S.later.some(l => !laterFree(l)) ? `<h3 class="wlsub">📺 On Your Services <small>(${S.later.filter(l => !laterFree(l)).length})</small></h3>${laterRow(60, false)}` : ''}` : '<p class="fine">Nothing saved yet. Pick anything and tap ⏰ Watch Later. Free movies, free channels and free previews go on their own Free to Watch shelf.</p>'}
-      ${cont.length ? `<h2>Continue Watching</h2><div class="posters">${cont.map(poster).join('')}</div>` : ''}
+      ${catchUp(12, '⏩ Series Catch-Up')}${cont.length ? `<h2>Continue Watching</h2><div class="posters">${cont.map(poster).join('')}</div>` : ''}
       <div class="wlhead"><h2>My Watchlist <small>(All Shows)</small></h2><div class="filters">${chips.map(([v, l]) => `<button class="chip ${v === f ? 'on' : ''}" data-f="${v}">${l}</button>`).join('')}</div></div>
       <div class="wlbox">${S.list.length ? shown.map(row).join('') || '<p class="fine" style="padding:14px">Nothing here right now.</p>' : '<p class="fine" style="padding:14px">Nothing saved yet. Pick a show in Movies &amp; Shows and tap Save.</p>'}</div></div>
     <aside class="wside"><section class="glow amber"><h3>🔔 New Episode Alerts <span class="badge">${alerts.length}</span></h3>${'Notification' in window && Notification.permission === 'default' ? '<button class="btn alt" data-alerts style="width:100%;margin-bottom:8px">🔔 Notify me when a new episode drops</button>' : ''}${alerts.map(alertRow).join('')}${upcoming.slice(0, Math.max(0, 4 - alerts.length)).map(soonRow).join('')}${alerts.length || upcoming.length ? '' : '<p class="fine">Nothing new yet.</p>'}</section>
       <section class="glow blue"><h3>📅 Upcoming Episodes</h3>${upcoming.length ? upcoming.map(r => `<div class="up"><span><b>${esc(r.s.name)}</b> - ${esc(epLabel(r.t.next))}</span><span>${esc(day(r.t.nextAt))}</span></div>`).join('') : '<p class="fine">No dates announced yet.</p>'}</section>
       ${kidsSection()}${kidsOn() ? '' : `<section class="glow plain">${setupList()}</section><section class="glow plain"><h3>⚙ Your Services</h3><div class="signphone">${signIn()}</div><div class="svcs">${SERVICES.map(s => `<label><input type="checkbox" data-svc="${esc(s)}" ${S.mine.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div></section>`}</aside></div>${credit()}`;
+}
+// SERIES CATCH-UP (Scott 11/19 "Series Catch-Up ... free data only"): shows you track that have aired episodes you haven't marked watched.
+// Uses the TVmaze episode lists already loaded for My Stuff. Mark watched = the same step() as the ✓ on My Stuff. No empty box: no rows, no strip.
+function catchRows() {
+  return S.list.map(s => ({ s, t: track(s) })).filter(r => r.t && r.t.next && r.t.aired > r.t.at && kidOk({ genres: r.s.genres || [], net: r.s.net }))
+    .map(r => ({ ...r, behind: r.t.aired - r.t.at, ep: r.t.next, x: { key: 's' + r.s.id, title: r.s.name, svc: NETWORK_SERVICE[r.s.net] || null, url: r.s.url, note: r.s.net, series: true, img: r.s.img, show: r.s } }))
+    .sort((a, b) => (b.t.at > 0) - (a.t.at > 0) || a.behind - b.behind);
+}
+function catchUp(limit, head, more) {
+  const rows = catchRows(); if (!rows.length) return '';
+  const card = r => { const pic = (r.ep.image && (r.ep.image.medium || r.ep.image.original)) || r.s.img, svc = r.x.svc || r.s.net, started = r.t.at > 0;
+    return `<div class="cu"><div class="cuart">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}${svc ? `<span class="sv">${esc(svc)}</span>` : ''}<span class="cub">${started ? r.behind + (r.behind === 1 ? ' episode behind' : ' episodes behind') : r.behind + (r.behind === 1 ? ' episode ready' : ' episodes ready')}</span></div>
+      <div class="cut"><b>${esc(r.s.name)}</b><small>${started ? 'Next' : 'Start with'}: ${esc(epLabel(r.ep))}${r.ep.name ? ' · ' + esc(r.ep.name) : ''}</small></div>
+      <div class="cubtn"><button class="btn watch" data-cuw="${reg(r.x)}">▶ Watch</button><button class="btn alt" data-w="${r.s.id}" data-d="1">✓ Mark watched</button></div></div>`; };
+  return `<section class="cusec"><div class="hh" style="margin-top:22px"><h2>${head || 'Catch Up'} <small class="fine">${rows.length} show${rows.length === 1 ? '' : 's'}</small></h2>${more ? '<button class="more" data-tab="3">See all ›</button>' : ''}</div><div class="cugrid">${rows.slice(0, limit).map(card).join('')}</div></section>`;
 }
 async function loadEps() {
   const need = S.list.filter(s => !S.eps[s.id] || !s.genres); if (!need.length) return;
