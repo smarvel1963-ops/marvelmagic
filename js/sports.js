@@ -117,19 +117,32 @@ function stuff() {
 // SERIES CATCH-UP (Scott 11/19 "Series Catch-Up ... free data only"): shows you track that have aired episodes you haven't marked watched.
 // Uses the TVmaze episode lists already loaded for My Stuff. Mark watched = the same step() as the ✓ on My Stuff. No empty box: no rows, no strip.
 function catchRows() {
-  return S.list.map(s => ({ s, t: track(s) })).filter(r => r.t && r.t.next && r.t.aired > r.t.at && kidOk({ genres: r.s.genres || [], net: r.s.net }))
-    .map(r => ({ ...r, behind: r.t.aired - r.t.at, ep: r.t.next, x: { key: 's' + r.s.id, title: r.s.name, svc: NETWORK_SERVICE[r.s.net] || null, url: r.s.url, note: r.s.net, series: true, img: r.s.img, show: r.s } }))
-    .sort((a, b) => (b.t.at > 0) - (a.t.at > 0) || a.behind - b.behind);
+  const mk = (s, ep, behind, at) => ({ s, t: { at }, behind, ep, x: { key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[s.net] || null, url: s.url, note: s.net, series: true, img: s.img, show: s } });
+  const a = S.list.map(s => ({ s, t: track(s) })).filter(r => r.t && r.t.next && r.t.aired > r.t.at && kidOk({ genres: r.s.genres || [], net: r.s.net })).map(r => mk(r.s, r.t.next, r.t.aired - r.t.at, r.t.at));
+  // watched but never saved (Scott 11/19): the Watched history knows which episodes were marked; the next unwatched aired one is the pick
+  const now = Date.now(), seenK = new Set(S.history.filter(h => h.kind === 'Show').map(h => h.k)), b = [];
+  for (const [id, h] of Object.entries(histShows())) { const s = S.hShows && S.hShows[id], eps = S.hEps && S.hEps[id]; if (!s || !eps || !kidOk({ genres: s.genres || [], net: s.net })) continue;
+    const un = eps.filter(e => Date.parse(e.airstamp) <= now && !seenK.has('s' + id + '-' + e.season + '-' + e.number)); if (un.length) b.push({ ...mk(s, un[0], un.length, 1), hist: true }); }
+  return [...a, ...b].sort((x, y) => (y.t.at > 0) - (x.t.at > 0) || x.behind - y.behind);
+}
+// shows in the Watched history that are not on the My Stuff list: id -> { title, img, svc }
+function histShows() { const o = {}, saved = new Set(S.list.map(s => String(s.id))); for (const h of S.history) { const m = h.kind === 'Show' && /^s(\d+)-/.exec(h.k || ''); if (m && !saved.has(m[1]) && !o[m[1]]) o[m[1]] = h; } return o; }
+async function loadHistEps() {
+  const ids = Object.keys(histShows()).slice(0, 10).filter(id => !(S.hEps && S.hEps[id]) && !(S.hTried && S.hTried[id])); if (!ids.length) return;
+  S.hEps = S.hEps || {}; S.hShows = S.hShows || {}; S.hTried = S.hTried || {}; ids.forEach(id => S.hTried[id] = 1);
+  await Promise.all(ids.map(id => fetch(`https://api.tvmaze.com/shows/${id}?embed=episodes`).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; S.hEps[id] = ((j._embedded && j._embedded.episodes) || []).filter(e => e.airstamp); S.hShows[id] = { id: Number(id), name: j.name, net: (j.network && j.network.name) || (j.webChannel && j.webChannel.name) || '', img: (j.image && (j.image.original || j.image.medium)) || null, url: j.url, genres: j.genres || [] }; }).catch(() => {})));
+  if (S.tab === 3 || S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
 function catchUp(limit, head, more) {
   const rows = catchRows(); if (!rows.length) return '';
   const card = r => { const pic = (r.ep.image && (r.ep.image.medium || r.ep.image.original)) || r.s.img, svc = r.x.svc || r.s.net, started = r.t.at > 0;
     return `<div class="cu"><div class="cuart">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}${svc ? `<span class="sv">${esc(svc)}</span>` : ''}<span class="cub">${started ? r.behind + (r.behind === 1 ? ' episode behind' : ' episodes behind') : r.behind + (r.behind === 1 ? ' episode ready' : ' episodes ready')}</span></div>
       <div class="cut"><b>${esc(r.s.name)}</b><small>${started ? 'Next' : 'Start with'}: ${esc(epLabel(r.ep))}${r.ep.name ? ' · ' + esc(r.ep.name) : ''}</small></div>
-      <div class="cubtn"><button class="btn watch" data-cuw="${reg(r.x)}">▶ Watch</button><button class="btn alt" data-w="${r.s.id}" data-d="1">✓ Mark watched</button></div></div>`; };
+      <div class="cubtn"><button class="btn watch" data-cuw="${reg(r.x)}">▶ Watch</button><button class="btn alt" ${r.hist ? `data-cuh="${r.s.id}|${r.ep.season}|${r.ep.number}"` : `data-w="${r.s.id}" data-d="1"`}>✓ Mark watched</button></div></div>`; };
   return `<section class="cusec"><div class="hh" style="margin-top:22px"><h2>${head || 'Catch Up'} <small class="fine">${rows.length} show${rows.length === 1 ? '' : 's'}</small></h2>${more ? '<button class="more" data-tab="3">See all ›</button>' : ''}</div><div class="cugrid">${rows.slice(0, limit).map(card).join('')}</div></section>`;
 }
 async function loadEps() {
+  loadHistEps();
   const need = S.list.filter(s => !S.eps[s.id] || !s.genres); if (!need.length) return;
   await Promise.all(need.map(s => fetch(`https://api.tvmaze.com/shows/${s.id}?embed=episodes`).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; S.eps[s.id] = ((j._embedded && j._embedded.episodes) || []).filter(e => e.airstamp); if (j.image && j.image.original) s.img = j.image.original; if (j.genres) s.genres = j.genres; }).catch(() => {})));
   save('list', S.list);
