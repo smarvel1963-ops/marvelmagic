@@ -111,6 +111,10 @@ with sync_playwright() as p:
     # Free TV: a button for every free service; Tubi's whole list
     pg.evaluate("S.q = ''; S.results = null; S.movies = null; showTab(4)")
     pg.wait_for_timeout(3000)
+    # 11/19: Free TV first says "Loading free channels…", then the live channel rows arrive ABOVE these buttons and push them ~2,400 px
+    # down. A tap that raced that landed on the channel text, so "Tubi See all" read 12 (the page never left Free TV). Wait for the rows.
+    pg.wait_for_function("!/Loading (free )?channels/.test(document.querySelector('main').innerText)", timeout=30000)
+    pg.wait_for_timeout(500)
     chips = pg.evaluate("[...document.querySelectorAll('[data-mlall]')].map(b => b.textContent)")
     check("Free TV: Every Free Movie buttons for 6 free services", sum(1 for c in chips if "movies" in c) >= 6, f"{chips[:7]}")
     pg.locator("[data-mlall='Tubi']").first.scroll_into_view_if_needed()

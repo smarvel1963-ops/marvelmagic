@@ -366,3 +366,4 @@ input[type=checkbox]:checked{background:#7A4DF0;border-color:#9F86FF}input[type=
 .castremote.min .crwatch,.castremote.min .crpad,.castremote.min .crrow,.castremote.min .crstop{display:none}
 .castremote.min{width:auto}.castremote.min .crhead{margin:0;gap:12px}
 html.tvapp .castremote{display:none!important}
+.flart .flnm{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:14px;font-weight:800;font-size:18px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}.flart:not(:has(img)) .flnm{display:flex}
