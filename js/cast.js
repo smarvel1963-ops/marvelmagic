@@ -15,7 +15,7 @@ const castSession = () => { try { return castReady ? cast.framework.CastContext.
 function castSend(m) { const s = castSession(); if (s) s.sendMessage(CAST_NS, m).catch(() => {}); }
 function castSeed() {   // this device's saved household -> the TV (Cast messages max 64 KB; big keys are skipped, never cut in half)
   const seed = {}; let size = 0;
-  const keys = Object.keys(localStorage).filter(k => /^mm_/.test(k) || k === 'mm.member' || k === 'mm.trialStart')
+  const keys = Object.keys(localStorage).filter(k => /^mm_/.test(k) || k === 'mm.member' || k === 'mm.trialStart' || k === 'mm.owner')
     .sort((a, b) => (localStorage.getItem(a) || '').length - (localStorage.getItem(b) || '').length);
   for (const k of keys) { const v = localStorage.getItem(k) || ''; if (size + k.length + v.length > 50000) continue; seed[k] = v; size += k.length + v.length; }
   castSend({ seed });

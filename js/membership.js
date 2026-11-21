@@ -16,7 +16,12 @@
   const RELAY = 'https://script.google.com/macros/s/AKfycbyVbxOCPR7v8UNTVufOWKOKBpI19-NcWEXMVzjP86iKraxenseHpWL95W9sB_Rr6DXo/exec';
   const JOIN = typeof WHOP_MM === 'string' ? WHOP_MM : 'https://whop.com/commander-marvel-por-picks/marvel-magic';
   const DAY = 86400000, TRIAL_DAYS = 30, RECHECK_DAYS = 7, GRACE_DAYS = 14;
-  const K_TRIAL = 'mm.trialStart', K_MEMBER = 'mm.member', K_DEV = 'mm.device';
+  const K_TRIAL = 'mm.trialStart', K_MEMBER = 'mm.member', K_DEV = 'mm.device', K_OWNER = 'mm.owner';
+  // THE OWNER NEVER LOCKS (Scott 11/21: "my email should never lock out of my own product"). Kept as a SHA-256 of the email, so the
+  // address isn't printed in public code. Typing the email is NOT enough (anyone could): the device becomes the owner's only after
+  // proof - the 6-digit code emailed to that address, or a Google sign-in with that verified email. Then it never locks and never
+  // needs the weekly check. To add another owner email: python -c "import hashlib;print(hashlib.sha256(b'x@y.com').hexdigest())"
+  const OWNERS = ['f1af200cc623f1ada0b5af4ec99321ec49e4294d4b6f522c2d005ae13ea4a72b'];
   const get = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
   const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode: the lock still works for this visit */ } };
   const escH = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -33,7 +38,18 @@
   const daysLeft = () => Math.max(0, TRIAL_DAYS - Math.floor((Date.now() - trialStart()) / DAY));
   const member = () => get(K_MEMBER, null);
   const memberGood = m => !!(m && m.ok && m.buyer && Date.now() < (m.checked || 0) + (RECHECK_DAYS + GRACE_DAYS) * DAY);
-  const locked = () => !memberGood(member()) && daysLeft() === 0;
+  const owner = () => { const o = get(K_OWNER, null); return !!(o && o.ok); };
+  const locked = () => !owner() && !memberGood(member()) && daysLeft() === 0;
+  async function isOwnerEmail(email) {
+    try { const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(email || '').trim().toLowerCase()));
+      return OWNERS.includes(Array.from(new Uint8Array(h), x => x.toString(16).padStart(2, '0')).join('')); } catch (e) { return false; }
+  }
+  async function makeOwner(email) { if (!(await isOwnerEmail(email))) return false; put(K_OWNER, { ok: true, at: Date.now() }); return true; }
+  // Called by app.js when someone signs in with Google: a verified owner email unlocks this device for good.
+  async function signedIn(u) {
+    if (!u || u.isAnonymous || !u.email || u.emailVerified === false || owner()) return;
+    if (await makeOwner(u.email)) { FORCE = false; HEAD = ''; draw(); notice(); refresh(); }
+  }
 
   async function relay(body) {
     const r = await fetch(RELAY, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(body) });
@@ -42,7 +58,7 @@
   async function verify(buyer) {               // -> 'ok' | 'code' | message to show
     let j; try { j = await relay({ task: 'verify', buyer, device: device(), app: 'marvelmagic' }); } catch (e) { return "Couldn't reach the check - try again in a minute."; }
     if (j.error) return j.error;
-    if (j.valid) { put(K_MEMBER, { buyer, ok: true, checked: Date.now(), status: j.status || '', until: j.until || null }); return 'ok'; }
+    if (j.valid) { put(K_MEMBER, { buyer, ok: true, checked: Date.now(), status: j.status || '', until: j.until || null }); await makeOwner(buyer); return 'ok'; }
     if (j.status === 'needs code') return 'code';
     const m = member(); if (m && m.buyer === buyer) put(K_MEMBER, Object.assign({}, m, { ok: false, checked: Date.now(), status: j.status || '' }));
     return j.status === 'not found' ? "We couldn't find a Marvel Magic membership for that email. Use the email you joined with." : (j.status || "That email isn't unlocked yet.");
@@ -65,7 +81,7 @@
     return `<div class="mml-card" role="dialog" aria-modal="true" aria-label="Marvel Magic membership">
       <div class="mml-l"><div class="mml-hero"><img class="mml-heroimg" src="hero_theater.jpg" alt=""><img class="mml-logo" src="logo.png" alt="Marvel Magic"></div>
         <div class="mml-pitchbox"><div class="mml-badge" aria-hidden="true">✨</div>
-          <h2>${HEAD || (left ? 'Join Marvel Magic' : 'Keep the magic playing.')}</h2><p class="mml-sub">${memberGood(member()) ? 'This device is unlocked.' : left ? `${left} free day${left === 1 ? '' : 's'} left` : 'Your 30 free days are up.'}</p>
+          <h2>${HEAD || (left ? 'Join Marvel Magic' : 'Keep the magic playing.')}</h2><p class="mml-sub">${owner() || memberGood(member()) ? 'This device is unlocked.' : left ? `${left} free day${left === 1 ? '' : 's'} left` : 'Your 30 free days are up.'}</p>
           ${st ? `<div class="mml-stats" aria-label="What your household has done">${st}</div><p class="mml-me">You've made Marvel Magic your own. Keep your guide, your channels and your games together.</p>` : ''}
           <div class="mml-feats">${feat('📺', 'Your TV guide')}${feat('⭐', 'Your channels')}${feat('🏟️', 'Every game on its channel')}${feat('🎬', 'Free movies & shows')}</div></div></div>
       <div class="mml-r">
@@ -100,7 +116,7 @@
       MSG = 'Checking...'; draw();
       const r = await verify(BUYER);
       if (r === 'ok') { MSG = ''; STEP = 'join'; FORCE = false; HEAD = ''; draw(); notice(); refresh(); return; }
-      if (r === 'code') {
+      if (r === 'code' || (r !== 'ok' && await isOwnerEmail(BUYER))) {
         let j; try { j = await relay({ task: 'code', buyer: BUYER, device: device() }); } catch (err) { j = { error: "Couldn't reach the check - try again in a minute." }; }
         if (j && j.sent) { STEP = 'code'; MSG = ''; } else MSG = (j && j.error) || "Couldn't send the code - try again in a minute.";
         draw(); return;
@@ -113,6 +129,7 @@
       MSG = 'Checking...'; draw();
       let j; try { j = await relay({ task: 'confirm', buyer: BUYER, device: device(), code }); } catch (err) { j = { error: "Couldn't reach the check - try again in a minute." }; }
       if (!j || !j.ok) { MSG = (j && j.error) || "That code didn't work. Check the email, or go back and send a new one."; draw(); return; }
+      if (await makeOwner(BUYER)) { MSG = ''; STEP = 'join'; FORCE = false; HEAD = ''; draw(); notice(); refresh(); return; }   // the code proved it's the owner's email
       const r = await verify(BUYER);
       if (r === 'ok') { MSG = ''; STEP = 'join'; FORCE = false; HEAD = ''; draw(); notice(); refresh(); return; }
       MSG = r === 'code' ? 'Please try the code again.' : r; draw();
@@ -214,7 +231,7 @@
   function notice() {
     let el = document.getElementById('mmTrialNote');
     const left = daysLeft(), today = new Date().toDateString();
-    if (memberGood(member()) || locked() || left > 7 || get(K_NOTE, '') === today) { if (el) el.remove(); return; }
+    if (owner() || memberGood(member()) || locked() || left > 7 || get(K_NOTE, '') === today) { if (el) el.remove(); return; }
     if (!el) { el = document.createElement('div'); el.id = 'mmTrialNote'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
     el.innerHTML = `<span>✨ <b>${left} free day${left === 1 ? '' : 's'} left</b> in Marvel Magic. Keep it for $4.99 a month for the whole home.</span>
       <a href="${escH(JOIN)}" target="_blank" rel="noopener">Keep the Magic</a><button type="button" aria-label="Close">✕</button>`;
@@ -225,12 +242,12 @@
   function welcome() {
     if (!/[?&]welcome=1\b/.test(location.search)) return;
     try { const u = new URL(location.href); u.searchParams.delete('welcome'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } catch (e) { /* old browser: the flag just stays */ }
-    if (memberGood(member())) return;
+    if (owner() || memberGood(member())) return;
     open('Welcome to Marvel Magic!', '');
     MSG = 'Enter the email you joined with to unlock this device.'; draw();
   }
 
-  window.mmMembership = { daysLeft, locked, member: () => member(), memberGood: () => memberGood(member()), draw, open, close };
+  window.mmMembership = { daysLeft, locked, owner, signedIn, member: () => member(), memberGood: () => memberGood(member()), draw, open, close };
   document.addEventListener('submit', onSubmit, true);
   document.addEventListener('keydown', onKey, true);
   // While the screen is up, focus never sits behind it (the app's own TV focus moves to a poster after a redraw): pull it back.

@@ -167,6 +167,7 @@ function memberBox() {
   const mm = window.mmMembership, join = `<a class="btn gold" href="${WHOP_MM}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Keep the Magic - $4.99/month ›</a>`;
   if (!mm) return `<p style="margin:0 0 8px"><b>30 days free, then $4.99 a month</b> for the whole household. Cancel any time.</p>${join}`;
   const m = mm.member();
+  if (mm.owner && mm.owner()) return `<p style="margin:0 0 8px"><b>✓ Owner.</b> This is your product - this device never locks.</p><p class="fine" style="margin:0">Customers get 30 days free, then $4.99 a month for the household.</p>`;
   if (mm.memberGood()) return `<p style="margin:0 0 8px"><b>✓ Member.</b> This device is unlocked${m && m.buyer ? ' for ' + esc(m.buyer) : ''}.</p><p class="fine" style="margin:0">One membership covers every TV and phone in your home, up to 6. Manage or cancel on Whop.</p><a class="btn alt" href="https://whop.com/@me/settings/memberships/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;margin-top:10px">Manage my membership ›</a>`;
   const left = mm.daysLeft();
   return `<p style="margin:0 0 8px"><b>${left ? left + ' free day' + (left === 1 ? '' : 's') + ' left.' : 'Your free days are up.'}</b> Then $4.99 a month for the whole household. Cancel any time.</p><p class="fine" style="margin:0 0 10px">Have a code? Enter it at checkout.</p><div style="display:flex;gap:8px;flex-wrap:wrap">${join}<button class="btn alt" data-mmunlock>Already joined? Unlock</button></div>`;

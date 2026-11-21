@@ -74,6 +74,7 @@ function startAccount() {
   auth.onAuthStateChanged(async u => {
     if (stopWatch) { stopWatch(); stopWatch = null; }
     me = u;
+    if (window.mmMembership && u && !u.isAnonymous) mmMembership.signedIn(u);   // 11/21 the owner's Google sign-in never locks
     if (u && u.isAnonymous) { drawAcct(); if (S.paired) loadDevice(); draw(); return; }
     if (u) {
       const ref = db.collection('users').doc(u.uid);

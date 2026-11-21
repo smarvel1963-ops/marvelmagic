@@ -31,7 +31,7 @@ const ctx = cast.framework.CastReceiverContext.getInstance();
 ctx.addCustomMessageListener(NS, ev => {
   const m = ev.data || {};
   if (m.seed) {   // the tablet's saved household (only mm_* app keys and the membership keys are written)
-    for (const [k, v] of Object.entries(m.seed)) if (/^(mm_|mm\.(member|trialStart)$)/.test(k) && typeof v === 'string') try { localStorage.setItem(k, v); } catch (e) {}
+    for (const [k, v] of Object.entries(m.seed)) if (/^(mm_|mm\.(member|trialStart|owner)$)/.test(k) && typeof v === 'string') try { localStorage.setItem(k, v); } catch (e) {}
     if (loaded) f.contentWindow.location.reload(); else go();
     return;
   }
