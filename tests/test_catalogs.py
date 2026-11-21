@@ -43,6 +43,7 @@ with sync_playwright() as p:
     if not LIVE:   # keep the relay out of it: the lookup fails fast and the app falls back to the service's own search
         pg.route("**/script.google.com/**", lambda r: r.abort())
     pg.add_init_script(FAKE_OPEN)   # survives the page's own reload on start
+    pg.add_init_script("localStorage.setItem('mm_devReady', JSON.stringify({YouTube: 1, Netflix: 1}))")   # 11/21 ready check: these two already checked on this device (tests/test_ready.py covers the check)
     pg.goto(f"http://127.0.0.1:{port}/index.html")
     pg.wait_for_timeout(2500)
     pg.evaluate("showTab(1)")

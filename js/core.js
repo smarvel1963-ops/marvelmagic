@@ -13,11 +13,12 @@ if (/[?&](samsung|cast)=1/.test(location.search) && window.parent !== window && 
   window.MMNative = {
     open: (url, svc) => window.parent.postMessage({ mm: 'open', url, svc: svc || '' }, '*'),
     platform: () => /[?&]cast=1/.test(location.search) ? 'cast' : 'samsung',
-    has: () => true   // the Samsung app answers for real when it opens one; until then every app counts as on the TV
+    has: svc => !window.__mmApps || window.__mmApps[svc] !== false   // the Samsung app sends which known apps are on this TV (11/21); unknown = present
   };
   window.addEventListener('message', e => {
     if (e.source !== window.parent || !e.data) return;
     if (e.data.mm === 'resume' && typeof cameBack === 'function') cameBack();
+    if (e.data.mm === 'apps' && e.data.on) window.__mmApps = e.data.on;
     // remote arrows / OK pressed while the Samsung app's outer page has the keys (Scott 11/15 "round direction button dont move selection around")
     if (e.data.mm === 'key') { if (e.data.dir && typeof moveFocus === 'function') moveFocus(e.data.dir); else if (e.data.ok && document.activeElement && document.activeElement !== document.body) document.activeElement.click(); }
     if (e.data.mm === 'tab' && typeof showTab === 'function') showTab(Number(e.data.tab));   // the remote's Home button (cast)

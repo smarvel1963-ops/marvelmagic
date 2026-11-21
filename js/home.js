@@ -276,8 +276,54 @@ async function loadGames() {
 // Marvel Magic brings itself back to the front (the come-back question still asks if it didn't play).
 let watchWin = null, watchTimer = null;
 const inTvApp = () => typeof window.MMNative !== 'undefined';
-function openWin(url, svc, pre) {   // pre = a tab already opened during the click (openIt), filled in here
+// READY ON THIS DEVICE (Scott 11/21: "make sure all channels open to proper app or ask to download and log in" + "when you change tv with
+// same account it needs to check for that"). The first time a service is opened on THIS device, Marvel Magic checks it is ready here.
+// Kept per device (mm_devReady is never synced to the account), so a new TV or phone on the same account checks again.
+//  - TV app (Fire TV / Samsung): the app is on the TV -> it opens (the app shows its own sign-in if needed); not on the TV -> "Get <svc>"
+//    (its store page), then sign in, then Watch again.
+//  - phone / tablet: Open it, Get the app (its store), or Sign in first.  - computer: Open it or Sign in first (the website is the app).
+const devReady = () => load('devReady', {});
+const markReady = svc => { const r = devReady(); r[svc] = Date.now(); save('devReady', r); };
+function devKind() {
+  if (inTvApp()) return 'tv'; const u = navigator.userAgent;
+  if (/iPhone|iPod/.test(u)) return 'iphone'; if (/iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1)) return 'ipad';
+  if (/Android/.test(u) && !/AFT|BRAVIA|SMART-TV/i.test(u)) return 'android'; if (/Tizen|SMART-TV|Web0S|AFT|CrKey|BRAVIA/i.test(u)) return 'tvweb'; return 'computer';
+}
+const appName = svc => svc.replace(/^Sling (Orange|Blue)$/, 'Sling TV').replace('Hulu + Live TV', 'Hulu');
+const storeLink = (svc, k) => { const q = encodeURIComponent(appName(svc)); return k === 'android' ? 'https://play.google.com/store/search?q=' + q + '&c=apps' : (k === 'iphone' || k === 'ipad') ? 'https://apps.apple.com/us/search?term=' + q : null; };
+const signLink = svc => { const s = SIGN_IN.find(([n]) => n.replace('- ', '') === svc || (svc.startsWith('Sling') && n.replace('- ', '') === 'Sling TV')); return s ? s[1] : (ACCOUNT_URL[svc] || null); };
+function needsReady(svc) {
+  if (!svc || devReady()[svc] || !(SERVICE_URL[svc] || svc === 'YouTube')) return false;
+  const k = devKind(); if (FREE_SVC.has(svc) && k !== 'tv' && k !== 'tvweb') return false;   // free services need no sign-in; on a TV they still need the app
+  return true;
+}
+function readyCheck(url, svc, pre) {
+  const b = $('back'), k = devKind(), go = () => { markReady(svc); b.close(); openWin(url, svc, pre, true); };
+  if (k === 'tv') {
+    let on = true; try { on = MMNative.has(svc) !== false; } catch {}
+    if (on) { markReady(svc); openWin(url, svc, pre, true); return; }
+    if (b.open) return;
+    b.innerHTML = `<b>${esc(svc)} isn’t on this TV yet</b><p>Get the ${esc(appName(svc))} app, open it once and sign in with your ${esc(appName(svc))} account. Then come back and press Watch again.</p><div class="act"><button class="btn alt" data-rcno>Not now</button><button class="btn" data-rcget>⬇ Get ${esc(appName(svc))}</button></div>`;
+    b.querySelector('[data-rcno]').onclick = () => { save('pending', null); b.close(); };
+    b.querySelector('[data-rcget]').onclick = () => { save('pending', null); b.close(); try { MMNative.open(url, svc); } catch {} };   // not installed -> the TV opens its store page
+    b.showModal(); b.querySelector('[data-rcget]').focus(); return;
+  }
+  if (b.open) { if (pre) try { pre.close(); } catch {} return; }
+  if (pre) try { pre.close(); } catch {}   // a new tab is opened by the button below (a click), so it is never blocked
+  const st = storeLink(svc, k), si = signLink(svc), where = k === 'computer' ? 'this computer' : k === 'tvweb' ? 'this TV' : k === 'ipad' ? 'this iPad' : 'this phone';
+  b.innerHTML = `<b>First time opening ${esc(svc)} on ${where}</b><p>${k === 'computer' ? `${esc(svc)} opens in a new tab. Sign in there once and it remembers you.` : `You need the ${esc(appName(svc))} app on ${where}, signed in to your ${esc(appName(svc))} account.`}</p>
+    <div class="act"><button class="btn" data-rcgo>▶ Open ${esc(svc)}</button></div>
+    ${st ? `<a class="btn alt" data-rcst style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:8px" href="${esc(st)}" target="_blank" rel="noopener">⬇ Get the ${esc(appName(svc))} app</a>` : ''}
+    ${si ? `<a class="btn alt" data-rcsi style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:8px" href="${esc(si)}" target="_blank" rel="noopener">🔑 Sign in to ${esc(appName(svc))} first</a>` : ''}
+    <button class="btn alt" data-rcno style="width:100%;margin-top:8px">Not now</button>`;
+  b.querySelector('[data-rcgo]').onclick = go;
+  b.querySelector('[data-rcno]').onclick = () => { save('pending', null); b.close(); };   // nothing opened: no "did it play?" on return
+  b.querySelectorAll('[data-rcst], [data-rcsi]').forEach(a => a.onclick = e => { e.stopPropagation(); save('pending', null); b.close(); });   // store / sign-in open as plain links; the next Watch asks again
+  b.showModal(); b.querySelector('[data-rcgo]').focus();
+}
+function openWin(url, svc, pre, ready) {   // pre = a tab already opened during the click (openIt), filled in here; ready = checked on this device
   if (svc && S.mine.length && !ownSvc(svc) && SERVICE_URL[svc]) { if (pre) try { pre.close(); } catch {} notOnYours(svc); return; }   // never open a service that isn't ticked
+  if (!ready && needsReady(svc)) { readyCheck(url, svc, pre); return; }
   if (inTvApp()) { try { MMNative.open(url, svc || ''); } catch {} if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); } return; }   // Fire TV: the real app
   let w = null;
   if (pre && !pre.closed) { try { pre.location.href = url; w = pre; } catch {} }
@@ -294,7 +340,7 @@ function openWin(url, svc, pre) {   // pre = a tab already opened during the cli
 // The browser tab is opened during the click (a tab opened after a wait gets blocked) and filled in when the page is known.
 function openIt(x) {
   if (x && x.title && !x.exact && !x.sport && !x.start && !x.net) {
-    const pre = inTvApp() ? null : window.open('about:blank', '_blank');
+    const pre = inTvApp() || needsReady(bestSvc(x) || x.svc) ? null : window.open('about:blank', '_blank');   // first time here: the check opens it from its own button
     const note = document.createElement('div'); note.className = 'updtoast'; note.textContent = 'Finding “' + x.title + '”…'; document.body.appendChild(note);
     // the lookup is two relay calls, about 3-4 seconds; after 10 the service's own page opens as before
     Promise.race([enrich(x), new Promise(r => setTimeout(r, 10000))]).then(() => { note.remove(); openNow(x, pre); });
