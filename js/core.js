@@ -40,7 +40,7 @@ const SERVICE_URL = {
   BritBox: () => 'https://www.britbox.com/', 'Acorn TV': () => 'https://acorn.tv/', Shudder: () => 'https://www.shudder.com/', Crunchyroll: () => 'https://www.crunchyroll.com/',
   'Discovery+': () => 'https://www.discoveryplus.com/', 'BET+': () => 'https://www.bet.plus/', 'Hallmark+': () => 'https://www.hallmarkplus.com/', 'Frndly TV': () => 'https://try.frndlytv.com/',
   'ESPN+': () => 'https://plus.espn.com/',
-  'Samsung TV Plus': () => 'https://www.samsungtvplus.com/', 'Pluto TV': () => 'https://pluto.tv/', Tubi: () => 'https://tubitv.com/', Plex: () => 'https://watch.plex.tv/', 'Xumo Play': () => 'https://play.xumo.com/', 'The Roku Channel': () => 'https://therokuchannel.roku.com/'
+  'Samsung TV Plus': () => 'https://www.samsungtvplus.com/', 'Sling Freestream': () => 'https://www.sling.com/freestream', 'Pluto TV': () => 'https://pluto.tv/', Tubi: () => 'https://tubitv.com/', Plex: () => 'https://watch.plex.tv/', 'Xumo Play': () => 'https://play.xumo.com/', 'The Roku Channel': () => 'https://therokuchannel.roku.com/'
 };
 // SLING CHANNELS (Scott 11/15 'sling did not' go to what was clicked): Sling's own channel ids, read from Scott's paid Sling guide
 // (Orange + Blue) on 11/15. watch.sling.com/1/channel/<id>/watch opens that channel live (checked: TNT, after Sling's profile screen).
@@ -50,7 +50,7 @@ const SLING_ALIAS = { FS1: 'FOX Sports 1', 'USA Network': 'USA', MSNBC: 'MS NOW'
 const slingCh = n => { const id = n && (SLING_CH[n] || SLING_CH[SLING_ALIAS[n]]); return id ? 'https://watch.sling.com/1/channel/' + id + '/watch' : null; };
 const chanUrl = (svc, n) => (svc && svc.startsWith('Sling') && slingCh(n)) || (SERVICE_URL[svc] ? SERVICE_URL[svc]('') : '');
 // Free services need no account, so they always count as yours (Scott 11/08: "plus all free one")
-const FREE_SVC = new Set(['Pluto TV', 'Tubi', 'Plex', 'Xumo Play', 'The Roku Channel', 'Samsung TV Plus']);
+const FREE_SVC = new Set(['Pluto TV', 'Tubi', 'Plex', 'Xumo Play', 'The Roku Channel', 'Samsung TV Plus', 'Sling Freestream']);   // + Sling Freestream (Scott 11/20)
 const NETWORK_SERVICE = { NBC: 'Peacock', Bravo: 'Peacock', USA: 'Peacock', CBS: 'Paramount+', 'CBS Sports Network': 'Paramount+', ABC: 'Hulu', FX: 'Hulu', HBO: 'HBO Max', TNT: 'HBO Max', TBS: 'HBO Max', TLC: 'HBO Max', Discovery: 'HBO Max', FOX: 'Fox One', FS1: 'Fox One', ESPN: 'ESPN', ESPN2: 'ESPN', ESPNU: 'ESPN', 'SEC Network': 'ESPN', ACCN: 'ESPN', Netflix: 'Netflix', Hulu: 'Hulu', 'Prime Video': 'Prime Video', 'Disney+': 'Disney+', 'HBO Max': 'HBO Max', Peacock: 'Peacock', 'Paramount+': 'Paramount+', 'Apple TV+': 'Apple TV', 'Apple TV': 'Apple TV' };
 // Where a TV network's live games can be streamed (Scott 11/08: "show where all can be watched based on your accounts"). Claude's general knowledge, not a data feed: carriage can vary by area.
 const YT = 'YouTube TV';
