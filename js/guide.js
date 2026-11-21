@@ -110,7 +110,7 @@ function guide() {
     ${odBar}<div class="grid gplut gond">${odRows}</div><div class="phone">${odCards}</div>
     ${fBar}<div class="grid" id="fgrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW</span></div>${fRows}</div><div class="phone">${fCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
 }
-const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
+const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}"${tvmSet(x.img)} alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
 function showItem(s) {
   const net = (s.webChannel && s.webChannel.name) || (s.network && s.network.name) || '';
   return { key: 's' + s.id, title: s.name, svc: NETWORK_SERVICE[net] || null, url: s.officialSite || s.url, note: [net, (s.genres || []).slice(0, 2).join(', ')].filter(Boolean).join(' · '), series: true, img: s.image && s.image.medium, show: { id: s.id, name: s.name, net, img: s.image && s.image.medium, url: s.officialSite || s.url, genres: s.genres || [] } };
@@ -250,7 +250,9 @@ function tonightPicks() {
 // 11/20: TVmaze posters came as full originals (up to 1.6 MB, 4K) even where they show ~180 px wide - ~4 MB on the TV home. srcset offers
 // TVmaze's own 210-px poster too; the browser takes it when that is enough (a TV) and keeps the original for big posters / sharp phone
 // screens. "auto" = the poster's real width (lazy images); older browsers use 200px. A missing small one falls back to the original.
-const tvmSet = u => /^https:\/\/static\.tvmaze\.com\/uploads\/images\/original_untouched\//.test(u || '') ? ` srcset="${esc(u.replace('/original_untouched/', '/medium_portrait/'))} 210w, ${esc(u)} 680w" sizes="auto, 200px" onerror="if(this.srcset){this.removeAttribute('srcset');this.src='${esc(u)}'}"` : '';
+// Later 11/20: sharp phone screens still took the original (1-2 MB 4K posters for ~170 px), so a 600-px copy from wsrv.nl (free image
+// resizer, webp) sits between; if wsrv fails, onerror shows the original.
+const tvmSet = u => /^https:\/\/static\.tvmaze\.com\/uploads\/images\/original_untouched\//.test(u || '') ? ` srcset="${esc(u.replace('/original_untouched/', '/medium_portrait/'))} 210w, https://wsrv.nl/?url=${encodeURIComponent(u.slice(8))}&amp;w=600&amp;output=webp&amp;q=80 600w, ${esc(u)} 1200w" sizes="auto, 200px" onerror="if(this.srcset){this.removeAttribute('srcset');this.src='${esc(u)}'}"` : '';
 const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? (offersOn() && OFFER[x.svc] ? ' offer' : ' off') : ''}" data-i="${reg(x)}">${x.svc && !hasIt(x.svc) && offersOn() && OFFER[x.svc] ? '<span class="trialtag">Free trial</span>' : ''}${x.big || x.img ? `<img src="${esc(x.big || x.img)}"${tvmSet(x.big || x.img)} alt="" loading="lazy">` : `<span class="lpno">🎬</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
 function shows() {
   if (S.mlAll) return mlAllPage(S.mlAll);   // a full movie list, See all (catalogs.js)
