@@ -6,15 +6,24 @@
 
 const strip = h => String(h || '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
 const BG = {};
+// 11/21: TVmaze backgrounds come ONLY as originals (often 3840x2160, 1-2 MB) and the preview panel shows them as a CSS
+// background (no <img>, so no srcset) - the ~6 big phone downloads with initiator "other". Same free wsrv.nl resizer as the
+// posters, sized to the screen; it is test-loaded first, and if wsrv fails (or takes 6 s) the original is used as before.
+function bgSmall(u) {
+  if (!/^https:\/\/static\.tvmaze\.com\//.test(u || '')) return Promise.resolve(u || '');
+  const w = (innerWidth || 1280) < 700 ? 900 : 1600;
+  const s = `https://wsrv.nl/?url=${encodeURIComponent(u.slice(8))}&w=${w}&output=webp&q=78`;
+  return new Promise(ok => { const im = new Image(); const t = setTimeout(() => ok(u), 6000); im.onload = () => { clearTimeout(t); ok(s); }; im.onerror = () => { clearTimeout(t); ok(u); }; im.src = s; });
+}
 function bgFor(show) {
   if (!show) return '';
   if (BG[show.id] !== undefined) return BG[show.id] || '';
-  BG[show.id] = null;
+  BG[show.id] = null;   // stays null (no art yet) until the small copy is ready, so a re-render never grabs the original
   const fall = (show.image && show.image.original) || '';
   fetch(`https://api.tvmaze.com/shows/${show.id}/images`).then(r => r.ok ? r.json() : []).then(j => {
     const b = j.find(i => i.type === 'background' && i.main) || j.find(i => i.type === 'background');
-    BG[show.id] = (b && b.resolutions && b.resolutions.original && b.resolutions.original.url) || fall;
-  }).catch(() => { BG[show.id] = fall; }).then(() => { const el = document.querySelector(`.gpv-art[data-id="${show.id}"]`); if (el && BG[show.id]) el.style.setProperty('--img', `url("${BG[show.id]}")`); });
+    return (b && b.resolutions && b.resolutions.original && b.resolutions.original.url) || fall;
+  }).catch(() => fall).then(bgSmall).then(u => { BG[show.id] = u || ''; const el = document.querySelector(`.gpv-art[data-id="${show.id}"]`); if (el && BG[show.id]) el.style.setProperty('--img', `url("${BG[show.id]}")`); });
   return '';
 }
 const mineGame = g => g.teams && S.teams.some(t => t.path === g.path && g.teams.includes(t.id));
@@ -252,7 +261,10 @@ function tonightPicks() {
 // screens. "auto" = the poster's real width (lazy images); older browsers use 200px. A missing small one falls back to the original.
 // Later 11/20: sharp phone screens still took the original (1-2 MB 4K posters for ~170 px), so a 600-px copy from wsrv.nl (free image
 // resizer, webp) sits between; if wsrv fails, onerror shows the original.
-const tvmSet = u => /^https:\/\/static\.tvmaze\.com\/uploads\/images\/original_untouched\//.test(u || '') ? ` srcset="${esc(u.replace('/original_untouched/', '/medium_portrait/'))} 210w, https://wsrv.nl/?url=${encodeURIComponent(u.slice(8))}&amp;w=600&amp;output=webp&amp;q=80 600w, ${esc(u)} 1200w" sizes="auto, 200px" onerror="if(this.srcset){this.removeAttribute('srcset');this.src='${esc(u)}'}"` : '';
+// 11/21: big posters (.lp.big, 172 px) on a 3x phone still took the original - Chrome's sizes=auto guess landed on the 1200w step,
+// which WAS the original (TVmaze originals run up to 3-4K, 1-3 MB; 16 of them = 21 MB in a phone's first minute). Now 1200w is a
+// wsrv copy too and the original is listed as 4000w, so it is only used if wsrv fails (onerror).
+const tvmSet = u => /^https:\/\/static\.tvmaze\.com\/uploads\/images\/original_untouched\//.test(u || '') ? ` srcset="${esc(u.replace('/original_untouched/', '/medium_portrait/'))} 210w, https://wsrv.nl/?url=${encodeURIComponent(u.slice(8))}&amp;w=600&amp;output=webp&amp;q=80 600w, https://wsrv.nl/?url=${encodeURIComponent(u.slice(8))}&amp;w=1200&amp;output=webp&amp;q=80 1200w, ${esc(u)} 4000w" sizes="auto, 200px" onerror="if(this.srcset){this.removeAttribute('srcset');this.src='${esc(u)}'}"` : '';
 const _lposter = (x, big) => `<button class="lp${big ? ' big' : ''}${S.sel && S.sel.key === x.key ? ' on' : ''}${x.svc && !hasIt(x.svc) ? (offersOn() && OFFER[x.svc] ? ' offer' : ' off') : ''}" data-i="${reg(x)}">${x.svc && !hasIt(x.svc) && offersOn() && OFFER[x.svc] ? '<span class="trialtag">Free trial</span>' : ''}${x.big || x.img ? `<img src="${esc(x.big || x.img)}"${tvmSet(x.big || x.img)} alt="" loading="lazy">` : `<span class="lpno">🎬</span>`}${placesBadge(x)}<span class="lpt"><b>${esc(x.title)}</b><small>${esc(x.when ? (x.when <= Date.now() ? 'On now' : clock(new Date(x.when))) + (x.chan ? ' · ' + x.chan : '') : x.note || '')}</small></span></button>`;
 function shows() {
   if (S.mlAll) return mlAllPage(S.mlAll);   // a full movie list, See all (catalogs.js)
