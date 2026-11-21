@@ -526,6 +526,7 @@ document.addEventListener('click', e => {
   else if (t.dataset.rmactor) { S.actors = S.actors.filter(a => a !== t.dataset.rmactor); save('actors', S.actors); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.hasAttribute('data-pfsave')) { S.profile = { ...S.profile, name: ($('pfname').value || '').trim().slice(0, 40) }; save('profile', S.profile); draw(); }
   else if (t.hasAttribute('data-acct2')) acctPress();
+  else if (t.hasAttribute('data-tvupd')) { try { MMNative.checkUpdate(); } catch (e) { /* older TV app: the box explains */ } }
   else if (t.hasAttribute('data-mmunlock')) { if (window.mmMembership) mmMembership.open('Unlock Marvel Magic'); }
   else if (t.dataset.frsvc) { S.freeSvc = t.dataset.frsvc; save('freeSvc', S.freeSvc); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.frcat) { S.freeCat = t.dataset.frcat; const y = window.scrollY; draw(); window.scrollTo(0, y); }

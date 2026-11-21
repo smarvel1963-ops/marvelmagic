@@ -163,6 +163,16 @@ const WHOP_MM = 'https://whop.com/commander-marvel-por-picks/marvel-magic';   //
 const MOODS = ['Funny', 'Action', 'Mystery', 'Romance', 'Scary', 'Feel-good', 'Family Night', 'True story'];
 // v11/21 the membership box shows where this device stands: unlocked (with the email), or the free days left + Join + unlock with
 // the joined email (opens the same screen as the lock, with Not now). membership.js owns the checks; this only reads them.
+// v11/21 (Scott: "firestick doesnt show version number anywhere"): in the Fire TV / Android TV app, Settings shows the app's
+// version and a Check for update button (TV app 1.6+). An older app has no version() - it says so and how to get the update.
+function tvAppBox() {
+  let plat = ''; try { plat = window.MMNative && MMNative.platform ? MMNative.platform() : ''; } catch (e) { plat = ''; }
+  if (plat !== 'firetv' && plat !== 'androidtv') return '';
+  let v = ''; try { v = typeof MMNative.version === 'function' ? MMNative.version() : ''; } catch (e) { v = ''; }
+  const body = v ? `<p style="margin:0 0 10px">Marvel Magic TV app <b>version ${esc(v)}</b>.</p><button class="btn" data-tvupd>Check for update</button>`
+    : `<p style="margin:0 0 8px">This TV has an <b>older Marvel Magic app</b> (1.5 or before).</p><p class="fine" style="margin:0">To update: close Marvel Magic all the way (Settings &gt; Applications &gt; Manage Installed Applications &gt; Marvel Magic &gt; Force stop), then open it again and pick <b>Update now</b>.</p>`;
+  return `<section class="glow plain stbox"><h3>📺 TV App</h3>${body}</section>`;
+}
 function memberBox() {
   const mm = window.mmMembership, join = `<a class="btn gold" href="${WHOP_MM}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Keep the Magic - $4.99/month ›</a>`;
   if (!mm) return `<p style="margin:0 0 8px"><b>30 days free, then $4.99 a month</b> for the whole household. Cancel any time.</p>${join}`;
@@ -173,7 +183,7 @@ function memberBox() {
   return `<p style="margin:0 0 8px"><b>${left ? left + ' free day' + (left === 1 ? '' : 's') + ' left.' : 'Your free days are up.'}</b> Then $4.99 a month for the whole household. Cancel any time.</p><p class="fine" style="margin:0 0 10px">Have a code? Enter it at checkout.</p><div style="display:flex;gap:8px;flex-wrap:wrap">${join}<button class="btn alt" data-mmunlock>Already joined? Unlock</button></div>`;
 }
 function settingsPage() {
-  if (S.paired) return `${pageHero('pwatch', '⚙ SETTINGS', 'This TV', 'Set up for ' + esc(profName()) + '. Nothing to sign in to.')}<div style="margin-top:18px">${signTvBox()}</div><div style="margin-top:18px" class="glow plain" ><p>This screen belongs to <b>${esc(profName())}</b> in ${esc((S.house && S.house.name) || 'the household')}. To change it, the household owner removes it in their Settings.</p></div>`;
+  if (S.paired) return `${pageHero('pwatch', '⚙ SETTINGS', 'This TV', 'Set up for ' + esc(profName()) + '. Nothing to sign in to.')}<div style="margin-top:18px">${signTvBox()}</div><div style="margin-top:18px">${tvAppBox()}</div><div style="margin-top:18px" class="glow plain" ><p>This screen belongs to <b>${esc(profName())}</b> in ${esc((S.house && S.house.name) || 'the household')}. To change it, the household owner removes it in their Settings.</p></div>`;
   if (kidsOn()) return `${pageHero('pwatch', '⚙ SETTINGS', 'Settings', 'Locked while Kids Lock is on.')}<div style="margin-top:18px">${kidsSection()}</div>`;
   const mineT = t => S.teams.some(x => x.path === t.path && x.id === t.id);
   const hits = S.teamHits ? `<div class="teamhits">${S.teamHits.length ? S.teamHits.map((t, i) => `<button class="chip" data-team="${i}" ${mineT(t) ? 'disabled' : ''}>${esc(t.name)} · ${esc(t.league)}${mineT(t) ? ' ✓' : ''}</button>`).join('') : '<p class="fine">No team found.</p>'}</div>` : '';
@@ -185,6 +195,7 @@ function settingsPage() {
     ${box('🏠 My Household', houseBox(), 'stwide')}
     ${S.prof || S.profLock ? box('🔒 This TV', `<p class="fine">This TV opens as <b>${esc(profName())}</b> every time.</p><button class="btn ${S.profLock ? '' : 'alt'}" data-proflock>${S.profLock ? '🔒 Locked to ' + esc(profName()) + ' (PIN to unlock)' : 'Lock this TV to ' + esc(profName())}</button>`) : ''}
     ${signTvBox()}
+    ${tvAppBox()}
     ${box('⭐ Marvel Magic Membership', memberBox(), 'amber')}
     ${box('👤 Profile', `<label class="stlab">Your name<input id="pfname" class="stin" maxlength="40" value="${esc(S.profile.name || firstName() || '')}" placeholder="Your name"></label><button class="btn alt" data-pfsave style="margin-top:8px">Save name</button>
       <p class="fine" style="margin:12px 0 6px">${me ? '✓ Signed in as ' + esc(me.email || me.displayName || '') + '. Your settings follow you to every device.' : 'Sign in with Google and your settings follow you to every device.'}</p><button class="btn ${me ? 'alt' : ''}" data-acct2>${me ? 'Sign out' : 'Sign in with Google'}</button>`)}
