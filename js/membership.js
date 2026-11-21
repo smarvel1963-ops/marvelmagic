@@ -10,6 +10,8 @@
 //    can't be reached the device stays unlocked for 2 more weeks (a relay problem never locks out a paying household).
 //  - one membership covers up to 6 TVs and phones (the relay's own household list, separate from the Hub apps).
 // Nothing in the app is deleted while it is locked; joining opens everything again.
+// v11/21 (Scott "yes" to finishing the paywall): the same screen can be opened before day 30 (Settings 'Unlock with my email',
+//  and Whop's ?welcome=1 return after checkout) with a 'Not now' button; a notice shows the last 7 free days, once a day.
 (function () {
   const RELAY = 'https://script.google.com/macros/s/AKfycbyVbxOCPR7v8UNTVufOWKOKBpI19-NcWEXMVzjP86iKraxenseHpWL95W9sB_Rr6DXo/exec';
   const JOIN = typeof WHOP_MM === 'string' ? WHOP_MM : 'https://whop.com/commander-marvel-por-picks/marvel-magic';
@@ -51,7 +53,7 @@
   // positive headline, what this household has actually done in Marvel Magic (real counts from this device, nothing made up),
   // what stays together, the one household price, Keep the Magic, the QR for a TV. Same ids and keys as before, so the TV remote
   // and the unlock steps work exactly as they did. On a wide screen (a TV) the pitch sits left and joining sits right.
-  let STEP = 'join', BUYER = '', MSG = '';
+  let STEP = 'join', BUYER = '', MSG = '', FORCE = false, HEAD = '';
   const n = k => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return Array.isArray(v) ? v.length : 0; } catch (e) { return 0; } };
   function stats() {
     const pl = (c, w, ws) => c === 1 ? w : ws;
@@ -63,7 +65,7 @@
     return `<div class="mml-card" role="dialog" aria-modal="true" aria-label="Marvel Magic membership">
       <div class="mml-l"><div class="mml-hero"><img class="mml-heroimg" src="hero_theater.jpg" alt=""><img class="mml-logo" src="logo.png" alt="Marvel Magic"></div>
         <div class="mml-pitchbox"><div class="mml-badge" aria-hidden="true">✨</div>
-          <h2>${left ? 'Join Marvel Magic' : 'Keep the magic playing.'}</h2><p class="mml-sub">${left ? `${left} free day${left === 1 ? '' : 's'} left` : 'Your 30 free days are up.'}</p>
+          <h2>${HEAD || (left ? 'Join Marvel Magic' : 'Keep the magic playing.')}</h2><p class="mml-sub">${memberGood(member()) ? 'This device is unlocked.' : left ? `${left} free day${left === 1 ? '' : 's'} left` : 'Your 30 free days are up.'}</p>
           ${st ? `<div class="mml-stats" aria-label="What your household has done">${st}</div><p class="mml-me">You've made Marvel Magic your own. Keep your guide, your channels and your games together.</p>` : ''}
           <div class="mml-feats">${feat('📺', 'Your TV guide')}${feat('⭐', 'Your channels')}${feat('🏟️', 'Every game on its channel')}${feat('🎬', 'Free movies & shows')}</div></div></div>
       <div class="mml-r">
@@ -76,16 +78,17 @@
           <div class="mml-in"><input id="mmlEmailIn" type="email" autocomplete="email" placeholder="you@example.com" value="${escH(BUYER)}"><button class="mml-btn">Unlock</button></div></form>`}
       <p class="mml-msg" role="status">${escH(MSG)}</p>
       <p class="mml-safe"><span aria-hidden="true">🔒</span>Everything you set up stays safe on this device. It all opens again the moment you unlock.</p>
+      ${FORCE && !locked() ? '<button type="button" class="mml-later" data-mmlclose>Not now</button>' : ''}
     </div></div>`;
   }
   function draw() {
     let el = document.getElementById('mmLock');
-    if (!locked()) { if (el) el.remove(); document.documentElement.classList.remove('mm-locked'); return; }
+    if (!locked() && !FORCE) { if (el) el.remove(); document.documentElement.classList.remove('mm-locked'); return; }
     if (!el) { el = document.createElement('div'); el.id = 'mmLock'; document.body.appendChild(el); }
     document.documentElement.classList.add('mm-locked');
     el.innerHTML = html();
     try { if (window.QRCode) new QRCode(document.getElementById('mmlQr'), { text: JOIN, width: 132, height: 132, colorDark: '#0b0b1a', colorLight: '#ffffff' }); } catch (e) { /* no QR library: the button still works */ }
-    const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : '.mml-join'); if (first) setTimeout(() => first.focus(), 30);
+    const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : FORCE && !locked() ? '#mmlEmailIn' : '.mml-join'); if (first) setTimeout(() => first.focus(), 30);
   }
   async function onSubmit(e) {
     const f = e.target; if (!f || !document.getElementById('mmLock') || !document.getElementById('mmLock').contains(f)) return;
@@ -96,7 +99,7 @@
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(BUYER)) { MSG = 'Enter the email you joined with.'; draw(); return; }
       MSG = 'Checking...'; draw();
       const r = await verify(BUYER);
-      if (r === 'ok') { MSG = ''; STEP = 'join'; draw(); return; }
+      if (r === 'ok') { MSG = ''; STEP = 'join'; FORCE = false; HEAD = ''; draw(); notice(); refresh(); return; }
       if (r === 'code') {
         let j; try { j = await relay({ task: 'code', buyer: BUYER, device: device() }); } catch (err) { j = { error: "Couldn't reach the check - try again in a minute." }; }
         if (j && j.sent) { STEP = 'code'; MSG = ''; } else MSG = (j && j.error) || "Couldn't send the code - try again in a minute.";
@@ -111,7 +114,7 @@
       let j; try { j = await relay({ task: 'confirm', buyer: BUYER, device: device(), code }); } catch (err) { j = { error: "Couldn't reach the check - try again in a minute." }; }
       if (!j || !j.ok) { MSG = (j && j.error) || "That code didn't work. Check the email, or go back and send a new one."; draw(); return; }
       const r = await verify(BUYER);
-      if (r === 'ok') { MSG = ''; STEP = 'join'; draw(); return; }
+      if (r === 'ok') { MSG = ''; STEP = 'join'; FORCE = false; HEAD = ''; draw(); notice(); refresh(); return; }
       MSG = r === 'code' ? 'Please try the code again.' : r; draw();
     }
   }
@@ -123,7 +126,7 @@
     const i = items.indexOf(document.activeElement);
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || (e.key === 'Tab' && !e.shiftKey)) { if (!(document.activeElement && document.activeElement.tagName === 'INPUT' && (e.key === 'ArrowRight'))) { e.preventDefault(); items[(i + 1) % items.length].focus(); } }
     else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || (e.key === 'Tab' && e.shiftKey)) { if (!(document.activeElement && document.activeElement.tagName === 'INPUT' && e.key === 'ArrowLeft')) { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); } }
-    else if (e.key === 'Escape' || e.key === 'Backspace' && document.activeElement && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); }
+    else if (e.key === 'Escape' || e.key === 'Backspace' && document.activeElement && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); if (FORCE && !locked()) close(); }
     e.stopPropagation();
   }
   // A member's device re-checks about once a week (quietly; a check that can't be reached changes nothing).
@@ -182,6 +185,15 @@
 #mmLock .mml-safe { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0 0; padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, .06);
   font-size: 13px; line-height: 1.4; color: #cfc6f5; text-align: left; }
 #mmLock .mml-safe span { font-size: 20px; }
+#mmLock .mml-later { display: block; margin: 12px auto 0; padding: 10px 22px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .3); background: transparent; color: #ddd3ff; font-weight: 800; font-size: 15px; cursor: pointer; }
+#mmTrialNote { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 2147482000; width: min(720px, calc(100% - 24px)); box-sizing: border-box;
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: linear-gradient(135deg, #2b1560, #1a0d3d); color: #fff;
+  border: 2px solid rgba(255, 205, 100, .6); box-shadow: 0 12px 34px rgba(0, 0, 0, .5); font: 600 15px/1.35 "Inter", system-ui, sans-serif; }
+#mmTrialNote span { flex: 1; } #mmTrialNote b { color: #ffe08a; }
+#mmTrialNote a { flex: none; padding: 9px 14px; border-radius: 999px; text-decoration: none; font-weight: 900; color: #1a1030; background: linear-gradient(180deg, #ffe08a, #f0a020); }
+#mmTrialNote button { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .12); color: #fff; font-size: 16px; cursor: pointer; }
+#mmTrialNote a:focus, #mmTrialNote button:focus { outline: 3px solid #7fd8ff; outline-offset: 2px; }
+@media (max-width: 560px) { #mmTrialNote { flex-wrap: wrap; bottom: 76px; } #mmTrialNote span { flex-basis: calc(100% - 46px); } }
 @media (max-width: 380px) { #mmLock .mml-row { flex-direction: column; align-items: center; } #mmLock .mml-qrbox { width: auto; } #mmLock h2 { font-size: 26px; } }
 @media (min-width: 900px) and (orientation: landscape) {
   #mmLock { place-items: center; }
@@ -192,11 +204,42 @@
 @media (max-width: 560px) { #mmLock .mml-qrbox { display: none; } }   /* a phone can't scan its own screen */`;
   if (!document.getElementById('mmLockCss')) { const st = document.createElement('style'); st.id = 'mmLockCss'; st.textContent = CSS; document.head.appendChild(st); }
 
-  window.mmMembership = { daysLeft, locked, member: () => member(), draw };
+  // Open the join / unlock screen before the lock (Settings, or back from Whop checkout). 'Not now' or Escape closes it.
+  function open(head, msg) { FORCE = true; HEAD = head || ''; MSG = msg || ''; STEP = 'join'; draw(); }
+  function close() { FORCE = false; HEAD = ''; MSG = ''; STEP = 'join'; draw(); }
+  function refresh() { try { if (typeof window.draw === 'function' && typeof S === 'object' && S.tab === 10) { const y = window.scrollY; window.draw(); window.scrollTo(0, y); } } catch (e) { /* Settings redraws next time it opens */ } }
+  document.addEventListener('click', e => { const b = e.target && e.target.closest && e.target.closest('[data-mmlclose]'); if (b) { e.preventDefault(); close(); } }, true);
+  // The last 7 free days: a small notice once a day (not on a member's device, not while the lock is up). Tap Join or the X.
+  const K_NOTE = 'mm.trialNote';
+  function notice() {
+    let el = document.getElementById('mmTrialNote');
+    const left = daysLeft(), today = new Date().toDateString();
+    if (memberGood(member()) || locked() || left > 7 || get(K_NOTE, '') === today) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'mmTrialNote'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+    el.innerHTML = `<span>✨ <b>${left} free day${left === 1 ? '' : 's'} left</b> in Marvel Magic. Keep it for $4.99 a month for the whole home.</span>
+      <a href="${escH(JOIN)}" target="_blank" rel="noopener">Keep the Magic</a><button type="button" aria-label="Close">✕</button>`;
+    el.querySelector('button').onclick = () => { put(K_NOTE, today); el.remove(); };
+    el.querySelector('a').onclick = () => put(K_NOTE, today);
+  }
+  // Whop sends buyers back with ?welcome=1: ask for the joined email once, then take the flag out of the address bar.
+  function welcome() {
+    if (!/[?&]welcome=1\b/.test(location.search)) return;
+    try { const u = new URL(location.href); u.searchParams.delete('welcome'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } catch (e) { /* old browser: the flag just stays */ }
+    if (memberGood(member())) return;
+    open('Welcome to Marvel Magic!', '');
+    MSG = 'Enter the email you joined with to unlock this device.'; draw();
+  }
+
+  window.mmMembership = { daysLeft, locked, member: () => member(), memberGood: () => memberGood(member()), draw, open, close };
   document.addEventListener('submit', onSubmit, true);
   document.addEventListener('keydown', onKey, true);
+  // While the screen is up, focus never sits behind it (the app's own TV focus moves to a poster after a redraw): pull it back.
+  document.addEventListener('focusin', e => {
+    const el = document.getElementById('mmLock'); if (!el || el.contains(e.target)) return;
+    const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : FORCE && !locked() ? '#mmlEmailIn' : '.mml-join'); if (first) first.focus();
+  }, true);
   trialStart();
-  const start = () => { draw(); recheck(); };
+  const start = () => { welcome(); draw(); notice(); recheck(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
   setInterval(draw, 60 * 60 * 1000);           // left open past day 30 (a TV that never closes): the lock appears within the hour
 })();

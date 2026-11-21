@@ -161,6 +161,16 @@ function catSection() {
 // Synced to the person's account (Google sign-in) like the rest.
 const WHOP_MM = 'https://whop.com/commander-marvel-por-picks/marvel-magic';   // Scott 11/14: $4.99/mo, 30-day free trial (prod_jXXGU9TnSIgHR)
 const MOODS = ['Funny', 'Action', 'Mystery', 'Romance', 'Scary', 'Feel-good', 'Family Night', 'True story'];
+// v11/21 the membership box shows where this device stands: unlocked (with the email), or the free days left + Join + unlock with
+// the joined email (opens the same screen as the lock, with Not now). membership.js owns the checks; this only reads them.
+function memberBox() {
+  const mm = window.mmMembership, join = `<a class="btn gold" href="${WHOP_MM}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Keep the Magic - $4.99/month ›</a>`;
+  if (!mm) return `<p style="margin:0 0 8px"><b>30 days free, then $4.99 a month</b> for the whole household. Cancel any time.</p>${join}`;
+  const m = mm.member();
+  if (mm.memberGood()) return `<p style="margin:0 0 8px"><b>✓ Member.</b> This device is unlocked${m && m.buyer ? ' for ' + esc(m.buyer) : ''}.</p><p class="fine" style="margin:0">One membership covers every TV and phone in your home, up to 6. Manage or cancel on Whop.</p><a class="btn alt" href="https://whop.com/@me/settings/memberships/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;margin-top:10px">Manage my membership ›</a>`;
+  const left = mm.daysLeft();
+  return `<p style="margin:0 0 8px"><b>${left ? left + ' free day' + (left === 1 ? '' : 's') + ' left.' : 'Your free days are up.'}</b> Then $4.99 a month for the whole household. Cancel any time.</p><p class="fine" style="margin:0 0 10px">Have a code? Enter it at checkout.</p><div style="display:flex;gap:8px;flex-wrap:wrap">${join}<button class="btn alt" data-mmunlock>Already joined? Unlock</button></div>`;
+}
 function settingsPage() {
   if (S.paired) return `${pageHero('pwatch', '⚙ SETTINGS', 'This TV', 'Set up for ' + esc(profName()) + '. Nothing to sign in to.')}<div style="margin-top:18px">${signTvBox()}</div><div style="margin-top:18px" class="glow plain" ><p>This screen belongs to <b>${esc(profName())}</b> in ${esc((S.house && S.house.name) || 'the household')}. To change it, the household owner removes it in their Settings.</p></div>`;
   if (kidsOn()) return `${pageHero('pwatch', '⚙ SETTINGS', 'Settings', 'Locked while Kids Lock is on.')}<div style="margin-top:18px">${kidsSection()}</div>`;
@@ -174,7 +184,7 @@ function settingsPage() {
     ${box('🏠 My Household', houseBox(), 'stwide')}
     ${S.prof || S.profLock ? box('🔒 This TV', `<p class="fine">This TV opens as <b>${esc(profName())}</b> every time.</p><button class="btn ${S.profLock ? '' : 'alt'}" data-proflock>${S.profLock ? '🔒 Locked to ' + esc(profName()) + ' (PIN to unlock)' : 'Lock this TV to ' + esc(profName())}</button>`) : ''}
     ${signTvBox()}
-    ${box('⭐ Marvel Magic Membership', `<p style="margin:0 0 8px"><b>30 days free, then $4.99 a month</b> for the whole household. Cancel any time.</p><p class="fine" style="margin:0 0 10px">Have a code? Enter it at checkout.</p><a class="btn gold" href="${WHOP_MM}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Start my 30 days free ›</a>`, 'amber')}
+    ${box('⭐ Marvel Magic Membership', memberBox(), 'amber')}
     ${box('👤 Profile', `<label class="stlab">Your name<input id="pfname" class="stin" maxlength="40" value="${esc(S.profile.name || firstName() || '')}" placeholder="Your name"></label><button class="btn alt" data-pfsave style="margin-top:8px">Save name</button>
       <p class="fine" style="margin:12px 0 6px">${me ? '✓ Signed in as ' + esc(me.email || me.displayName || '') + '. Your settings follow you to every device.' : 'Sign in with Google and your settings follow you to every device.'}</p><button class="btn ${me ? 'alt' : ''}" data-acct2>${me ? 'Sign out' : 'Sign in with Google'}</button>`)}
     ${box('🏈 Favorite Teams', `${S.teams.length ? S.teams.map(t => `<div class="spmy"><span>★</span><b>${esc(t.name)}</b><small>${esc(t.league)}</small><button class="round" data-rmteam="${esc(t.path + '|' + t.id)}" aria-label="Remove ${esc(t.name)}">✕</button></div>`).join('') : '<p class="fine">No teams yet.</p>'}

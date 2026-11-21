@@ -33,7 +33,7 @@ def fake_relay(state):
         route.fulfill(status=200, content_type="application/json", body=json.dumps(body))
     return handler
 
-def open_app(b, port, size, before=None):
+def open_app(b, port, size, before=None, query=""):
     ctx = b.new_context(viewport={"width": size[0], "height": size[1]})
     state = {"calls": [], "confirmed": False}
     # Playwright runs the LAST matching route first: outside sites are blocked, then the relay fake is laid over them
@@ -41,7 +41,7 @@ def open_app(b, port, size, before=None):
     ctx.route("**/macros/s/**", fake_relay(state))
     if before: ctx.add_init_script(before)
     pg = ctx.new_page(); errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
-    pg.goto(f"http://127.0.0.1:{port}/index.html", wait_until="domcontentloaded"); pg.wait_for_timeout(1200)
+    pg.goto(f"http://127.0.0.1:{port}/index.html{query}", wait_until="domcontentloaded"); pg.wait_for_timeout(1200)
     return ctx, pg, state, errs
 
 def main():
@@ -93,6 +93,34 @@ def main():
         ctx, pg, st, errs = open_app(b, port, (390, 844), fresh)
         check("a member checked 2 days ago is open with no call", not pg.query_selector("#mmLock") and not st["calls"])
         ctx.close()
+
+        print("\n[v11/21 the last 7 free days, back from Whop, Settings]")
+        d25 = f"localStorage.setItem('mm.trialStart', String(Date.now() - 25 * {DAY}));"
+        ctx, pg, st, errs = open_app(b, port, (390, 844), f"localStorage.setItem('mm.trialStart', String(Date.now() - 5 * {DAY}));")
+        check("day 5: no free-days notice", not pg.query_selector("#mmTrialNote")); ctx.close()
+        ctx, pg, st, errs = open_app(b, port, (390, 844), d25)
+        t = pg.inner_text("#mmTrialNote") if pg.query_selector("#mmTrialNote") else ""
+        check("day 25: a notice says 5 free days left, with Keep the Magic to Whop", "5 free days left" in t and pg.evaluate("document.querySelector('#mmTrialNote a').href") == "https://whop.com/commander-marvel-por-picks/marvel-magic", t)
+        check("the notice sits above the phone's bottom menu", pg.evaluate("(() => { const n = document.getElementById('mmTrialNote').getBoundingClientRect(), m = document.querySelector('nav').getBoundingClientRect(); return n.bottom <= m.top + 1; })()"))
+        if shots: pg.screenshot(path=str(Path(__file__).parent / "shots" / "lock_note_phone.png"))
+        pg.click("#mmTrialNote button"); pg.reload(wait_until="domcontentloaded"); pg.wait_for_timeout(900)
+        check("closed: it stays away for the rest of the day", not pg.query_selector("#mmTrialNote"))
+        check("no page errors", not errs, errs[:2]); ctx.close()
+
+        ctx, pg, st, errs = open_app(b, port, (1672, 941), d25, "?welcome=1")
+        t = pg.inner_text("#mmLock") if pg.query_selector("#mmLock") else ""
+        check("back from Whop (?welcome=1): Welcome screen asks for the joined email", "Welcome to Marvel Magic!" in t and "Enter the email you joined with" in t and pg.evaluate("document.activeElement && document.activeElement.id") == "mmlEmailIn", t[:200])
+        check("the welcome flag is taken out of the address bar", "welcome" not in pg.url)
+        pg.click("[data-mmlclose]"); pg.wait_for_timeout(200)
+        check("Not now closes it (still in the free days)", not pg.query_selector("#mmLock") and not pg.evaluate("mmMembership.locked()"))
+        pg.evaluate("showTab(10)"); pg.wait_for_timeout(300)
+        check("Settings shows the free days left", "5 free days left." in pg.inner_text("#view"))
+        pg.click("[data-mmunlock]"); pg.wait_for_timeout(200)
+        pg.fill("#mmlEmailIn", GOOD); pg.click("#mmlEmail button"); pg.wait_for_timeout(300)
+        pg.fill("#mmlCodeIn", "123456"); pg.click("#mmlCode button"); pg.wait_for_timeout(500)
+        v = pg.inner_text("#view")
+        check("Settings 'Already joined? Unlock' -> email + code unlocks; Settings then says Member", not pg.query_selector("#mmLock") and "Member." in v and GOOD in v and not pg.query_selector("#mmTrialNote"), v[:300])
+        check("no page errors", not errs, errs[:2]); ctx.close()
         b.close()
     httpd.shutdown()
     print(f"\n{'ALL PASS' if not FAILS else str(len(FAILS)) + ' FAILED'}")
