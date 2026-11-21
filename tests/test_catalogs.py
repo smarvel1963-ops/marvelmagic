@@ -124,6 +124,10 @@ with sync_playwright() as p:
     n_tubi = pg.evaluate("document.querySelectorAll('main .lp').length")
     check("Tubi See all: 60 posters", n_tubi == 60, f"{n_tubi}")
     pg.screenshot(path=str(SHOTS / "ml_tubi_all.png"))
+    # 11/20: a focused 👍 (TV remote, or draw() putting focus back) took button:focus-visible's position:relative, dropped out of the
+    # poster's corner and made the row 36 px taller; the page jumped when focus left, so taps (and this test's Tubi tap) missed.
+    th = pg.evaluate("(() => { const t = document.querySelector('main .pw .thumb'); if (!t) return null; const p = t.parentElement, h = p.offsetHeight; t.focus({ focusVisible: true }); const r = [t.matches(':focus-visible'), getComputedStyle(t).position, h, p.offsetHeight]; t.blur(); return r; })()")
+    check("a focused rate button stays in the poster's corner (row height unchanged)", th and th[1] == "absolute" and th[2] == th[3], f"{th}")
     kid = pg.evaluate("(() => { S.kids = { on: true }; const all = (ML['Tubi|all'] || {}).items || []; const shown = all.filter(kidOk); S.kids = { on: false }; return [all.length, shown.length, shown.every(x => x.gids.includes(10751) && !x.gids.some(g => [27, 53, 80, 10752].includes(g)))]; })()")
     check("Kids Lock keeps only family movies", kid[1] > 0 and kid[1] < kid[0] and kid[2], f"{kid[1]} of {kid[0]}")
     check("no JavaScript errors", not errs, "; ".join(errs[:2]))
