@@ -81,6 +81,14 @@ function home() {
 // COMING SOON (HOT) + FOR YOU + KIDS LOCK (Scott 11/14: "a coming soon HOT page based on what channels you currently have", "its own recommendation
 // page based on your needs", "children lockouts"). Premieres + upcoming shows from TVmaze's day schedules for the next 3 weeks, kept 6 hours on this device.
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// 11/20: the guide (loadGuide) and the show pool (loadPool) both asked TVmaze for today's + tomorrow's US schedule at the same moment, so
+// ~300 KB came down twice. One download per address, shared for 10 minutes; a failed one is not kept and still fails for the caller.
+const TVM_GET = new Map();
+function tvmGet(u) {
+  const c = TVM_GET.get(u); if (c && Date.now() - c.at < 600000) return c.p;
+  const p = fetch(u).then(r => r.ok ? r.json() : []).catch(e => { TVM_GET.delete(u); throw e; });
+  TVM_GET.set(u, { at: Date.now(), p }); return p;
+}
 async function loadPool(force) {
   if (S.poolBusy) return;
   const c = load('pool', null);
@@ -90,7 +98,7 @@ async function loadPool(force) {
   const urls = days.flatMap(d => [`https://api.tvmaze.com/schedule?country=US&date=${d}`, `https://api.tvmaze.com/schedule/web?date=${d}`]);
   const raw = [];
   for (let i = 0; i < urls.length; i += 8) {   // TVmaze allows about 20 calls per 10 seconds
-    const part = await Promise.all(urls.slice(i, i + 8).map(u => fetch(u).then(r => r.ok ? r.json() : []).catch(() => [])));
+    const part = await Promise.all(urls.slice(i, i + 8).map(u => tvmGet(u).catch(() => [])));
     raw.push(...part.flat());
     if (i + 8 < urls.length) await new Promise(r => setTimeout(r, 4200));
   }
@@ -242,7 +250,7 @@ async function loadGuide() {
   try {
     const dates = [0, 1].map(n => { const d = new Date(Date.now() + n * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
     const urls = dates.flatMap(d => [`https://api.tvmaze.com/schedule?country=US&date=${d}`, `https://api.tvmaze.com/schedule/web?country=US&date=${d}`]);
-    const lists = await Promise.all(urls.map(u => fetch(u).then(r => r.ok ? r.json() : [])));
+    const lists = await Promise.all(urls.map(tvmGet));   // the US schedule is shared with loadPool; a failed load still shows "Couldn't load listings"
     const seen = new Set(), out = [];
     for (const e of lists.flat()) {
       const show = e.show || (e._embedded && e._embedded.show); if (!show || !e.airstamp || seen.has(e.id)) continue; seen.add(e.id);
