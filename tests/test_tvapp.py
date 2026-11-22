@@ -16,6 +16,8 @@ def check(name, ok, extra=""):
 
 NEW = "window.MMNative = { platform: () => 'firetv', has: () => true, open: () => {}, version: () => '1.6', checkUpdate: () => { window.__checked = (window.__checked || 0) + 1; } };"
 OLD = "window.MMNative = { platform: () => 'firetv', has: () => true, open: () => {} };"
+STORE = "window.MMNative = { platform: () => 'firetv', has: () => true, open: () => {}, version: () => '1.6.2', checkUpdate: () => {}, store: () => true };"
+DAY = 24 * 3600 * 1000
 SAM = "window.MMNative = { platform: () => 'samsung', has: () => true, open: () => {} };"
 
 def settings(b, port, init):
@@ -39,6 +41,25 @@ def main():
         ctx, pg, errs = settings(b, port, OLD); v = pg.inner_text("#view")
         check("older TV app: says it is older and how to update (Force stop, reopen, Update now)", "older Marvel Magic app" in v and "Force stop" in v and "Update now" in v)
         check("no page errors", not errs, errs[:2]); ctx.close()
+        # v11/21 Amazon Appstore copy (MMNative.store()): no price, no Join / Whop link, no QR, no trial notice - members sign in
+        expired = f"localStorage.setItem('mm.trialStart', String(Date.now() - 31 * {DAY}));"
+        ctx, pg, errs = settings(b, port, STORE + expired); pg.wait_for_timeout(300)
+        lock = pg.inner_html("#mmLock") if pg.query_selector("#mmLock") else ""
+        check("store app, free days up: lock screen is up", bool(lock))
+        check("store app lock: no price, no Join, no Whop link, no QR", "4.99" not in lock and "mml-join" not in lock and "whop.com" not in lock and "mmlQr" not in lock, lock[:300])
+        check("store app lock: members sign in with their email", "sign in" in lock and pg.query_selector("#mmlEmailIn") is not None)
+        check("store app lock: focus starts on the email box", pg.evaluate("document.activeElement && document.activeElement.id") == "mmlEmailIn")
+        check("no page errors", not errs, errs[:2]); ctx.close()
+        d25 = f"localStorage.setItem('mm.trialStart', String(Date.now() - 25 * {DAY}));"
+        ctx, pg, errs = settings(b, port, STORE + d25); pg.wait_for_timeout(300)
+        v = pg.inner_html("#view")
+        check("store app Settings: no price or Whop link, has Members: sign in", "4.99" not in v and "whop.com" not in v and "Members: sign in" in v, v[:200])
+        check("store app: no last-7-days notice", pg.query_selector("#mmTrialNote") is None)
+        check("no page errors", not errs, errs[:2]); ctx.close()
+        ctx, pg, errs = settings(b, port, NEW + expired); pg.wait_for_timeout(300)
+        lock = pg.inner_html("#mmLock") if pg.query_selector("#mmLock") else ""
+        check("sideloaded app (not store): lock still shows price + Join", "4.99" in lock and "mml-join" in lock)
+        ctx.close()
         for name, init in (("computer/phone", None), ("Samsung", SAM)):
             ctx, pg, errs = settings(b, port, init)
             check(f"{name}: no TV App box", "TV App" not in pg.inner_text("#view")); ctx.close()

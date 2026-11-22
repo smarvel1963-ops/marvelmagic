@@ -406,7 +406,7 @@ function saveHouse(patch) {
 }
 function houseBox() {
   const h = S.house, role = S.houseRole;
-  if (!me) return `<p class="fine">Sign in with Google to make a household (up to ${HOUSE_MAX} people, one $4.99).</p><button class="btn" data-acct2>Sign in with Google</button>`;
+  if (!me) return `<p class="fine">Sign in with Google to make a household (up to ${HOUSE_MAX} people${window.mmMembership && mmMembership.storeApp && mmMembership.storeApp() ? '' : ', one $4.99'}).</p><button class="btn" data-acct2>Sign in with Google</button>`;
   if (S.houseErr) return '<p class="fine">Households switch on once the database allows them.</p>';
   if (!h) return `<p class="fine">One membership for the whole home: up to ${HOUSE_MAX} people. You add them by email; each signs in on their own phone or TV with that email and joins. Kids need no email.</p><button class="btn gold" data-mkhouse>Create my household</button>`;
   const people = [{ name: (h.ownerName || 'Owner') + (role === 'owner' ? ' (you)' : ''), email: h.ownerEmail, type: 'Owner' }, ...(h.members || [])];

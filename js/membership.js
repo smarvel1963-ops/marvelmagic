@@ -15,6 +15,9 @@
 (function () {
   const RELAY = 'https://script.google.com/macros/s/AKfycbyVbxOCPR7v8UNTVufOWKOKBpI19-NcWEXMVzjP86iKraxenseHpWL95W9sB_Rr6DXo/exec';
   const JOIN = typeof WHOP_MM === 'string' ? WHOP_MM : 'https://whop.com/commander-marvel-por-picks/marvel-magic';
+  // v11/21 the Amazon Appstore copy of the TV app says so (MMNative.store()). Amazon does not allow selling outside its own
+  // payment system inside a store app, so there: no price, no Join button, no QR - members just sign in with their email.
+  const storeApp = () => { try { return !!(window.MMNative && typeof MMNative.store === 'function' && MMNative.store()); } catch (e) { return false; } };
   const DAY = 86400000, TRIAL_DAYS = 30, RECHECK_DAYS = 7, GRACE_DAYS = 14;
   const K_TRIAL = 'mm.trialStart', K_MEMBER = 'mm.member', K_DEV = 'mm.device', K_OWNER = 'mm.owner';
   // THE OWNER NEVER LOCKS (Scott 11/21: "my email should never lock out of my own product"). Kept as a SHA-256 of the email, so the
@@ -81,13 +84,13 @@
     return `<div class="mml-card" role="dialog" aria-modal="true" aria-label="Marvel Magic membership">
       <div class="mml-l"><div class="mml-hero"><img class="mml-heroimg" src="hero_theater.jpg" alt=""><img class="mml-logo" src="logo.png" alt="Marvel Magic"></div>
         <div class="mml-pitchbox"><div class="mml-badge" aria-hidden="true">✨</div>
-          <h2>${HEAD || (left ? 'Join Marvel Magic' : 'Keep the magic playing.')}</h2><p class="mml-sub">${owner() || memberGood(member()) ? 'This device is unlocked.' : left ? `${left} free day${left === 1 ? '' : 's'} left` : 'Your 30 free days are up.'}</p>
+          <h2>${HEAD || (storeApp() ? 'Members, sign in' : left ? 'Join Marvel Magic' : 'Keep the magic playing.')}</h2><p class="mml-sub">${owner() || memberGood(member()) ? 'This device is unlocked.' : left ? `${left} free day${left === 1 ? '' : 's'} left` : 'Your 30 free days are up.'}</p>
           ${st ? `<div class="mml-stats" aria-label="What your household has done">${st}</div><p class="mml-me">You've made Marvel Magic your own. Keep your guide, your channels and your games together.</p>` : ''}
           <div class="mml-feats">${feat('📺', 'Your TV guide')}${feat('⭐', 'Your channels')}${feat('🏟️', 'Every game on its channel')}${feat('🎬', 'Free movies & shows')}</div></div></div>
       <div class="mml-r">
-        <div class="mml-row"><div class="mml-price"><em>ONE PRICE · WHOLE HOUSEHOLD</em><b>$4.99</b><small>a month · cancel any time</small><p>Every TV and phone in your home, up to 6.</p></div>
+        ${storeApp() ? `<p class="mml-storenote">Marvel Magic members: sign in with the email you joined with.</p>` : `<div class="mml-row"><div class="mml-price"><em>ONE PRICE · WHOLE HOUSEHOLD</em><b>$4.99</b><small>a month · cancel any time</small><p>Every TV and phone in your home, up to 6.</p></div>
           <div class="mml-qrbox"><div class="mml-qr" id="mmlQr" aria-label="QR code for joining Marvel Magic"></div><small>On a TV? Scan with your phone to join.</small></div></div>
-        <a class="mml-join" href="${escH(JOIN)}" target="_blank" rel="noopener">Keep the Magic - $4.99/month</a>
+        <a class="mml-join" href="${escH(JOIN)}" target="_blank" rel="noopener">Keep the Magic - $4.99/month</a>`}
       ${STEP === 'code' ? `<form class="mml-form" id="mmlCode"><label for="mmlCodeIn">We emailed a 6-digit code to <b>${escH(BUYER)}</b>. Enter it here:</label>
           <div class="mml-in"><input id="mmlCodeIn" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456"><button class="mml-btn">Confirm</button></div></form>`
         : `<form class="mml-form" id="mmlEmail"><label for="mmlEmailIn">Already joined? Enter the email you joined with:</label>
@@ -104,7 +107,7 @@
     document.documentElement.classList.add('mm-locked');
     el.innerHTML = html();
     try { if (window.QRCode) new QRCode(document.getElementById('mmlQr'), { text: JOIN, width: 132, height: 132, colorDark: '#0b0b1a', colorLight: '#ffffff' }); } catch (e) { /* no QR library: the button still works */ }
-    const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : FORCE && !locked() ? '#mmlEmailIn' : '.mml-join'); if (first) setTimeout(() => first.focus(), 30);
+    const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : FORCE && !locked() ? '#mmlEmailIn' : '.mml-join') || el.querySelector('#mmlEmailIn'); if (first) setTimeout(() => first.focus(), 30);
   }
   async function onSubmit(e) {
     const f = e.target; if (!f || !document.getElementById('mmLock') || !document.getElementById('mmLock').contains(f)) return;
@@ -180,6 +183,7 @@
 #mmLock .mml-f i { font-style: normal; font-size: 28px; line-height: 1; flex: none; } #mmLock .mml-f b { font-size: 15px; font-weight: 800; line-height: 1.2; color: #fff; }
 #mmLock .mml-r { padding: 16px 14px 18px; }
 #mmLock .mml-row { display: flex; gap: 12px; align-items: stretch; }
+#mmLock .mml-storenote { margin: 0 0 12px; font-size: 17px; font-weight: 800; line-height: 1.4; color: #fff; }
 #mmLock .mml-price { position: relative; flex: 1; display: grid; justify-items: center; align-content: center; padding: 18px 10px 12px; border-radius: 20px; border: 2px solid #ffcf5c;
   background: linear-gradient(135deg, rgba(255, 207, 92, .16), rgba(255, 207, 92, .05)); box-shadow: 0 0 22px rgba(255, 190, 70, .2); }
 #mmLock .mml-price em { position: absolute; top: -11px; padding: 3px 10px; border-radius: 999px; background: linear-gradient(90deg, #f5a623, #ffcf5c); color: #1a1030; font: 900 10.5px "Inter", sans-serif; letter-spacing: 1px; font-style: normal; white-space: nowrap; }
@@ -231,7 +235,7 @@
   function notice() {
     let el = document.getElementById('mmTrialNote');
     const left = daysLeft(), today = new Date().toDateString();
-    if (owner() || memberGood(member()) || locked() || left > 7 || get(K_NOTE, '') === today) { if (el) el.remove(); return; }
+    if (storeApp() || owner() || memberGood(member()) || locked() || left > 7 || get(K_NOTE, '') === today) { if (el) el.remove(); return; }
     if (!el) { el = document.createElement('div'); el.id = 'mmTrialNote'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
     el.innerHTML = `<span>✨ <b>${left} free day${left === 1 ? '' : 's'} left</b> in Marvel Magic. Keep it for $4.99 a month for the whole home.</span>
       <a href="${escH(JOIN)}" target="_blank" rel="noopener">Keep the Magic</a><button type="button" aria-label="Close">✕</button>`;
@@ -247,13 +251,13 @@
     MSG = 'Enter the email you joined with to unlock this device.'; draw();
   }
 
-  window.mmMembership = { daysLeft, locked, owner, signedIn, member: () => member(), memberGood: () => memberGood(member()), draw, open, close };
+  window.mmMembership = { daysLeft, locked, owner, signedIn, member: () => member(), memberGood: () => memberGood(member()), draw, open, close, storeApp };
   document.addEventListener('submit', onSubmit, true);
   document.addEventListener('keydown', onKey, true);
   // While the screen is up, focus never sits behind it (the app's own TV focus moves to a poster after a redraw): pull it back.
   document.addEventListener('focusin', e => {
     const el = document.getElementById('mmLock'); if (!el || el.contains(e.target)) return;
-    const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : FORCE && !locked() ? '#mmlEmailIn' : '.mml-join'); if (first) first.focus();
+    const first = el.querySelector(STEP === 'code' ? '#mmlCodeIn' : FORCE && !locked() ? '#mmlEmailIn' : '.mml-join') || el.querySelector('#mmlEmailIn'); if (first) first.focus();
   }, true);
   trialStart();
   const start = () => { welcome(); draw(); notice(); recheck(); };
