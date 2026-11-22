@@ -339,7 +339,7 @@ function openWin(url, svc, pre, ready) {   // pre = a tab already opened during 
 // before opening, instead of opening the service's front page. Live listings and games keep their channel / app way in.
 // The browser tab is opened during the click (a tab opened after a wait gets blocked) and filled in when the page is known.
 function openIt(x) {
-  if (x && x.title && !x.exact && !x.sport && !x.start && !x.net) {
+  if (x && x.title && !x.exact && !x.sport && !x.start && !x.net && !x.chan) {
     const pre = inTvApp() || needsReady(bestSvc(x) || x.svc) ? null : window.open('about:blank', '_blank');   // first time here: the check opens it from its own button
     const note = document.createElement('div'); note.className = 'updtoast'; note.textContent = 'Finding “' + x.title + '”…'; document.body.appendChild(note);
     // the lookup is two relay calls, about 3-4 seconds; after 10 the service's own page opens as before

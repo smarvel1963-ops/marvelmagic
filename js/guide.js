@@ -274,7 +274,14 @@ const placesBadge = x => x.svc ? `<span class="sv">${esc(x.svc)}${x.options && x
 function tasteOf() { const c = {}; for (const s of S.list) for (const g of (s.genres || [])) c[g] = (c[g] || 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]); }
 function todayShows() {
   const seen = new Set();
-  return S.airings.filter(a => a.show && a.end > Date.now() && !seen.has(a.show.id) && seen.add(a.show.id)).map(a => ({ ...showItem(a.show), big: a.show.image && (a.show.image.original || a.show.image.medium), when: a.start, chan: a.net, w: a.show.weight || 0 })).filter(yours).map(x => ({ ...x, svc: bestSvc(x) || x.svc }));   // only shows on a service you ticked, opened your way (Scott 11/14)
+  // Scott 11/21 ("when a show list a particular channel and you open it ... that channel is one of the choices"): the card names the channel
+  // it airs on and every choice is a way to THAT channel (chanWays) - an NBC show re-running on USA opens USA, never the show's home app.
+  // Only shows on a channel you can reach (11/14).
+  return S.airings.filter(a => a.show && a.end > Date.now() && !seen.has(a.show.id) && seen.add(a.show.id)).map(a => {
+    const it = showItem(a.show), cw = chanWays(a.net), mine = waysFor(a.net)[0];
+    return { ...it, big: a.show.image && (a.show.image.original || a.show.image.medium), when: a.start, chan: a.net, w: a.show.weight || 0, options: cw,
+      svc: (mine && mine.svc) || (cw[0] && cw[0].svc) || null, note: [a.net ? 'On ' + a.net : '', (it.show.genres || []).slice(0, 2).join(', ')].filter(Boolean).join(' · ') };
+  }).filter(yours);
 }
 function tonightPicks() {
   const taste = tasteOf(), have = new Set(S.list.map(s => s.id));

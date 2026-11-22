@@ -70,6 +70,11 @@ const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase
 // every way this household can watch live channel n: the live packages that carry it, then the network's own app (Scott 11/14)
 const waysFor = n => { const pk = Object.keys(LIVE_PKG).filter(k => S.mine.includes(k) && pkgHas(k, n)), app = NETWORK_SERVICE[n] && !['ABC', 'FX'].includes(n) ? [NETWORK_SERVICE[n]] : [], more = NET_OPTS[String(n).toUpperCase()] || [];
   return [...new Set([...pk, ...app, ...more])].filter(hasIt).sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: chanUrl(svc, n) })); };
+// EVERY way to watch live channel n, yours first (Scott 11/21: "when a show list a particular channel and you open it ... that channel is one
+// of the choices"): the live packages that carry it, the network's own app and its other options - all of them ways to THAT channel, never
+// another network's app. The show and game cards use this, so what a card opens always matches the channel it lists.
+const chanWays = n => { const pk = Object.keys(LIVE_PKG).filter(k => pkgHas(k, n)), app = NETWORK_SERVICE[n] && !['ABC', 'FX'].includes(n) ? [NETWORK_SERVICE[n]] : [], more = NET_OPTS[String(n).toUpperCase()] || [];
+  return [...new Set([...pk, ...app, ...more])].sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: chanUrl(svc, n) })); };
 // the household's own way in for anything (Scott 11/14 "i got asked to watch hbo max"): a ticked service as is; a live show -> your package
 // or app that carries its channel (TNT -> Sling, not HBO Max); else one of its options you have; null = not on any of yours
 const FREE_WEB = new Set(['YouTube', 'Freevee']);   // free movie lists (catalogs.js) that aren't free TV services: free for everyone
@@ -77,7 +82,8 @@ const ownSvc = v => !!v && (S.mine.includes(v) || FREE_SVC.has(v) || FREE_WEB.ha
 function bestSvc(x) {
   if (!x) return null;
   if (!S.mine.length) return x.svc || null;
-  const n = x.net || x.chan; if (n && !x.isGame) { const w = waysFor(n)[0]; if (w) return w.svc; }
+  // a live show on channel n opens only a way to THAT channel (Scott 11/21) - no way in = "not on your services", never another network's app
+  const n = x.net || x.chan; if (n && !x.isGame) { const w = waysFor(n)[0]; return w ? w.svc : null; }
   if (ownSvc(x.svc)) return x.svc;
   const o = (x.options || []).find(p => ownSvc(p.svc)); return o ? o.svc : null;
 }
@@ -133,7 +139,9 @@ function svcOf(n) {
   return /netflix/.test(t) ? 'Netflix' : /hulu/.test(t) ? 'Hulu' : /prime video/.test(t) ? 'Prime Video' : /disney/.test(t) ? 'Disney+' : /hbo max|^max$/.test(t) ? 'HBO Max' : /peacock/.test(t) ? 'Peacock' : /paramount/.test(t) ? 'Paramount+' : /^apple ?tv/.test(t) ? 'Apple TV' : /youtube tv/.test(t) ? 'YouTube TV' : /pluto/.test(t) ? 'Pluto TV' : /espn/.test(t) ? 'ESPN' : null;
 }
 // enrich(x) always hands back the same lookup, so a Watch click can wait for one that is already running (Scott 11/15 "it dont go to what you clicked")
-function enrich(x) { if (x.sport) return Promise.resolve(); if (!x.looked) { x.looked = true; x._look = enrichNow(x); } return x._look || Promise.resolve(); }
+// A live listing (a guide cell or a show airing on a channel) keeps its channel's ways - the title lookup used to swap them for the show's
+// streaming home (USA listing -> "Watch on: Peacock"), so the channel the card named wasn't a choice (Scott 11/21).
+function enrich(x) { if (x.sport || ((x.net || x.chan) && !x.isGame)) return Promise.resolve(); if (!x.looked) { x.looked = true; x._look = enrichNow(x); } return x._look || Promise.resolve(); }
 async function enrichNow(x) {
   try {
     let id = x.wmId;
@@ -222,7 +230,10 @@ function gameAirings(t0, t1) {
     if (g.state === 'post' && Date.now() - g.when > 6 * 3600000) continue;
     const len = (GAME_MIN[g.league] || 180) * 60000, end = g.state === 'in' ? Math.max(g.when + len, Date.now() + 20 * 60000) : g.state === 'post' ? g.when + len : g.when + len;
     if (end <= t0 || g.when >= t1) continue;
-    for (const raw of (g.tv || [])) { const net = gnet(raw); out.push({ ...g, key: g.key + '@' + net, gkey: g.key, net, start: g.when, end, title: (g.away || '') + ' at ' + (g.home || ''), isGame: true }); }
+    // Scott 11/21: a game's card on channel X opens through a way to X first - that channel's own choices lead, the game's other channels follow
+    for (const raw of (g.tv || [])) { const net = gnet(raw), cw = chanWays(net), opts = [...cw, ...(g.options || []).filter(o => !cw.some(c => c.svc === o.svc))];
+      out.push({ ...g, key: g.key + '@' + net, gkey: g.key, net, start: g.when, end, title: (g.away || '') + ' at ' + (g.home || ''), isGame: true,
+        options: opts, svc: ((cw.find(w => hasIt(w.svc)) || cw[0] || {}).svc) || g.svc }); }
   }
   return out;
 }
