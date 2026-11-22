@@ -171,7 +171,12 @@ function tvAppBox() {
   let v = ''; try { v = typeof MMNative.version === 'function' ? MMNative.version() : ''; } catch (e) { v = ''; }
   const body = v ? `<p style="margin:0 0 10px">Marvel Magic TV app <b>version ${esc(v)}</b>.</p><button class="btn" data-tvupd>Check for update</button>`
     : `<p style="margin:0 0 8px">This TV has an <b>older Marvel Magic app</b> (1.5 or before).</p><p class="fine" style="margin:0">To update: close Marvel Magic all the way (Settings &gt; Applications &gt; Manage Installed Applications &gt; Marvel Magic &gt; Force stop), then open it again and pick <b>Update now</b>.</p>`;
-  return `<section class="glow plain stbox"><h3>📺 TV App</h3>${body}</section>`;
+  // 11/21 memory (Scott: "do we need to monitor memory use on fire stick"): free memory from the TV app (1.6.3+) and low-memory mode
+  const m = memRead(), on = load('liteForce', false);
+  const mem = (m ? `<p style="margin:14px 0 4px">Memory: <b>${Number(m.avail).toLocaleString()} MB free</b> of ${Number(m.total).toLocaleString()} MB${m.low ? ' · <b>low right now</b>' : ''}</p>` : '<div style="height:10px"></div>')
+    + `<p class="fine" style="margin:0 0 8px">Low-memory mode: <b>${S.lite ? 'on' : 'off'}</b>${S.lite ? ' (' + esc(S.liteWhy) + ')' : ''}. ${S.lite ? 'Smaller pictures and fewer cards, so the guide and your shows stay quick.' : 'Turns on by itself if this TV runs low on memory.'}</p>`
+    + `<button class="btn alt" data-liteforce>${on ? 'Stop always using low-memory mode' : 'Always use low-memory mode'}</button>`;
+  return `<section class="glow plain stbox"><h3>📺 TV App</h3>${body}${mem}</section>`;
 }
 function memberBox() {
   const mm = window.mmMembership, join = `<a class="btn gold" href="${WHOP_MM}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Keep the Magic - $4.99/month ›</a>`;
@@ -301,7 +306,7 @@ function shows() {
   if (S.mlAll) return mlAllPage(S.mlAll);   // a full movie list, See all (catalogs.js)
   const taste = tasteOf(), picks = tonightPicks().filter(kidOk).slice(0, 4), pickKeys = new Set(picks.map(p => p.key));
   S.hideT = new Set(picks.map(tkey));
-  const rest = todayShows().filter(x => !pickKeys.has(x.key) && kidOk(x) && !S.hideT.has(tkey(x))).slice(0, 24);
+  const rest = todayShows().filter(x => !pickKeys.has(x.key) && kidOk(x) && !S.hideT.has(tkey(x))).slice(0, lite(24, 12));   // low-memory mode: half the posters (11/21)
   const res = S.results;
   const found = res ? `<div class="hh"><h2>Results for “${esc(S.q)}”</h2><button class="more" data-clearq>Clear ✕</button></div>${S.movies && S.movies.length && !kidsOn() ? `<h3 class="lsub">Movies</h3><div class="lgrid">${S.movies.map(m => lposter(m)).join('')}</div>` : ''}<h3 class="lsub">Shows</h3>${res.filter(kidOk).length ? `<div class="lgrid">${res.filter(kidOk).map(x => lposter({ ...x, big: x.show && x.show.img })).join('')}</div>` : '<p class="fine">No shows found.</p>'}` : '';
   return `<section class="lounge"><div class="lounge-art"></div><div class="lounge-theater"></div><div class="lounge-in"><div class="lk">🛋 THE LOUNGE</div><h1 class="lt">Movie Night</h1><p class="lsub2">Settle in and find something good tonight, from the services you have.</p>

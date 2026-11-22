@@ -127,6 +127,31 @@ const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' +
 const S = { freeSvc: load('freeSvc', /Tizen|SMART-TV.*Samsung|SamsungBrowser.*TV/i.test(navigator.userAgent) ? 'Samsung TV Plus' : 'All'), tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, paired: load('paired', null), pairCode: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
 const items = [];   // what each on-screen button points at (data-i)
 const hasIt = svc => !S.mine.length || S.mine.includes(svc) || FREE_SVC.has(svc) || FREE_WEB.has(svc);   // nothing ticked yet = show everything as available
+// SMALL PICTURES + LOW-MEMORY MODE (Scott 11/21: "do we need to monitor memory use on fire stick and make sure our guides dont slow
+// everything down if memory is low" -> "Yes, all 3"). Measured at Fire TV size: Free TV's channel art and logos came full size (1920x1080
+// or 4K art in a 290-px box, 1000x1000 logos shown at 64 px) - 63 pictures, ~152 MB of memory, 10.8 MB downloaded on one page.
+// imgTag() asks the free wsrv.nl resizer for a copy about twice the shown size (webp, never enlarged); if wsrv fails the original
+// loads (low-memory mode: dropped instead), and if that fails too the picture is dropped (as before). LOW-MEMORY MODE halves those sizes and shows fewer cards on the
+// heavy pages. It turns on when: the TV app (1.6.3+) says memory is low (MMNative.memory(), or Android's warning -> mmLowMemory), the
+// device has 1 GB or less (navigator.deviceMemory), or the viewer ticks "Always use low-memory mode" (Settings > TV App).
+let MEM = null;   // the TV app's memory reading in MB: { avail, total, threshold, low, lowRam, trim }
+function memRead() { try { if (window.MMNative && typeof MMNative.memory === 'function') { const m = JSON.parse(MMNative.memory()); MEM = m && m.total ? m : null; } } catch (e) { MEM = null; } return MEM; }
+function liteCheck() {
+  const m = memRead(), dm = Number(navigator.deviceMemory) || 0;
+  S.liteWhy = load('liteForce', false) ? 'you turned it on' : S.liteSignal ? 'the TV said memory is low' : m && m.lowRam ? 'this TV is a low-memory model'
+    : m && m.low ? 'this TV is low on memory' : dm && dm <= 1 ? 'this device has 1 GB of memory or less' : '';
+  S.lite = !!S.liteWhy;
+  document.documentElement.classList.toggle('lite', S.lite);
+  return S.lite;
+}
+const lite = (full, small) => S.lite ? small : full;
+const imgSmall = (u, w) => /^https?:\/\//.test(u || '') && !/^https:\/\/wsrv\.nl\//.test(u) ? `https://wsrv.nl/?url=${encodeURIComponent(u.replace(/^https:\/\//, ''))}&w=${lite(w, Math.round(w / 2))}&we&output=webp&q=78` : (u || '');
+const imgTag = (u, w, cls) => `<img${cls ? ` class="${cls}"` : ''} src="${esc(imgSmall(u, w))}" data-o="${esc(u)}" alt="" loading="lazy" onerror="if(this.dataset.o&amp;&amp;this.getAttribute('src')!==this.dataset.o&amp;&amp;!document.documentElement.classList.contains('lite')){this.src=this.dataset.o;this.dataset.o=''}else this.remove()">`;
+// (Roku's picture server refuses the resizer - 403 - so its art falls back to full size; in low-memory mode it is dropped instead and the
+// card shows the channel's logo / name)
+// the TV app's low-memory warning (1.6.3): low-memory mode for the rest of this visit, and the page on screen is redrawn lighter
+window.mmLowMemory = level => { S.liteSignal = true; const was = S.lite; liteCheck(); if (!was && S.lite && typeof draw === 'function') { const y = window.scrollY; draw(); window.scrollTo(0, y); } };
+liteCheck();
 const slug = t => encodeURIComponent(t);
 function linkFor(x) { if (x.exact) return x.exact; const sc = x.svc && String(x.svc).startsWith('Sling') && slingCh(x.net || x.chan); if (sc) return sc; return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](slug(x.title)) : x.url; }
 const RELAY = 'https://script.google.com/macros/s/AKfycbzDFfE1Z_I8ZTYyQkCpMS45l2V8c7HTcm6-uwNxxgnUbX8VGSDw2-5t4_tqZiPcqW2zQQ/exec';

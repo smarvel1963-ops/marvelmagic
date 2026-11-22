@@ -100,7 +100,16 @@ setTimeout(unusedNotify, 8000); setInterval(unusedNotify, 6 * 3600000);
 setInterval(loadTeamGames, 15 * 60000);
 setInterval(() => { const now = Date.now(); let ch = false; for (const [k, r] of Object.entries(S.remind)) { if (r.when - now <= 15 * 60000) { if (r.when - now > -10 * 60000 && 'Notification' in window && Notification.permission === 'granted') { try { new Notification('Marvel Magic', { body: r.title + ' starts in 15 minutes', icon: 'icon-192.png' }); } catch {} } delete S.remind[k]; ch = true; } } if (ch) save('remind', S.remind); }, 30000);   // Scott 11/14 board: remind me 15 min before
 setInterval(() => { if ((S.tab !== HOME && S.tab !== 2) || document.hidden) return; const c = $('hclock'); if (c) c.textContent = clock(new Date()); document.querySelectorAll('.cd[data-when]').forEach(el => { el.textContent = cdText(Number(el.dataset.when)); }); }, 1000);   // Home clock + game countdown tick without redrawing
-setInterval(loadGuide, 5 * 60000);   // the guide keeps itself current (Scott 11/08)
+setInterval(() => { if (!document.hidden) loadGuide(); }, 5 * 60000);   // the guide keeps itself current (Scott 11/08) - not while another app / tab is showing (11/21)
+// BACK FROM A SHOW (11/21, Scott "make sure our guides dont slow everything down"): while a show plays in another app or tab, Marvel Magic
+// rests (the TV app 1.6.3 also pauses its timers). Coming back, the guide catches up if it is more than 5 minutes old, games after 1 minute,
+// and low-memory mode is checked again. Called by the TV app's onResume and when the page becomes visible.
+let lastGames = 0;
+window.mmResume = () => {
+  liteCheck();
+  if (Date.now() - (S.guideAt || 0) > 5 * 60000) loadGuide();
+  if (Date.now() - lastGames > 60000) { lastGames = Date.now(); loadGames(); }
+};
 setInterval(() => { if (!document.hidden) loadGames(); }, 60000);
 // the Fire TV remote's Back key: close a popup, clear a pick, go Home; at Home the app leaves (returns false)
 window.mmBack = () => {

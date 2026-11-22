@@ -258,7 +258,7 @@ async function loadGuide() {
       const start = Date.parse(e.airstamp), mins = e.runtime || show.runtime || show.averageRuntime || 30;
       out.push({ key: 'e' + e.id, title: show.name, net, start, end: start + mins * 60000, svc: NETWORK_SERVICE[net] || null, url: show.officialSite || show.url, series: true, show, ep: e.season && e.number ? `S${e.season} E${e.number}` : '', epName: e.name || '', note: `${net} · ${clock(new Date(start))}${e.season && e.number ? ` · S${e.season} E${e.number}` : ''}` });
     }
-    S.airings = out; S.err = '';
+    S.airings = out; S.err = ''; S.guideAt = Date.now();
   } catch { S.err = "Couldn't load listings. Check your connection."; }
   if (S.tab < 2 || S.tab === HOME) { const y = window.scrollY; draw(); window.scrollTo(0, y); }
 }
@@ -527,6 +527,7 @@ document.addEventListener('click', e => {
   else if (t.hasAttribute('data-pfsave')) { S.profile = { ...S.profile, name: ($('pfname').value || '').trim().slice(0, 40) }; save('profile', S.profile); draw(); }
   else if (t.hasAttribute('data-acct2')) acctPress();
   else if (t.hasAttribute('data-tvupd')) { try { MMNative.checkUpdate(); } catch (e) { /* older TV app: the box explains */ } }
+  else if (t.hasAttribute('data-liteforce')) { save('liteForce', !load('liteForce', false)); liteCheck(); const y = window.scrollY; draw(); window.scrollTo(0, y); }   // 11/21 low-memory mode by hand
   else if (t.hasAttribute('data-mmunlock')) { if (window.mmMembership) mmMembership.open('Unlock Marvel Magic'); }
   else if (t.dataset.frsvc) { S.freeSvc = t.dataset.frsvc; save('freeSvc', S.freeSvc); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.frcat) { S.freeCat = t.dataset.frcat; const y = window.scrollY; draw(); window.scrollTo(0, y); }
@@ -576,6 +577,6 @@ document.addEventListener('submit', async e => {
   S.results = shows; S.movies = movies;
   draw();
 });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) cameBack(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (window.mmResume) mmResume(); cameBack(); } });
 window.addEventListener('focus', cameBack);
 // REMOTE (Scott 11/08: "design everything around remote left right up down forward and back buttons, mouse click on pc and touch on phone")
