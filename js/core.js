@@ -153,6 +153,8 @@ const imgTag = (u, w, cls) => `<img${cls ? ` class="${cls}"` : ''} src="${esc(im
 window.mmLowMemory = level => { S.liteSignal = true; const was = S.lite; liteCheck(); if (!was && S.lite && typeof draw === 'function') { const y = window.scrollY; draw(); window.scrollTo(0, y); } };
 liteCheck();
 const slug = t => encodeURIComponent(t);
+// 11/22 security (Aikido review): a link from outside data (TVmaze, Watchmode, a synced list) is used only if it is a web address
+const webUrl = u => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '');
 function linkFor(x) { if (x.exact) return x.exact; const sc = x.svc && String(x.svc).startsWith('Sling') && slingCh(x.net || x.chan); if (sc) return sc; return x.svc && SERVICE_URL[x.svc] ? SERVICE_URL[x.svc](slug(x.title)) : x.url; }
 const RELAY = 'https://script.google.com/macros/s/AKfycbzDFfE1Z_I8ZTYyQkCpMS45l2V8c7HTcm6-uwNxxgnUbX8VGSDw2-5t4_tqZiPcqW2zQQ/exec';
 const relay = q => fetch(RELAY + '?' + new URLSearchParams(q)).then(r => r.json());
@@ -228,7 +230,7 @@ function logPick(x) { if (!x || x.series) return; logWatch({ k: rateKey(x) + '-'
 function countOpen(svc) { if (!svc) return; S.opens[svc] = (S.opens[svc] || 0) + 1; save('opens', S.opens); S.lastOpen[svc] = Date.now(); save('lastOpen', S.lastOpen); }
 function whereRow(x) {
   if (!x.options || !x.options.length) return '';
-  const o = x.options.filter(p => hasIt(p.svc));   // only services you ticked (Scott 11/14)
+  const o = x.options.filter(p => hasIt(p.svc) && webUrl(p.url));   // only services you ticked (Scott 11/14)
   if (!o.length) return '<div class="where"><span>Not on any of your services.</span></div>';
   return `<div class="where"><span>Watch on:</span>${o.map(p => `<a class="${hasIt(p.svc) ? 'yours' : 'notyours'}" data-opt href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.svc)}${hasIt(p.svc) ? ' ✓' : ''}</a>`).join('')}</div>`;
 }

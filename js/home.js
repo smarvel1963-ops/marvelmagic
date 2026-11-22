@@ -322,6 +322,7 @@ function readyCheck(url, svc, pre) {
   b.showModal(); b.querySelector('[data-rcgo]').focus();
 }
 function openWin(url, svc, pre, ready) {   // pre = a tab already opened during the click (openIt), filled in here; ready = checked on this device
+  if (!webUrl(url)) { if (pre) try { pre.close(); } catch {} return; }   // 11/22 security: web addresses only
   if (svc && S.mine.length && !ownSvc(svc) && SERVICE_URL[svc]) { if (pre) try { pre.close(); } catch {} notOnYours(svc); return; }   // never open a service that isn't ticked
   if (!ready && needsReady(svc)) { readyCheck(url, svc, pre); return; }
   if (inTvApp()) { try { MMNative.open(url, svc || ''); } catch {} if (S.sel) { S.sel = null; const y = window.scrollY; draw(); window.scrollTo(0, y); } return; }   // Fire TV: the real app
@@ -449,7 +450,7 @@ function unusedNotify() {
 function askRescue(p) {
   const b = $('back'); if (b.open) return;
   const svc = p.svc || '', sign = SIGN_IN.find(([n]) => n.replace('- ', '') === svc || (svc.startsWith('Sling') && n === 'Sling TV'));
-  const others = (p.options || []).filter(o => o.svc !== svc && o.url).sort((a, c) => Number(hasIt(c.svc)) - Number(hasIt(a.svc))).slice(0, 4);
+  const others = (p.options || []).filter(o => o.svc !== svc && webUrl(o.url)).sort((a, c) => Number(hasIt(c.svc)) - Number(hasIt(a.svc))).slice(0, 4);
   b.innerHTML = `<b>Did ${esc(p.title)} play${svc ? ' on ' + esc(svc) : ''}?</b>
     <div class="act"><button class="btn" data-rok>Yes, it's playing</button><button class="btn alt" data-rno>No, it didn't</button></div>
     <div id="rfix" hidden><p class="fine" style="margin:12px 0 6px">${svc ? esc(svc) + ' may need a sign-in or a payment update. ' : ''}Try one of these:</p>
@@ -473,7 +474,7 @@ function cameBack() {
   b.innerHTML = `<b>${esc(p.title)}</b><p>Welcome back. Watch the next episode?</p><div class="act"><button class="btn alt" data-done>I'm done</button><button class="btn" data-next>Next episode</button></div><button class="btn alt" data-not style="width:100%;margin-top:8px">Didn't finish it</button>`;
   b.querySelector('[data-done]').onclick = () => { finish(); b.close(); askReview(p); };
   b.querySelector('[data-not]').onclick = () => b.close();
-  b.querySelector('[data-next]').onclick = () => { finish(); b.close(); armFull(); window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
+  b.querySelector('[data-next]').onclick = () => { finish(); b.close(); armFull(); if (webUrl(p.url)) window.open(p.url, '_blank', 'noopener'); save('pending', { ...p, at: Date.now() }); };
   b.showModal();
 }
 document.addEventListener('click', e => {
