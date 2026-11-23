@@ -1,431 +1,7 @@
 {
- "updated": "2026-11-19T21:22Z",
+ "updated": "2026-11-23T22:37Z",
  "source": "Streaming Availability",
  "items": [
-  {
-   "id": "45258",
-   "title": "Entertainment",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/45258/poster/horizontal/en/720.jpg?Expires=1822168543&Signature=DC63Lq7inMvHkb0CMhAUvAkOyKNGx8bN73JzhHuz3XDUm3OlVXJz-R9AnNt~nBlmG-JWOKmNAiggVPvlC0wjfEjuSjIS7xHE7JBzvLniF2bpQwWeJIgRxkbr~TdoRI3Kx1aV-SxksYFJYxBFds8yC0t3fEMooonU5zGMpgI3~Kj37vzbyUEtmTPptih6OL4yff1myFPK5OOS25RiWsQmr2ILUO010YTVuhfHLrwSuemp1AvWim4szC8sUtV~LN3v1aQHR7IoAlTlneTWGCLAwgfyOD8jSs~5M4gGbXPtjMLxh6uEGnQngRfQQPQ5R2BJ728kuLFLqxQTTrH~Koi1TQ__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.832a8a48-5434-4d9f-88bd-96cc064d8956",
-   "year": 2015,
-   "genres": [
-    "Drama"
-   ]
-  },
-  {
-   "id": "14950",
-   "title": "Experimenter",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/14950/poster/horizontal/en/720.jpg?Expires=1820766620&Signature=gyITD-LmutiNKkXCBTi2cvl0fUrXV0tCsCNVUDDxbC5pi9n99gB3Uj7YzPh5ebJrUXyIRhY0f0rd7AQ1kHnxBCZk42TXSgtDs8btsWt5kwPwMXoz0bg0z0wi7Pc0OZMxEBj1sZtPNNjCH7obVEvNzLEs0knBrjyfx45LV5xko0YQyOo0by4E9c8N3vNPW-HTl4mdIR259iYiIMyNolu4MH94RNZH-NVTS4O4xEK7aKeN8zguf-okNM8MPFfDT~oUeJoNrOzBaFVs5cLa3SIT0hJd5n-yQyIIwnbtEar2DILe1VoZ7jOsdmdRFg0KI6zc7VKOs9rS0Oe1jFCdESKGww__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.a5a1a9ef-80fe-438a-8814-01bc1e3bee1a",
-   "year": 2015,
-   "genres": [
-    "Drama",
-    "History"
-   ]
-  },
-  {
-   "id": "9310968",
-   "title": "General Hospital",
-   "type": "show",
-   "svc": "Hulu",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/9310968/poster/horizontal/en/720.jpg?Expires=1818109617&Signature=LkJHVloo598yqGg8usdzwplRfcS9cYTahk6IRWbqF7sclGolD1VPX4eYv15JTYrv0bbrdqpymsvxEtEGrTg-RHwOMExUvcVE-rg9HHxkVVsnBkhPsPI~AofaT6pVjsTl4XDy3g7vgXtuttap64Ggcfb2JEGIf2hDiveCFVR5F0lRtTm344~g-F8FPdl0oVzdDn-qbF2-aeIgyi8uxh-rzAMB-ybtoOg7t8jjbsjwIaYbBzlYv8j7RvgjHXBfVldBFB1YcYQo5Mhs1AcQSoA6Rxy228Fczdheq8vKTRILqz5fmalfl38SxQ22C4~IWS54y4KT5KlaGdOBiJt~3SQbmA__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/series/general-hospital-b767a2da-2797-4cb4-99cb-86cf8f2bc54a",
-   "year": 1963,
-   "genres": [
-    "Crime",
-    "Romance"
-   ]
-  },
-  {
-   "id": "85733",
-   "title": "Kusama: Infinity",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/85733/poster/horizontal/en/720.jpg?Expires=1820617893&Signature=fH-uxI2ljN2v1Soza63Cu69FsjRiltzg~IinhkBmojHJ~TAGi1-rVFYBW88dwYlCGs51D~dkKKcZY2lci3qYS6ntscJLinTiOaDBEZfSW8RpitPFc8XrDrnEFk3eCWqLJ3Hp4jXYULFKuipF08fx5EF0FyDhRurPJUeXvG9slPmefAVmeMeA~WgNDPw8ZRxdiK4haEklPc8MW5sdV65AU5xms6r~wHt8tlScTCDAcHHc4ZZyR6LgxXLNbNNB70NaVKzAI4VtelUAiBm8fVnBWoJO0bdd~oa11GWuv1VSTq3LSgyE6UAdu4TNkRakfCWOsFTmCBmxiBNRUGeNxVeWwQ__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.073b976e-8476-407c-ad86-23e9f87bb4ab",
-   "year": 2018,
-   "genres": [
-    "Documentary"
-   ]
-  },
-  {
-   "id": "23235",
-   "title": "Life Partners",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/23235/poster/horizontal/en/720.jpg?Expires=1822168417&Signature=Spsev8zZymRXkUXPuWwY11tr-tQKfMq9eFMQmeK-yfXu3~8ctjErON7zt3mnLV5dxbrsTUB-B0Bc4kyaKIYQ1KGA8CO8uR1KxsmXGTmlBp8BYUns1wQ3K4qiaekO7f2JxtEOGYOYaNJnFRQmRAjNvw3BOX8KCHxpEBbx6KaZeHJZYjR3~8snFERErKWkOfIY9IAjIhQsvaqrRSSFUpJ41YIVCkJEt4Miklg1j-DGaitO0rQTv3xyPgc46EmVIYs~IYmmUDkvZ-mBuOeKw5cZ2yoWlL9P2kfEWfYiDG~PHnxMb31ByFQg7dNu9lIX2LcEblqF7U4MKIN~aQCagAFMuw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.97fba1d7-46d6-4875-8ee7-532708ec0a06",
-   "year": 2014,
-   "genres": [
-    "Comedy",
-    "Romance"
-   ]
-  },
-  {
-   "id": "100373",
-   "title": "Noma: My Perfect Storm",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/100373/poster/horizontal/en/720.jpg?Expires=1820699147&Signature=Zv8Bkylb~ppHW-PdKexyoBdD~NoZsSgE00cEWAFPY7MDr5RUMpSjV-aiSmOqBASQq3nTzbS04gZz3uGF1SssQoSpXaPmZgBZXUNxIfxrjQBzG7A6IIh32hvTHkyMJjeXMAH1gK5LLAJHW5fpOJYPEJtceGVj7U9-lblCTPaWr8FwhUl7GD7b-NM~kUqdkIqP~hFlg3e-c82mDFUNbs7s8PrLjQDgiCvyxADY~7ZtC053NsqTpqbKMzOjRLrE9GhX5UoR8Y340RKjW-Dw-5--OXNA8OvCP5QMIPRZVa-jhUzAdw-ou5AtHC3A9uAat5iXUFzTybDQxxQFZjdOexYP2A__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.1686ccd8-11cf-411a-b10e-61cbea8dacda",
-   "year": 2015,
-   "genres": [
-    "Documentary"
-   ]
-  },
-  {
-   "id": "35245",
-   "title": "Skate Kitchen",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/35245/poster/horizontal/en/720.jpg?Expires=1820730748&Signature=L8dbj6ISUu0GyvTpj6U3Cxs7rGd7AubWinEiF03FZzcLq278RdItJzZxG9BVjPrCjakZOi7pwfbdEg4fUPEmYUexVkSrN5DKmAwjNSbK8CxXMR7l6tiPS-zeCZRYcQHlDjeZM3hGkOBbPCRmKtQOdJyu-NSjsIC8I0PLEzfaptXE-8NsUrmfjyIhc9iifu7mxknaxISACu4x~hljWuLJDwP9c~iRf~6FXFkTxLqLv0PcE3YOlSXzMy36pUMvQliIkOEO0KqmVnYFg7nUIy67-gnFKCGqxz9e0Iek-iG5NOJelRw4kgFqbR9oN~Bkw0xyTJjaQq161uzsvQtM5GyEHw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.b1b66906-182a-4b3a-8cf4-a5bcff99ae2c",
-   "year": 2018,
-   "genres": [
-    "Drama"
-   ]
-  },
-  {
-   "id": "25757",
-   "title": "Support the Girls",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/25757/poster/horizontal/en/720.jpg?Expires=1820577135&Signature=MQN5nzfjXQSKUvAzSuiCLVTcCusoYUwXtQtvTtA2UUV1N50C9yNQmko2qHic1OaaygSrE9J46ymsC7FdOrk1hBr3TdvS4R0F2KaCdVQs8avqurT-J21SREmE~c-2nVgTz7n7ypxMjyGwviTDDgjW-fjDlJGP2AsVEERjNzMZFocnFDQJ1daD8luXyUJNsIWtWlNUbA3-Odbke5BTWulKV-YXckmXjiwpuiuNgfCi~nufFlko2JNwotgp8hZp8UGXwQgENM3gyWGKzWLgptbc40T3zkZkfXUPFAXyjixMnbvW2ALFuLzON0VnLx2N~JxRjSo2BHszKN2n1yZVs0oZeQ__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.5c3557cb-a7c4-47e3-8dcb-095b864af8fd",
-   "year": 2018,
-   "genres": [
-    "Comedy",
-    "Drama"
-   ]
-  },
-  {
-   "id": "6910",
-   "title": "The Guilty",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/6910/poster/horizontal/en/720.jpg?Expires=1819895786&Signature=iw7u1OmpuYjIChejEQZYTChS-WplvdlKUl2APN6npqkXk9PSzYQB4766uT3qmqvAdFSa2OhA-NPGmOWB4THFs9Q8USiwKvWFI9B0QRZLSukfX4NlCEbxsDjIS783GdPC9B0KrvidjOZxEOl4q7xB4DUiLFQOmKVabC6dhgmldfJL5gHUuwEuClGofeoXhxNKqQFtZil09GI3HnuJt68sdRL6vClTtpAUOFeePSQUTk-wzJfy-Dqj7GXf~7YfD6FxPM9TmN-DoiPLk1XjjtbcG6uJ01Rz12i9mubDe6AzAF5W43zka-RnbF6JvXsJIpEThK9Mmh3Q9-9FAAxgsSoRXw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.16b3568c-9f65-6d76-78d1-b0de80d8df57",
-   "year": 2018,
-   "genres": [
-    "Crime",
-    "Drama",
-    "Thriller"
-   ]
-  },
-  {
-   "id": "3751",
-   "title": "The Host",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/3751/poster/horizontal/en/720.jpg?Expires=1817084602&Signature=jTY4buQ1kwVrr1XzmfzfMgUGMFk4utSD~n1gAxDuYp6Vxpwp3jvS3cfgCTgwh5sZNqRtZA4ms7k3EpxqV5eck15ix4YeRQwcz2mZzDbvET1VIUh7Ega6TLe3M8vCDdx94RIwatD7IRVL0REtKu4t5OJ-d2Pr0Xsd22N5ROMWSZTuldySA6xsdp5vmcZYb-phgTYMJsoKtd2ulaYyReb4~Zlv1bU32yHAHayJmQuutKlicXajGwNGjLWzCOIiWPkD9fWYbVsGh9fe2uGFIOeAunoHxKfXrNxogvQSAxEz0WF1cXhzaRoA0vJCEewYttT-3nZPMui9y9-ndEUX-hxk~w__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.989fb7b0-de4e-459c-91df-136d6e81c778",
-   "year": 2006,
-   "genres": [
-    "Drama",
-    "Horror",
-    "Science Fiction"
-   ]
-  },
-  {
-   "id": "17457",
-   "title": "The Last Circus",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/17457/poster/horizontal/en/720.jpg?Expires=1821909225&Signature=TOLMMahh2mDKUbYHFNiF6gjGS4Q6irIUvSx221xVT90~3UcC5AjNYgiCUR6nuHivPwoFWKjN60N7EALLjWVzsJDdcPVO-ZE83WLKyJfMQVKGn0I5NBCZxr0BQ4jEHyYhId6PB7Z2zmu4pHg9UvnbRLDuwn8cIIB5vmSh9thohZaLtI8xhUS9X9vKYMHEdYS5wqaBeiZCCUBnS8NUcj8WqQyG7Cq0chvtQ9F3tDcrsrIbW7XiJ9mllgIuHegB3ZKOH1imGaOtGpA2LNe-2Uv3ov2HmDq4G28RV6-OzJgvEltZJDVdgB1IWIa3Zxz22J9ABPwq0oDJiI0NbU~WcQOwWw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.f244d3d1-b66e-4ed6-9136-86afd6e24453",
-   "year": 2010,
-   "genres": [
-    "Comedy",
-    "Drama",
-    "Horror"
-   ]
-  },
-  {
-   "id": "9712",
-   "title": "The Last Days on Mars",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/9712/poster/horizontal/en/720.jpg?Expires=1820685647&Signature=Kn6hzrTi2w3~U4y7X~-WJRSPPekJmX-E0dWxklgf1~rKOGc0lvHoeMJHnYjedM71EWCn0RkCDP9AFDKlkS5zjQuyzqDPUqKqsOipkB4naHuzUiYJ~OWiDNxebNaDApj4M1GVhTXg24cinm3eQQY3ndDw3r16a3FLyGs44TB8-FBxai3e2olAUrKC6lRWduVTBlqwldiJ0WMR485uLYiWeye5-HxyZ4tjUCse~na8WIiGHpa3KoH-pTjDiwZzBFUzuQhMaX4Pt5RmKedytXPbBpol1Rw5QnFdgFr1vAYmvIqzilP3U6AFlgPCy9HFuwD~uVioG4G87funUk2tBn8sEg__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.590fb11f-9ede-4b71-99d2-93ee4ed9d37c",
-   "year": 2013,
-   "genres": [
-    "Adventure",
-    "Horror",
-    "Science Fiction"
-   ]
-  },
-  {
-   "id": "9363",
-   "title": "The Wave",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/9363/poster/horizontal/en/720.jpg?Expires=1819195533&Signature=kEnsagxD~1o6lcMNm9O111Y2SA~LcE87xEX~AeB9d8CZnrMWzfvAVb6~ol8qaDRFTSgBLAOJGJYBrtit~wr1iQGbg0gTpdWJdnap8pziLhZ-2zDMxeT3GrzopDWQcQWcRNk-K6Wg1HnjmCdYDLm4i5jkVx8R1noS57etLKFwYD-N8AYS4UTIDab~goENcmRh1YyF-tuinR1dDmJFGL5E4LGdrWOjMJjsQnNLgRk0upAasQXMbYTs~zYSnKdmPvSNvuW-3g12voAl5qxoW-pm~rY-hccVKIL5-HGtW~QuOqegm6ZyFW6kFBhoLTcRZ40SYHAVjzno21x9m5FhYZkmnw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.98a9f730-a3b2-6e84-a0f7-7e8d4f4f5d9c",
-   "year": 2015,
-   "genres": [
-    "Action",
-    "Drama",
-    "Thriller"
-   ]
-  },
-  {
-   "id": "20882",
-   "title": "We Are the Best!",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-19",
-   "img": "https://cdn.movieofthenight.com/show/20882/poster/horizontal/en/720.jpg?Expires=1821957856&Signature=c5oxeYIfECx3Z6DmefHJUebdmDkVkkbU3pY8deJujFcr4VSvR4IrUVgE1Jgj6fTOCpSAORmDlunW10fiUllV8C9PgxZGHpdn4R2jD8JKog1ZXbgQXEOtfX6DIFuFU7FzSM19wHTEtwLnaA3E4fihAMC4jzba5eFRfay1pziIWAtXGNpKzokrST0blJC3h~b5WvRQhygiH3TNV28e4ovYWeoEZ-BrqID68ogs6fSw1c38ZD2y4dSLJWsU7SNLuGfTEPxeyh-qyTwDzNbqnR3x0j4Sg0LJH-VvJPQ6luPUnICx~MiuTSMU-63RegelLEvyoGXCVfQALiG6yQhheaxK4g__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.7e049bba-cd9d-4e25-8c69-4d243eda3470",
-   "year": 2013,
-   "genres": [
-    "Drama",
-    "Music"
-   ]
-  },
-  {
-   "id": "8736",
-   "title": "Cleaner",
-   "type": "movie",
-   "svc": "Netflix",
-   "leave": "2026-11-20",
-   "img": "https://cdn.movieofthenight.com/show/8736/poster/horizontal/en/720.jpg?Expires=1815847089&Signature=kAeZqGZIcab-QmVBq70yIjdNfxZKsUzd3YKAgzufYzTdcJQPR59SPcvJLn82~Zyfxjer3GXrh23UatMqhA4-cRB058SMmGffXUzynii9Yr3HEWDnfo5M8Ct0LC2BTXaLXhrKoMFc6mtw7Sh2wEFNsuZS27KnHGcyeSaYHn1NO6FBj9WHRWwEpdCY~DmWVWSKpyI7lRInBIJbRekuCNdD5R98yM3P4uElh68W0lPpKUx12KMhbIml4ce8fq-TnuQhH--BeGf8wnpsBOghCgDbcCxPCuYq~mr14cMgO3dyQ6TxSrZWAzFSgLyqkHO6GGQE7rQoIfJPmMD~jMl5mxPQzw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.netflix.com/title/70095926",
-   "year": 2007,
-   "genres": [
-    "Crime",
-    "Thriller"
-   ]
-  },
-  {
-   "id": "27050",
-   "title": "Karakuri Circus",
-   "type": "show",
-   "svc": "Prime Video",
-   "leave": "2026-11-20",
-   "img": "https://cdn.movieofthenight.com/show/27050/poster/horizontal/en/720.jpg?Expires=1819427064&Signature=HhPx3kKE8sTWx-tPgkTemWUYBNjSN7LxvzIRbo4Bl7Iy4O2joELRU4fsgOSwHLn3IO62YZ-yIuLBDl86PyHJdmEQBSgFjUt1JwgLNZAyKmLIfnoRi8QGdQwb5LEUT~wsfHiMv0bIsuTM23y3c6XqlwVMUOX~Oy0L2yVZM1B9Hpqje9KEQxJ6F8r1RCts93KldZqZcyHbA~ZKR6up5vPfjy2U4njMVint-NGsgHsELzsWPWLiD0wYiYFUP0-N43W8c9Jia9C0le3cWO-~W~GBBnDGAlR4p8LSN6u92Ji2mW-~XYjR5sCg-6LmmmqtATO3tUlzl1Zfi8nDCsmbrXft0A__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.d2b32e1f-0a2d-67cc-6187-f86d8ed91099",
-   "year": 2018,
-   "genres": [
-    "Action",
-    "Animation",
-    "Fantasy"
-   ]
-  },
-  {
-   "id": "17580827",
-   "title": "The Roses",
-   "type": "movie",
-   "svc": "Hulu",
-   "leave": "2026-11-20",
-   "img": "https://cdn.movieofthenight.com/show/17580827/poster/horizontal/en/720.jpg?Expires=1826394579&Signature=QtxguEsKnFaHB5YPMN1vOQHKYROfMWmHqKizCim8SeWhqFS0gxAsyfCtrlC1WdbNcz3NgBrlS0K8LRZf6NXL-WfOyxwQb864JqYidcLUlKsXdT-U-rswJe1nvRnoEnPS11DCgQHlDGgsngF2P6g~CKvs7sXCtKGqyjakX9z2KczMDNpF33IlpRi~q2eFbIA5eRcLl8vE~5lJhX~HqEmilHizRxgEyznFEsH8zn6iQvktXiodrwPjmobMtu9evvCSeQO9Ncy1dWKiU9GlMBMd7Y31CmfwIhFyiiP6un7YFKbr-6LKv-BZRZ-ncix0cDQbuWAXO562CH4dlvlCqaItwQ__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/movie/the-roses-7df81cf5-6be5-4e05-9ff6-da33baf0b94d",
-   "year": 2025,
-   "genres": [
-    "Comedy"
-   ]
-  },
-  {
-   "id": "8866773",
-   "title": "Alien: Romulus",
-   "type": "movie",
-   "svc": "Hulu",
-   "leave": "2026-11-21",
-   "img": "https://cdn.movieofthenight.com/show/8866773/poster/horizontal/en/720.jpg?Expires=1826197812&Signature=MDDToDg7iqujSQzzkCeW8Qd2SBDQvNwxgplMoY77Du6cQD-9F6T4YobPPeWKmildvVnxSgXyeSdvocgiknxrtm0UxFDBk9vWVbYJGiwvM8VbSQ0PFygVykQhJFEGvNnLWN16Y7q-lMw5peZ8IiNU8gf~ciWGiqqCcFQP8QlKxB2xu3bu-aSFt31MaPGz5Yfcm8QMetMk56IGKFYNKCqvQ1LD2aoTZyUiJ1Qf4-aoVWoNdhovD5xmKdoIBWXL9nb3ArGGPE~tt1naWyP5~kQLFSLXPRVUW-xf-eY2obt0-dYOhS4OkJikfQ82K9yCr5K~85PxXixOcVCn9IezoGu~UQ__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/movie/alien:-romulus-05e76ad8-c3dd-4c3e-bab9-df3cf71c6871",
-   "year": 2024,
-   "genres": [
-    "Horror",
-    "Science Fiction",
-    "Thriller"
-   ]
-  },
-  {
-   "id": "25903069",
-   "title": "Cold Hearted",
-   "type": "show",
-   "svc": "Hulu",
-   "leave": "2026-11-21",
-   "img": "https://cdn.movieofthenight.com/show/25903069/poster/horizontal/en/720.jpg?Expires=1820692090&Signature=KTiiKfzp~cLnCTyDtJuOASsVgMtLFG4Od2o8Aq7Tvgc05KH0hcsVPh19OJHPi2BHn470xdR-8Nn5jLB-NrAZG4rrsVtR-Txl992GbuoKE1HihNLdkN3TNVCEprt6yqpERtHO8qXTg-dXOBs81o4jyR-QKbvP6O--3Ye5b7t3bZWr-tMGsthnS~MC9pW3g7UX12BIdAuGh6UKYzgIJEreeYlLK8weVm65PwdjeVfKNFhJSY0UVP2zEkfeZ0uALw-ArFdHK4CP9idZrL-csvm0Bu1DxNHg7ynqVdWEzJ49zsYxYfVlqQRGvwWNdbjC0lMuRwvjw7x3FHYzz~Ehd4iagQ__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/series/cold-hearted-8ff4b4dc-e839-4ffb-b829-b93d22012a41",
-   "year": 2018,
-   "genres": [
-    "Crime"
-   ]
-  },
-  {
-   "id": "8695",
-   "title": "Expedition Unknown",
-   "type": "show",
-   "svc": "Hulu",
-   "leave": "2026-11-21",
-   "img": "https://cdn.movieofthenight.com/show/8695/poster/horizontal/en/720.jpg?Expires=1818345666&Signature=FTidijhQCINWnXLTFw8-J5FCF5wKf6Zsr4ZWLSo7MR7EbTJiIerRH5E~adZpWftRy2964d0T~5i~QqZQJ4avZ8ToAJtDwLmsGLLdaXLS4XvbSUAQ-ynOJ6b2LdXEqTR~5Uo2xpYmjxerezzgVvFa6zgQIMCK86QY43mvtUGFkayQEpMfnq1zPA8HqbEQfD8-yeBBTxuc13JD9J7h8PQHJsv16QveTZWIYKH5MgpCeEwg5fHILx7vBlzIBFYFMWZsf7q8hI3RiUwK0J-kXITZ6Y5~bmOhWdAlcAIqNttaFmUm1L0UtpgLKrPgYh6ft8SyR2OIHFodqA48w~ryLceZYw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/series/expedition-unknown-b4ec392a-b4dd-42c3-8098-cf079b652417",
-   "year": 2015,
-   "genres": [
-    "Adventure",
-    "Mystery",
-    "Reality"
-   ]
-  },
-  {
-   "id": "15413685",
-   "title": "The Fall of Diddy",
-   "type": "show",
-   "svc": "Hulu",
-   "leave": "2026-11-21",
-   "img": "https://cdn.movieofthenight.com/show/15413685/poster/horizontal/en/720.jpg?Expires=1820629580&Signature=Uq2UAtD2kiwdfw9eCQZw21WRZn-UpC6AUWDdGSkn4-xuso4wMh-TctE7cRy-DetTEKsb7rMNZQ2mlUfDb5~y4jS6WYPY2l9g51pvy0LA2eoSl11iou-or8~QfcJ6UHfPI~DXAN~aQQfn9iw4Nbj2hxsiiKbBOpVnbXcZJzDNuc2sBU7-X1JKx5lfGturFcPeDHBackLpVvlFoANELGP9rm03agEq8tvT57RGPWne-nJFIWAj2Z8rbSACnae8kwHLgWpmiTLW6vDADWYOByxtzz5iw7e1oBPxbyR6BRkfCIcIdNaxiFjXEsh7hgkOP7EJXdXUYjXuM~Jb1Lx9eSfVZw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/series/the-fall-of-diddy-948b6891-8472-471a-a860-3ecddb5043bb",
-   "year": 2025,
-   "genres": [
-    "Crime",
-    "Documentary"
-   ]
-  },
-  {
-   "id": "24313",
-   "title": "The Last Word",
-   "type": "movie",
-   "svc": "Netflix",
-   "leave": "2026-11-21",
-   "img": "https://cdn.movieofthenight.com/show/24313/poster/horizontal/en/720.jpg?Expires=1820222309&Signature=IjVehTAKrcvGOLonyU~wXzidc1ZhBioHbC6P1etXuW6YkalUBxhx49Lmk2Urolb4Gms9SXWSUe4siFsfK6iOHUTiTaNW6mPigkmkkoJVIkjhs3Oie-lPni~9yksaWB0qgDvwuWn-diuT2QtNxOip2XiraOM-lVVGwQlGFrG1ljleN9~BHVVpVREQCLLoQ-4n5Iwa1Weqo2JlUZfayQOT6tiXXnGLAN-0fqUzYmo5FJuHY4vHMnpC4zeivAKXYpbWctbgff1mvyj0plEWIoT1oM7bJLyX2EPjwKXNoRyjONN8W2YrT-blIufYPK9WBy7YQrDj5QL8JzoiEY-SECxspA__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.netflix.com/title/80154681",
-   "year": 2017,
-   "genres": [
-    "Comedy",
-    "Drama"
-   ]
-  },
-  {
-   "id": "14366912",
-   "title": "Thomas & Friends: The Christmas Letter Express",
-   "type": "movie",
-   "svc": "Netflix",
-   "leave": "2026-11-21",
-   "img": "https://cdn.movieofthenight.com/show/14366912/poster/horizontal/en/720.jpg?Expires=1818613782&Signature=EF~3aXmrDVtDtaptqFNCGIehHzg-pUQizkpbJvY2BbM2oxmAgH5Mi7gtwK9INFjy71QDf1Q6gtAWsvjP-5Hqi6LrtYvuhuUxVx3paF2WJHmrpG8rRb6GwElp6jXmW6ULcL5bcm9I9wIoNahCWEQ5WtNvmztiEpeLSTewD5NV~0cR7cSa-yPb6IcWacUuM1RWI-U2cyG4ixmvymZFLhT-qgtN4Kzqa5siM2nKOZSYYw34xAqLBRglGfFcR5iL33Wlx1okCwOc1WiiTYV~gOhtkRdo26VKTJORVDUC9NtLDmcYcbm4~J7KtsMnvYxhahXi241JvSuCVm4InZ76Wmyn0A__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.netflix.com/title/81728272",
-   "year": 2024,
-   "genres": [
-    "Adventure",
-    "Animation"
-   ]
-  },
-  {
-   "id": "2483",
-   "title": "Valerian and the City of a Thousand Planets",
-   "type": "movie",
-   "svc": "Hulu",
-   "leave": "2026-11-21",
-   "img": "https://cdn.movieofthenight.com/show/2483/poster/horizontal/en/720.jpg?Expires=1817126646&Signature=QYurHU3huLEZvZIKgm7oJvtrq0Fd-XSOusXCM9aI8HcvOcbnD4iYBpifCbzOklv6Xgff0NxvbE2PiOUIxPDa34tUjlooT6pbGb4UcI0OWLOv78MrCQ7Vg8rWXnmo-mOXYOCWVlX6ycwKFE8653WFuR3FjNwzViwwrJ5fEnnxAKqMW-DaANy0Y~VBy2v0lYwVJL0r8P1AG4RKzhVrQ~AsuxLh-xul2xXtQ32sqAvKwuyFH1-wbvNUJlmZu7U1wZhwGkpDAUU3sDD93Sd1EBdTRPiSsHT~WQ~dNZUBcX8rLEnkBNYDPHKQunneSTugVoTA~NA5-TcYt8X57p5EnQf~DQ__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/movie/valerian-and-the-city-of-a-thousand-planets-5e88984f-1f01-46e1-99e7-b726a4f76b72",
-   "year": 2017,
-   "genres": [
-    "Action",
-    "Adventure",
-    "Fantasy"
-   ]
-  },
-  {
-   "id": "95344",
-   "title": "Ludo",
-   "type": "movie",
-   "svc": "Netflix",
-   "leave": "2026-11-22",
-   "img": "https://cdn.movieofthenight.com/show/95344/poster/horizontal/en/720.jpg?Expires=1820717299&Signature=FIKFrL0LRVsc~C8P7~N91kc6GuTOGSpWd9Ruzs6WKhdKySO57suP0G3rjwAxC~bH3jxJ0lAOQ1DnaKCoKvgIG8XvPesP5T9Au3-earYCo~KIv8HagKmuQ~NoiMUNsh8Ix6Jfog4eSe8FdHXR2Guzfel0RUAZaK9EPhArefrXwtOSGi06Uyc49wagZbyBKFw83W9rSQjuO7dNNdZIqRKyaYtnzJPczjyUgJZtQub8m0hUZFSurAuykgLgysLRfM4MESiiMSRON72ORmsIbWXBJmtsdkNa~bb21zlNx7b87xJInY2o3wveIon37dCpSPdAt~fuTuv0Qe6pHH-s~hviZg__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.netflix.com/title/80107037",
-   "year": 2015,
-   "genres": [
-    "Fantasy",
-    "Horror",
-    "Thriller"
-   ]
-  },
-  {
-   "id": "49578",
-   "title": "Swan Song",
-   "type": "movie",
-   "svc": "Prime Video",
-   "leave": "2026-11-22",
-   "img": "https://cdn.movieofthenight.com/show/49578/poster/horizontal/en/720.jpg?Expires=1819763832&Signature=EeSH6kSZd~JWM3l9hVrDORhSDdAXJj0BNbDoSH5ZnDG15o7nyJiy8UUJvcjzm5F1K6tDe2BRNwqzN~aOqf5dW9eeN3igvQz2AmQ48SKdYYEOxAPGfuVwOluihaaW~oJwzcddg5T5bPwQYWVvCov3KLsTHQGf-5-iBoPx-goFDXdhMZyOEROUnqiwU9p8a8SFX8LO5a556ecaE2bzfSOmYsqcFhxpaR3XPGb7rdaOJ83z9XmMTTf-Z0IrxVNYpECtxwbZOwxcfDFAnjYMfFDbxdIHK0Ji1RrU5siQbgm6OaSWq3Yv-Emv8YV4mK4tDwzVB5Omca1IvB04aiqXN4zxvA__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.cc10020e-0004-4a70-856e-437128024185",
-   "year": 2021,
-   "genres": [
-    "Comedy",
-    "Drama"
-   ]
-  },
-  {
-   "id": "120197",
-   "title": "The Land of Cards",
-   "type": "movie",
-   "svc": "Netflix",
-   "leave": "2026-11-22",
-   "img": "https://cdn.movieofthenight.com/show/120197/poster/horizontal/en/720.jpg?Expires=1821728987&Signature=PCs35aVlGVcgMyOKHqXShYVWndw~4qvd2I3bWaqj4MA95H4OKoZPGYYfs2Q8BncJdI5ryaDEcgCdlA49Y5ICP7-SG6RY3-ErhLPmHlqfJ8hN4ACyqJD~5rZgJOv~~Mey~irn25KfrOlvctGDWCeDKjDbc4oOWyS5UL-QqSYY8QfUaixRBBJgC7JrJrSvmbn1gCD1yNod7e0perr4D9FZVvnWohfFkBrjP51DRLj-ywi2UaAr5M6NhCAbxndJJaL3PFswnfIObsjAE3Xa4HS03x5qpmF710EIRo46itYRkotSCUH6EyHq52OAvVBsz-xfNd~dsa-PuIWi3vq-0NAASw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.netflix.com/title/80107219",
-   "year": 2013,
-   "genres": [
-    "Fantasy"
-   ]
-  },
-  {
-   "id": "19937147",
-   "title": "Today with Jenna & Sheinelle",
-   "type": "show",
-   "svc": "Peacock",
-   "leave": "2026-11-22",
-   "img": "https://cdn.movieofthenight.com/show/19937147/poster/horizontal/en/720.jpg?Expires=1822077503&Signature=iTXM~VNqn-uJBrgLAj96x7yx65XGUzwCngJOLsgG52SikM1aGrWbpLlgqdBOwCNEMB3B5NECNFtziradNEhQTWarMHUOqj28bYkI2R~LRSH2LXkxz-xNl2T4RzxIA8cbUEMb4NKCwE4t-u2GmdS3a4V66dPzbvExQGvdu51RpL96Lwo0NADhkt5ZRDQtPNjYWHzsYCUV-QuQXVrREzc~llOwsW5HY4e0YZDwbJlByViS9IF2lYvnVZbXyb-ocyX8d~myKhY2BZjJOWmc0q2yguEXEu696h9FLNU9RDsFb4-iWet2QxHpuFYXP9qOdJjkWHtD~G-EOhFUpx69FL4NxA__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.peacocktv.com/watch/asset/tv/today-with-jenna-and-sheinelle/6685406365403720112",
-   "year": 2019,
-   "genres": [
-    "Talk Show"
-   ]
-  },
-  {
-   "id": "5865",
-   "title": "Ambulance",
-   "type": "movie",
-   "svc": "Netflix",
-   "leave": "2026-11-23",
-   "img": "https://cdn.movieofthenight.com/show/5865/poster/horizontal/en/720.jpg?Expires=1814480408&Signature=fTZFYbq2IZkTiP4aXuBJyDnHlAkfnVoFYRv4GqCJxSCq8r01RPEyLzFB~m5i0fDlU~iOL9YwFyf1U~bzhegWIeYlcIKIE0AyAVztzFYC1tsF~-yaBMtIztVOsnkDGMWTAW8VNDi-zkgRJWZBiS1Ai7-KwtMYmGJ-loY0WfnlmUy7pPUOIzh3PUjTgEXdeDRLXGLnqc69FSJfLAJ3QGYVOOWsj0sN9pdbo0M~-WkQQoDo4slulEFPmIS~CN4BnmlITp1~zYpu7m~VT067TfI1ajjeOo2Pk1k4kBF8lpqJp-GCzSFQ-jfi8ZjecQKDlgX66kL9hxoaI5b-gSWaE4zS0w__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.netflix.com/title/81495232",
-   "year": 2022,
-   "genres": [
-    "Action",
-    "Adventure",
-    "Crime"
-   ]
-  },
-  {
-   "id": "35907",
-   "title": "Breaking",
-   "type": "movie",
-   "svc": "Hulu",
-   "leave": "2026-11-23",
-   "img": "https://cdn.movieofthenight.com/show/35907/poster/horizontal/en/720.jpg?Expires=1821572890&Signature=C4-sTrwTRKL02hZiN~LnMsBpSmydQrSYLW6YVU3W9Vh4rEO7IzQRb24DqDzZOdQM9Ew-WEPB4BoHBSJ2mI6MyyQox0azpRyCtMxj~I~KvZ~XTGJGpECX3nyiFVViM0HFC6uHFNEwbV9gCbmZYfy1rx5yaEMbq4G-A7HKgZP4TAia4VhM-uf7L5w0jy25puKPSUGn7PkxlU89s5Pc7jcRWeflEvF1MYo7i7COqdFtP~cuwq055ajPORZQfJI5Laql3GIzl1XQ9WmNTu4l5uLMc6BwEjRlohW8ZjFVUSAoVrZNn2Y8MOY39cDb9oOqqdWVGfwQ03qVHZ-e55K6-3MyVw__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.hulu.com/movie/breaking-b8c99a06-3812-4dae-9737-417c7406cf01",
-   "year": 2022,
-   "genres": [
-    "Crime",
-    "Drama",
-    "Thriller"
-   ]
-  },
   {
    "id": "8955212",
    "title": "Flight Risk",
@@ -441,16 +17,17 @@
    ]
   },
   {
-   "id": "20466",
-   "title": "Fugitiva",
+   "id": "9310968",
+   "title": "General Hospital",
    "type": "show",
-   "svc": "Netflix",
+   "svc": "Hulu",
    "leave": "2026-11-23",
-   "img": "https://cdn.movieofthenight.com/show/20466/poster/horizontal/en/720.jpg?Expires=1819384693&Signature=e144v06f18eYUtGQ19zn8RwwQpWlo9Cz9StvJhE7Xp11VN-5t2BIBiO3jvq-v3em1VGVxhNIS4~eq2ykxdUoypvbWclRA13vmSWExjhxKyjXXzXq6ddRRijPf06RTIuzPzPIRqp8CcMy0gaNPGa7ZLAp7ZEWVgMlVlJkU96chJfZJDv5YW02JqI79h8KbuoEax7SdoXW6gvIdDykEhmmKSMqEyQIdrQzejdauIwch0iAbPDr7UJx2Y5-eyBJ3v-IvbpLxzC9lPMHg1g~eHbs-w8C00UcGDsz8p-CclkF131k~xNL1iJ-lixtR6E575eBwHdKt4ROQox0R-Nj3hGQHg__&Key-Pair-Id=KK4HN3OO4AT5R",
-   "link": "https://www.netflix.com/title/80235857",
-   "year": 2018,
+   "img": "https://cdn.movieofthenight.com/show/9310968/poster/horizontal/en/720.jpg?Expires=1818109617&Signature=LkJHVloo598yqGg8usdzwplRfcS9cYTahk6IRWbqF7sclGolD1VPX4eYv15JTYrv0bbrdqpymsvxEtEGrTg-RHwOMExUvcVE-rg9HHxkVVsnBkhPsPI~AofaT6pVjsTl4XDy3g7vgXtuttap64Ggcfb2JEGIf2hDiveCFVR5F0lRtTm344~g-F8FPdl0oVzdDn-qbF2-aeIgyi8uxh-rzAMB-ybtoOg7t8jjbsjwIaYbBzlYv8j7RvgjHXBfVldBFB1YcYQo5Mhs1AcQSoA6Rxy228Fczdheq8vKTRILqz5fmalfl38SxQ22C4~IWS54y4KT5KlaGdOBiJt~3SQbmA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.hulu.com/series/general-hospital-b767a2da-2797-4cb4-99cb-86cf8f2bc54a",
+   "year": 1963,
    "genres": [
-    "Drama"
+    "Crime",
+    "Romance"
    ]
   },
   {
@@ -577,6 +154,19 @@
    "genres": [
     "Comedy",
     "Romance"
+   ]
+  },
+  {
+   "id": "19937147",
+   "title": "Today with Jenna & Sheinelle",
+   "type": "show",
+   "svc": "Peacock",
+   "leave": "2026-11-24",
+   "img": "https://cdn.movieofthenight.com/show/19937147/poster/horizontal/en/720.jpg?Expires=1822077503&Signature=iTXM~VNqn-uJBrgLAj96x7yx65XGUzwCngJOLsgG52SikM1aGrWbpLlgqdBOwCNEMB3B5NECNFtziradNEhQTWarMHUOqj28bYkI2R~LRSH2LXkxz-xNl2T4RzxIA8cbUEMb4NKCwE4t-u2GmdS3a4V66dPzbvExQGvdu51RpL96Lwo0NADhkt5ZRDQtPNjYWHzsYCUV-QuQXVrREzc~llOwsW5HY4e0YZDwbJlByViS9IF2lYvnVZbXyb-ocyX8d~myKhY2BZjJOWmc0q2yguEXEu696h9FLNU9RDsFb4-iWet2QxHpuFYXP9qOdJjkWHtD~G-EOhFUpx69FL4NxA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.peacocktv.com/watch/asset/tv/today-with-jenna-and-sheinelle/6685406365403720112",
+   "year": 2019,
+   "genres": [
+    "Talk Show"
    ]
   },
   {
@@ -865,6 +455,34 @@
    ]
   },
   {
+   "id": "9895425",
+   "title": "Seeds",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-27",
+   "img": "https://cdn.movieofthenight.com/show/9895425/poster/horizontal/en/720.jpg?Expires=1820688109&Signature=kuaboPtgQhY3v-QrDDVaMnOL-pXf68LvNTM~5PMbIrtHvDjplZNz9xjncXRuMEBZ1V9FxbaJNygI9SnXlmXTyYjubVEd5o4XQKCDRP4ZbabPcvGtqYxrARE~Tme-TABYGPtrRVCMCIHIBRAQKihWSJwjpYcYK-lZO6BHYwrKg3ugFpPRl7f3vClDaK94bUcJYF0EiZdQncoxu9jMCVhNU370FwioYXQmR2rG5Rla7hB1XAFD4U4hOzZwahIYFfgy74X~g2J9B1zqjwN7ujIaAwfMK96ndNV-MTA3PC~Mqu5YxYgR15A6MEmdK8jxUm5ycKOS4mzAzWZasgFbLW~gSA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.0c3c2f83-2d60-4224-bf85-afeda0137a91",
+   "year": 2024,
+   "genres": [
+    "Crime",
+    "Horror"
+   ]
+  },
+  {
+   "id": "17652",
+   "title": "The Great Buck Howard",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-27",
+   "img": "https://cdn.movieofthenight.com/show/17652/poster/horizontal/en/720.jpg?Expires=1821910424&Signature=OuO4VKkfo4OJUAyhYaO7Vq8mPnpHdZ7CS0NiJF8nIDxbEO3-l-Ck6Or-Fu93p8EAO2Lh5U0CfpYPhIlKtzbYrWNH0rosMtNPMDQcTJASzrk2PJIymcE8hZVr2n6Eg6XDpVyDlcozEbkpbuQmRXsefX3PquJrlqeWHLzMG3GUB9rmS8xmWEnUX~MSWWgsl42O0hSFHH4hMXEO4HpBtfKs0cm~eg4io1EGv99cWJmxXQYYXpyfSIp2h1edzUHkD9nR1Vml-QKvXCJKNFoH0Ar-hWmbGFJJO25ygVC5zzNz6yiATCn0aaE2DgAPM2oCYZBoqJGFnhMUuRemvoQaX5P6ww__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.bcbcfcc4-02ac-4a8f-ad7e-fccf135e1a69",
+   "year": 2008,
+   "genres": [
+    "Adventure",
+    "Comedy"
+   ]
+  },
+  {
    "id": "10256010",
    "title": "13th Summer",
    "type": "movie",
@@ -889,6 +507,19 @@
    "genres": [
     "Crime",
     "Documentary"
+   ]
+  },
+  {
+   "id": "18873919",
+   "title": "Blades in the Darkness",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-28",
+   "img": "https://cdn.movieofthenight.com/show/18873919/poster/horizontal/en/720.jpg?Expires=1826570027&Signature=PJFsFB5eO1ErdejzlhSfPt0d39VVO8KXiY4nVptrfrb2dmJDXrfWW-TWcLFL95swrK04XKM-XYgKZZXn5uYmEz90qLuU9uQIlHhJ7fXtnW2PtgWSsBd7bdeNFKGSlS071C0bHkoSlZMr8Pn-rEtCkERCEnUrVbriqJQg25cCMgSsNBVbe3i6yb1KKlT2WgEdTs-Gjy3eLPz0wKTsO3wdftxgmHy1L-W-u7HJ~mIEzAMFAaC2HvEF4slZgx9gjdwhxP1-TEYoLHj5v~pFjEEynwXSEfddE91wkDfXRGFlARSXpUraH8zz3ZHKABJYF29J0DHVJYg3CIBRkmBsKaU7zw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.e827b15a-e664-4974-a08d-2f422f200f40",
+   "year": 2022,
+   "genres": [
+    "Horror"
    ]
   },
   {
@@ -1053,6 +684,366 @@
    "year": 2021,
    "genres": [
     "Comedy",
+    "Drama"
+   ]
+  },
+  {
+   "id": "257",
+   "title": "300",
+   "type": "movie",
+   "svc": "Paramount+",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/257/poster/horizontal/en/720.jpg?Expires=1815863992&Signature=g8dmRtWutWNqhjJmGQpZC4KPFwKZjsb9MvM9eufNkBUu3pIqH8eXr0U31AYVOHbJy63KinQEdu06HO89~DuAx-uAzzYMKVc5gmtgYaPvyjs~lzGnXTOF5RAaLIX3P1wXd3XVyO8SgDP33-SjSrEoh6dcMtT2~8fXdN3Hv4xr0cbZyHaKoaBGMFvRu1kqrM7fE6gBThkzbtddwgKMs9~dO0Cy0eOOdUFrZn42Qb-6axgW5ju~bxp3ah~Zcy7-8~PEucJRVt~PeNOi7q8hhpNk4~EPxr1vFN1n2uWeWJT4zze2Sxj7mJ26C6prRcFPjWj9tpvtsA~1u9uhQUNWcuKVRQ__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.paramountplus.com/movies/video/ALVE01KWJ275KBECWSQXPX8VNEW2VC/",
+   "year": 2007,
+   "genres": [
+    "Action"
+   ]
+  },
+  {
+   "id": "32298",
+   "title": "Act of Violence",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/32298/poster/horizontal/en/720.jpg?Expires=1820761266&Signature=LM4e6ZSlniqVZRA8Xwg-Smdjy-r1us6yB988ojdmmlHxACsSO3pRZye5NkTOjCCzgQGmVc486gve9KLlSRB1VoROhwQTUlrS-Ja-bJoVyVhKYTL5xQOyD8sp-npDFW1j6EYz-pCICTWKcl4g3JgamJSk~9A8ETYAi1-VNev65NcLiO7a~BtN6aliIRp-6WR1CLShEKT8msXLOpPWepcSpYby8AV0hG9BFqs7scNvcSASA52n~9ivyjYFmG2wdEbZGjx5pWDwqEh-XZGte3RTRRCDKUTqtJGrVLQBvPuDfDNQg1o8vmhSMZmzxScMXuoGJyHHuzoNUIKAcjy4nEORQw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/bbe6edd1-673a-434a-a1ca-6d9903b6123c",
+   "year": 1949,
+   "genres": [
+    "Drama",
+    "Thriller"
+   ]
+  },
+  {
+   "id": "62526",
+   "title": "Cryptozoo",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/62526/poster/horizontal/en/720.jpg?Expires=1820183817&Signature=FavExe9ZWeAw7gkGkJuCK~Gp8bIjFR4Hv34VnHvlEP~c9LIewttM2Mzdq67Kx2lPB0n~OUDdfrsnp1dNFVyUbR23lrtY4EzdF9tB3YGTGBesvu37~bIDAB55dtkfEqLOwJQJ~TVEe~2Mx15YK0j2-znP0jb~KmEMEPOcDYw97W13jPJMyBnOn-p6ZGa-ZwK-uU2R-MUeGyKunVFOCeQZufkJmNA4ysM8lRuHJifSt9hRDWXN4XZ4aqxi~UQBgz3EGqpc-bmEV03nztsYyi-6DM0q6VncBfePgGhrTJ3q2fapGY-awXNV5sw12pF3eNj2tMuBQhFcJqTSAZUq8xHmSA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.8c988e8d-e92e-42a2-83f1-00c6fa2124d0",
+   "year": 2021,
+   "genres": [
+    "Action",
+    "Animation",
+    "Crime"
+   ]
+  },
+  {
+   "id": "37396",
+   "title": "Executive Suite",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/37396/poster/horizontal/en/720.jpg?Expires=1822115125&Signature=Ka7-IV2iUoY3V9kwTorgAZf6~utI9EMqyaz87Fm4PDh1LvU9kTRjoTHYur-7sopTSrQ8cmWStTL5cMmlhQvwZojVocNU7Jlj1XsoCWi6BaClbZejtoC-649QNWikx3UKaNjcxi56vSLMMemom8-38JYfKUlpb64O9tV4~bd8fWM2QB7YX2EuT8f0-ocH0XuWggWUHTnhpMcHhT9tLxcqkV~CGKj5ikjqDPIHu90-wa1FiGAzPRXYTU1FYx3uDNOxRSBozEyE8vvZ8k24CHnf-2sOk-Faq0J-aexQKZjgTBf~q3i4ykaspNZKuUTJ1dNIYGQPX2i0me380IfP9LjNUA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/3bc22931-03c5-47df-b3e0-6960a02f93a1",
+   "year": 1954,
+   "genres": [
+    "Drama"
+   ]
+  },
+  {
+   "id": "2620",
+   "title": "Horrible Bosses 2",
+   "type": "movie",
+   "svc": "Paramount+",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/2620/poster/horizontal/en/720.jpg?Expires=1817913438&Signature=jErKYaanTbQzLxhZklMtqXlAtO9EK49YGegKHR2VBG9d6n4kRA88v8ghlB-B5gPIaBNLdg1jcTJ~JepW2XpmHbgGfMA7b0fLINAjo4fdrTmDCwmznZSKKoej0LHxGm6mWIpgkO95jrOMOQEU3~IZ3koLefB7MKdtUJgB2vy57N0ndafsc~T-ybnpe4Fbdgz~X6PmksXFg6MtXuJpy1CHKeAUhM6CMShJgfGr8-GnO6GbSGyZC2zfjS2nODqJmzpJbIdI3YOicGy5D~Wg5~jdDjO97QdfDst8fTS-9Lxya0V5L29IOcw36BAj5RdARO9JZF703bjoEPDL4mDlHTPoMw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.paramountplus.com/movies/video/ALVE01M0GTF3GRE2CRTGZ6C3A9SQ47/",
+   "year": 2014,
+   "genres": [
+    "Comedy",
+    "Crime"
+   ]
+  },
+  {
+   "id": "72243",
+   "title": "King of the Underworld",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/72243/poster/horizontal/en/720.jpg?Expires=1820634300&Signature=K6ZKw8QQFVFoABpnAEz31L--ks8TbVus-4L02F03EjoZLbm4MvV5uLWUPr2nqX5EoHGJPEZf~XB3VGhxUbxyI0LUnuyDP79qNrc1dGUx1sN1tW7f0unUr5eBGORzgiLDb~Ctw2P0yjaHX05Hdwn0z94jnBBcF2wqP3oBbnweBD94xDnxgHsKWenxoJMJ2aNuO~H~5gM4mG2pDyvhxcKj54LugikbcQTICiQ0gAJbhK5uZF4JfPHkdt5w3vO~q2R8yhtRHsWRPwMEUYtHRNVApeF-4W8JJAtTNs0z2g9o~FWmWDibjAr4rx6l0UCl~Z6D9bEalrL-jay252d92SYF6g__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/df909901-e903-4325-9796-5782479d133e",
+   "year": 1939,
+   "genres": [
+    "Crime",
+    "Drama",
+    "Romance"
+   ]
+  },
+  {
+   "id": "64153",
+   "title": "Lady Killer",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/64153/poster/horizontal/en/720.jpg?Expires=1822133834&Signature=XAjSS2TMUC3PAqRXoY0jRxpgT~BCywTiowXKPpKLP2zvYEIhbDLJFBI3U~X2ZtxLoMpKeyluAnIDzk1KxTYnMhzvUr4ntP9S7YOhLwwfY4NDf5xtuaYV6ULQivausaoCrBtYOS4cKrEQjam3CvtR8w8Je6CdVlriM~9deu7Hc3BD6NVKoZ477VVupOLH~Hj5Lqd-UUm~kgWMyLQlfi126xyH8LtmRqyybO9TLP9aF7Y4OeAiTEbTiARvigptEXQR08Je1-R61~S2JKmtyPduWD29i3R5lDusdne9fDUdXX62wkCM4Z0Q2GbeDcBHxtcnEtoOzEFa60xychKocC6eAw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/7ae1fdfd-9438-425c-979e-ccf4d08fea50",
+   "year": 1933,
+   "genres": [
+    "Comedy",
+    "Crime"
+   ]
+  },
+  {
+   "id": "42189",
+   "title": "Macao",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/42189/poster/horizontal/en/720.jpg?Expires=1820770829&Signature=DzwGu7VgH6YIhXuzgvQ9jrf404VnV6klmavRl0bHdU34xbdu5DNRhQiWzJBlE~ODsGo5TjljyUEjbHJaLMZduAQhqk9A2eM18pUTo89wNEKmabnwnv4JH8e2BSCuk61SOWpHwhFzyNeHyOLsCN-jsqfQEbtqJmyIc6W8eYJ-Oxp4hUPoz0nZjrSeQ8ZWeN19BxtPAtXSN1VGe9hnlM54RrrSjTHHbXc~ltnehWUhVArKqeI~94deB17KaDzON808ff8zB2ecfBLzPTRAzxe9~nWoCU-tyCo7ZqDZo8Yhx-tkNQp-ozAjK2DIBc2duIneeUaf1hRMDoXwYFVr8i-GqQ__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/0ecdb36e-68d5-4bab-996d-f700f43e7368",
+   "year": 1952,
+   "genres": [
+    "Adventure",
+    "Crime",
+    "Drama"
+   ]
+  },
+  {
+   "id": "18625045",
+   "title": "Man Finds Tape",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/18625045/poster/horizontal/en/720.jpg?Expires=1818088028&Signature=PRb4gq1ny0-Tr~~VGH6uR0hpcysKyHKgGXfMUp0uK7ViEHPq~~0eKWPNiA3Iye6NQ7kBClqWDaaC3uwvA7fR4Nx2mvixX6SR2ZtkOp~lwPGofgVSPDuDq0o2nIYF-Bc1W8Wh7uae~QPhm-hznAAzT~d0a-plVkrc7Hv7m29v3s6w1AKCYytnP96VO3hS7~CNrcVcfQJl8mkPc0tkuOpBm5lI2QnnX-Q~YGy9DsxQCvJ1u1~lRbn4HaoqWGpBEppvMey65GY8E8jdLKZXdZLwJx7LJ8zDExLESc6kUIssmypO8-q72qgZk6P71EgqNniv3amxzUiKdwB1W29lGs2EXA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.06dfcb57-d290-443e-8bec-aea50862deb5",
+   "year": 2025,
+   "genres": [
+    "Horror",
+    "Mystery",
+    "Thriller"
+   ]
+  },
+  {
+   "id": "1849",
+   "title": "Orphan",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/1849/poster/horizontal/en/720.jpg?Expires=1813730066&Signature=OvXYGTkZgUbXTQJP-oS4pUkkXqIknXNlhD0DqZ-8ryQbRVbXhnViux0SrobAPlfyz6bH8DqYXIUfxW2TCjz3ed~H2DQNuQE7A1eyId2FsOft2Ou-DqqnqzZs288xTkz7LyxBXVoWWSkM2RmvN3NfIFjBMSpngjC8shLt5uV0lmGCwV8X2qC6bOStGZmDsgqfvdQ2nHgaZ5dE1h6x7dhpmcyhicHcSK7EgwreZsPeVww8PVxpZn25~gYK6s9CniuiQht5NOVn0oLZwg9QXbL5TI714FZd38xQYseeowl4vZVczXE2kdl0oM9DyhamXbl7WwHtUE~KmByUU5TNMyw69A__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/ef8b0160-dd37-48c8-8fda-0171b9ecb785",
+   "year": 2009,
+   "genres": [
+    "Horror",
+    "Mystery",
+    "Thriller"
+   ]
+  },
+  {
+   "id": "95238",
+   "title": "Private Detective 62",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/95238/poster/horizontal/en/720.jpg?Expires=1820784602&Signature=eleDLUUnZKGaRw0nK37xrd54cC97mJOXmB~CK8VXOE0H2N4gjX6bt5udSuAeV4o~u6Sqp3dG6TEP8SlyPCPppzMB5DWOTmUHRzihtvueb0u0JkAarSfYqajEKgv~hZY4ostOWEdlHA8xyAD6A~0ke28VfDtnwuOPHdgUjCYF2DQfj8QsQTdGKuqoZQf2FZbAjVq1mbxr0PxXB0rXxsF1jvfwcgV6jPJgsR83fUa3ZgVLSsQ0ehR-BW2wloLIXe5YtVJ28R7~GlHJS8AvHiU~JM6cq5bm2iB9~ITjr7B-W7Y6eIe0KM-AwhilXCaiSnPUK7GUKmEESp1GtFCSWVzzRg__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/8ab7e075-00ad-450a-868b-764664432a7c",
+   "year": 1933,
+   "genres": [
+    "Crime",
+    "Drama"
+   ]
+  },
+  {
+   "id": "59657",
+   "title": "Thank Your Lucky Stars",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/59657/poster/horizontal/en/720.jpg?Expires=1822094694&Signature=MORzzN-knE2ZAY6I8Df7GDKuHZfXGgYsRTozTBX-KkSPtBlF-8sytr05IOZ6zUoZop6tKIAW-fyny4rY5Z77ZZo6crWJX2nTIfO6KqdDlH0ctt2PgugnH~cgwWjQOYE3hQljYTpOjvCPVJpWWWczpLFmhlMFjHTEwjCzSH4qOfk6Fe-ofnkcTd1nBEEAsuQPwWDphY1TKt51xARGxP7CYeoBB4PuAQSnaESwZONuJ4afpIC89duWWArgVsXAC1W3sNojfhqwHsiB6Uz9CHHgp7s~igPjZJI~TDrUfSutHasKQ11bU48IFoE5WGNG4LMbokKWo3l~1EPyuqGZD8xnuA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/2136e57f-5daa-4988-b783-410de64e50dc",
+   "year": 1943,
+   "genres": [
+    "Comedy",
+    "Music"
+   ]
+  },
+  {
+   "id": "14625474",
+   "title": "The Carpenter's Son",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/14625474/poster/horizontal/en/720.jpg?Expires=1814436669&Signature=DrTFCZqeHHOWuUzQz~OlBeORd-FkS~Vz4A1TidaBRqBKVB5sSvRVqrBgdogjs~Aw8bBdhS~DhP9BmDCi-RHe9effDKZArN9KDy3ZKfce2oH91QsGLyY~v0tCNq8EJjSTbJjvg3JBO9PGuS0giWtAsqgVXXZxvZgT1MzdPMc5Dm28WX-wTRkQU-IXjzAvuLnMFvRnWT2W3bl3OgBfYn3sdxB8~uO3K5h6zsNpDD9jrDrAKkNtAv3swlyzAqOfBV3hN9HNx4OUrs-Kls-T9qeICB0m87y1x3u6MJoeqg5jRxfP28eeF8hA1H6APoO5VDKCxWrxeA~18uo-HgPGap33ug__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.e4082c8a-b457-41c7-a3c8-a7365aef3fdd",
+   "year": 2025,
+   "genres": [
+    "Horror"
+   ]
+  },
+  {
+   "id": "42780",
+   "title": "The Lost Patrol",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/42780/poster/horizontal/en/720.jpg?Expires=1821754535&Signature=W-FaceshY5R6YITuKi1yv6OOY0GBl1pxl66PDyCwmKQX4Dt00iIzwPfK81AeI6cU6Pd1kS8YVbuEqeqj6ZzS1Ckt7ql-VmBi7cLS7NsxwF4SmFlTxCn3SLDJPTtAqClv1CqVnPai-jtajW-QGjs52BF5KhPqBo3KLG6G2cGgLMD5buvnlGJqDynewZB0hRBuaRX2r5-BlTGNUY0bWFzBfn0srsAqZ92nhffpAIDHxc3QnDaLHxtdIa8Tyn2cRBx2D-8gKOZmQ0056Mdy7lRhGL4ma34RajV0GtM9CXOel0zRYGYawGa01t8UTpYZMIiboBj0~ZsJbqHTBhUnyVT5cA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/ffc3a0ea-19c5-44ca-8e3e-9fad317d1539",
+   "year": 1934,
+   "genres": [
+    "Action",
+    "Adventure"
+   ]
+  },
+  {
+   "id": "65903",
+   "title": "The Mayor of Hell",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/65903/poster/horizontal/en/720.jpg?Expires=1820718422&Signature=Y1EaiLBbL6ZsHTBjiJvYPv9qYXXe-vPC~8Ui-oWrQM3HLXPDqzswKMaY1tu2fRa~3nMlasGkPFLeIHZLn0mUZGL00Bc1BulnelFoQUjtbJ6CFOwi3DBRyUTZmJNJhw8GGTsdv8JmW8p7SFJG-VkUzXPaTbE7UOV6kYJjU0fuPAtVaQxMcvCa5Gf~VxLbwikCNozxJ4tqW2IM8I1A~pIIhBuis6IyaoNFHN3ZuNUf9LEUaFkqwDNsDX1qvkDmGvQhxF1DergahBk9Bapex~f8iw05fKtIEPCuL9mkusJQ-AkDlu2y6CGkYVHKh-0VsUZZ6WKNaEJQ462MJKGD4TyZ6g__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/f3862efb-d4e4-458f-8ffb-11e6e3d8a35a",
+   "year": 1933,
+   "genres": [
+    "Crime",
+    "Drama"
+   ]
+  },
+  {
+   "id": "11401",
+   "title": "The Wrong Man",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/11401/poster/horizontal/en/720.jpg?Expires=1824296684&Signature=Bd84fHh1~wD1IyZTEXHaloCYawtWqCou12j0j-TwU08Q2eobxiurO1abPsfC4ZvVsarV3M9iOUL9kvrNl~PSYxd5giGptxXyg3xwjsLkbjr1Nnix3LEEcD6HxOeTX3BEWL9ZVEEJpWDR2WMZaDlrdtzErMM-Rc-3EQWBKpDU4a9icC7kvlEQrPuO3hp2KSyXTP3LLbEcy0WGTmkmRU4qgWyZfFtDnn-~pvOdKge~Pga1ztKcXdGdd85YA14Wgbs6UBxspW-q4WV-8~3bKA32CQRZd~YHCnpz9r2vS2FKIggYvusvEGRVREOQS4CmNFT96HbCsHzmBK3ljcbcSLwsVw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/f3caa611-22b5-490d-98a4-4534f601a5e2",
+   "year": 1956,
+   "genres": [
+    "Drama"
+   ]
+  },
+  {
+   "id": "53094",
+   "title": "They Made Me a Criminal",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/53094/poster/horizontal/en/720.jpg?Expires=1822185199&Signature=eBMFG9EMHNMjrBTau~G2TVMZbHY9ypGgeNIsH4E8JXCVOi9yLQEIGSIrhjGSzKM6z9StfPtDqe~3qY8aHN4WyXDaO3Gk6crHFHDuZ1f9h9YgXjuZ-No3j7tAEJmW0QclDCcQxOZM8Z5oS87fSj8Qpg58XTNU2hHlKvMV0FUrLzus9ue7qyyBkbFAn-BJwXOEOjLzyrtHr~Iha2MOq2ZA9UDZnZtomKTJp-8vw12dNpMZZff5vpg3NUsUv7wKrr4llssbG6P0LaQBi4SJcbr6hrhruwR8PPlPt0qoFRVLxVDhLlrL0bn5B9DkFW5VuopT~N-MvqXgUhHgf7k27R7Msg__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/4d52e960-d872-4d37-957d-1167d62ec6d2",
+   "year": 1939,
+   "genres": [
+    "Crime",
+    "Drama"
+   ]
+  },
+  {
+   "id": "76620",
+   "title": "Words and Music",
+   "type": "movie",
+   "svc": "HBO Max",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/76620/poster/horizontal/en/720.jpg?Expires=1821883853&Signature=a3pr-zwfEKiGKbkV6QlH51JiyiDtb3VfI32iI0TTP~2sjp9NDa~mvbeEQx1HCy4USG3gLIQHo1Yhyfd1tGl46grakcbe~VlArMvNj-iL0XCPA8y~-oVUD-Yhmo6oyNgRDNcE8rYxFO-iuqnQT93eQY~SgFQyJ380vfSloVYBT1PY7QczGgcNNKfuD3pxU5Lfcj8Rvq4HaOBx-acx5LCVFpe0xoc8N-3CWpv639qGVZW6MnxJOuXXD9L4TDW~~vhBRwi3deqqh-WGrWR9OGQH4IB-nYS7xls4Ewp3kDXtp86ClaWmdjye4xm~vgVhwGXZ1P~wNZO72HnDU4F7dLWTmw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://play.hbomax.com/movie/269059b8-5b4c-48a0-9da6-4ba2d527fc0a",
+   "year": 1948,
+   "genres": []
+  },
+  {
+   "id": "63854",
+   "title": "Yakuza Princess",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-29",
+   "img": "https://cdn.movieofthenight.com/show/63854/poster/horizontal/en/720.jpg?Expires=1819350907&Signature=NBH7MWphtTEPRVFluWRh7f6UpoyiI~qsKZxPROwyBBh7MLELYYIGMC53YK0crwkFRaIG4FCJvTwN7JS7uWnA5CANmQWMcvqgcDEu87vSHbICWwjIL-~gRhxsIUPA~WlVUjvBHeWgAElDtQoq~KhLsq1gJ7R0FxfPWPtmj3C3y13CB9g~VX7zQ8tv-z5MVpCY9UGDw45xxKgdmfihYzJ2XIJgyI~mO2zNgGOMd5Hb-e~XX0Qjx8dKbyxfA7~iPCvW0IBM3Y1PEIQ9cOMYezwNXqepnevTFNz1Wd6~cyNUYC1QEgkFPdUpdLVjEemR19wbMdjzb~EtOUFiXf-S1iWsZw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.fee79664-8093-43fc-85aa-c0535d7b9673",
+   "year": 2021,
+   "genres": [
+    "Action",
+    "Crime",
+    "Thriller"
+   ]
+  },
+  {
+   "id": "281989",
+   "title": "A Compassionate Spy",
+   "type": "movie",
+   "svc": "Hulu",
+   "leave": "2026-11-30",
+   "img": "https://cdn.movieofthenight.com/show/281989/poster/horizontal/en/720.jpg?Expires=1820724689&Signature=h9NdWUXgVvq-dGZoHCgX5ntOpcLN8qarwJKEXsiwpUVb~s1ugglXPJYFk93-h80OR3o5Ha-PBC9VHyDw10ivx3TsGepaQ9LLPOydhbsWtC9teCZETS2M8ypzjzbXyqjHvCi2gh-9uGYGMWYVBej96fxP2TrhFCN67gyiz3-wcJ4pm9sT5HgyN1aovBoA4Nona9UXUOrEKEUboP~wRO-VU~4QERrqO2CT9UFLSoctQXcD1xF~NSdWI4fxeJ21fg2Tz5Ma0CggAo5TRijX4Pu0BTPwTK32~t6646WavwOWFj4aToTIj5vLPgvtmVpfxfSOWdY5ohfYV3qk3k19pgbaZA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.hulu.com/movie/a-compassionate-spy-44ae0d17-efdb-47c2-8776-df3bef17b7b0",
+   "year": 2022,
+   "genres": [
+    "Documentary",
+    "History"
+   ]
+  },
+  {
+   "id": "109327",
+   "title": "Curse III: Blood Sacrifice",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-30",
+   "img": "https://cdn.movieofthenight.com/show/109327/poster/horizontal/en/720.jpg?Expires=1820616015&Signature=FczFeThvxn0KNKdXkR~9ZkW1huyhBh~x9f0h1wQzp3V-0RMCBx3iF1jPbn8E2J3BhDWvrtsXzZ4261KWTCa-D0ZzYuQbxP0dln-MBPnUmZvn2hzwndfzimO1cmBhwzrj5e-dnhJaQxmfxHT7xP8bcHPC2T5p5pMtKYrahYqoAMjjBi9aQXOrMfaTKm2KKVlnwjRO8~5tHPl0lgDOWcKTF-zbot9NjxbU6gNXpF6cTLa7GiPXafxbxyi559UHEGRJnvC1wrFJgKCN~2LFvGRho2Vdv8JWPPCq7J0kfWrrpfEP1Ris1j7WeI5jqKeSe9-i72EaDwIYmq0b1rgFd1W3yQ__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.46280a44-a885-4ce0-bdf5-931f299cbbd7",
+   "year": 1991,
+   "genres": [
+    "Horror"
+   ]
+  },
+  {
+   "id": "22241",
+   "title": "Love and Fortune",
+   "type": "show",
+   "svc": "Netflix",
+   "leave": "2026-11-30",
+   "img": "https://cdn.movieofthenight.com/show/22241/poster/horizontal/en/720.jpg?Expires=1820666669&Signature=NehkvVW6nzeq86Krq-EVhAKbFlLroE9caMmq2StJTHGWiwFg6KEz5Ewp-vmMG74luQiWkk9DwSlJYs~b3xii~Nbzhpqta3CiWwI0-Q7O7jsHo-Sq1BAPXNEtOMqhAgUhGYjapsAHbTpcsXCp7lLmFHmO-YyBqWgbFDD~7mzyO25w~ACayP1M~4wZ1DNNtGT7~knwLcdr96uVCaxcI~7FPcHu~y-ShR8ZmM3aRxNJo4bsfsUA2cp~ENanw3kCRphecApmEKWAqNQ-k4PRl5Z~QDt3dwV3Ixrr7v4UXnVJvRzSIrbnyO78UnMT8-0V-P~QBEXiQpXOEyLuHf0Ic0ufZg__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.netflix.com/title/81002951",
+   "year": 2018,
+   "genres": [
+    "Drama",
+    "Romance"
+   ]
+  },
+  {
+   "id": "102625",
+   "title": "Night Visitor",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-30",
+   "img": "https://cdn.movieofthenight.com/show/102625/poster/horizontal/en/720.jpg?Expires=1822183672&Signature=G~XmH98I11UOzzJOf2vKH0q5Qjd-njW4K9m78tBpGBebW~HuIFypZq-bbvHnAIR9XJjiftbzEsq-RcNyf2eO4lPr0XvoHu7cUiZB4SqiPD1pJbIB1rMVKJ1bWfMXV0GysKpkFOIkekA-JWoC0bbIKSOuTCYm~lsW2qQFE59GkKQfupb~WPT1VYAb~~QVVF-2XgLoXmqaOrV7l-7CJZ0EuhyWVo-gSFKef5woOdXByfV8ypcNrAdgAYxTY2lxF03wubGzxjbFWvjTuCMIgY8yfzs9zlngsCIIAKT0o34534GkqSQRa8NxKkTEyIl3QnXveku6mBtifkevchN~kFJVcg__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.6ee94464-312d-4707-bc54-d9c742eff79c",
+   "year": 1989,
+   "genres": [
+    "Crime",
+    "Horror",
+    "Thriller"
+   ]
+  },
+  {
+   "id": "105385",
+   "title": "Pale Blood",
+   "type": "movie",
+   "svc": "Prime Video",
+   "leave": "2026-11-30",
+   "img": "https://cdn.movieofthenight.com/show/105385/poster/horizontal/en/720.jpg?Expires=1821732216&Signature=TT6tFvzehxkVzzRx~19JnUHCONwp55bhx-V43~Q3t7-URvAFzP8Rh1mgTwePu5gCQGmBLaEjfqm8W8OTEEZokbbmS4awENoDH7lxDbt127TonPrdZJbIFJ9bDPdklgYDvyw19jeCC~1uTVwQPrYV5uF-V~7VzsbQ8GQ8rsZYkGizBHSH7aiI5C9rWL8FnpYgur0TERxNr7lnwx-f4uWkfe09mf-ac3n02xG6jvKZxGcP52gU47hTLUx2AtKMseGsD4OSgsHNznoGgflEjiyUk7E5OzxqjQff0m1MUreP9dEVIJKqLLjrcXtRo5xmzUxzrnr0vtd~96t1TU4YX1jYPw__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://app.primevideo.com/detail?gti=amzn1.dv.gti.2008c0a6-4a49-4288-aa52-9e0b44241a0f",
+   "year": 1990,
+   "genres": [
+    "Horror"
+   ]
+  },
+  {
+   "id": "13031",
+   "title": "The Assistant",
+   "type": "movie",
+   "svc": "Hulu",
+   "leave": "2026-11-30",
+   "img": "https://cdn.movieofthenight.com/show/13031/poster/horizontal/en/720.jpg?Expires=1816027769&Signature=PPT2dho3CM9njuGSKHBZVGfDbX3x~Gu8LldTKA5iOF76pBpGLuMUZT2lZCh-O9P3Yx7kqDh6JLnm1wE95jIbaK8H5QDKI~sITXjKT1XGWl1vrRba7Uu3QZ4e-iKpPrzFlOW-7S3x04RfSrN0AfCT1geWlXN5L9lC3BQkNJkkM40SI5XKixfIDJRTav~pfjI35QW8YKgsrGvUQURGy7dugZGeObJOmatS0rzQWxI940wfDIGe4Ey3w66u6XCLqyai6GdXvSGezMGk6FIntP3XuHsgj5Dfc4tV1F8qPN2tfjzyAb75Er12JdzF6EvJBZSbkA4nzDesH0U8I8X-QUbgQA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.hulu.com/movie/the-assistant-94c3d0f4-b5d2-4252-aa12-b959e3f5c6f3",
+   "year": 2020,
+   "genres": [
+    "Drama"
+   ]
+  },
+  {
+   "id": "13031",
+   "title": "The Assistant",
+   "type": "movie",
+   "svc": "Netflix",
+   "leave": "2026-11-30",
+   "img": "https://cdn.movieofthenight.com/show/13031/poster/horizontal/en/720.jpg?Expires=1816027769&Signature=PPT2dho3CM9njuGSKHBZVGfDbX3x~Gu8LldTKA5iOF76pBpGLuMUZT2lZCh-O9P3Yx7kqDh6JLnm1wE95jIbaK8H5QDKI~sITXjKT1XGWl1vrRba7Uu3QZ4e-iKpPrzFlOW-7S3x04RfSrN0AfCT1geWlXN5L9lC3BQkNJkkM40SI5XKixfIDJRTav~pfjI35QW8YKgsrGvUQURGy7dugZGeObJOmatS0rzQWxI940wfDIGe4Ey3w66u6XCLqyai6GdXvSGezMGk6FIntP3XuHsgj5Dfc4tV1F8qPN2tfjzyAb75Er12JdzF6EvJBZSbkA4nzDesH0U8I8X-QUbgQA__&Key-Pair-Id=KK4HN3OO4AT5R",
+   "link": "https://www.netflix.com/title/81028387",
+   "year": 2020,
+   "genres": [
     "Drama"
    ]
   }
