@@ -63,7 +63,10 @@ const LIVE_PKG = {   // '*' = a full live bundle (every channel in the guide); a
   'Sling Orange': [...SLING_BOTH, 'ESPN', 'ESPN2', 'ESPN3', 'ACC Network', 'ACCN', 'Disney Channel', 'Freeform'],
   'Sling Blue': [...SLING_BOTH, 'FOX', 'NBC', 'FS1', 'FX', 'FXX', 'USA', 'USA Network', 'Bravo', 'Syfy', 'E!', 'Oxygen True Crime', 'MS NOW', 'MSNBC', 'CNBC', 'Fox News', 'Discovery', 'TLC', 'Animal Planet', 'National Geographic', 'NFL Network']
 };
-const pkgHas = (pk, n) => { const v = LIVE_PKG[pk]; return v === '*' || (Array.isArray(v) ? v.includes(n) : !v.not.includes(n)); };
+// a streaming service's own shows (TVmaze lists Prime Video, Netflix... as the "channel") are on that service only - no live bundle carries them
+// (Scott 11/25: "you show a program say like its on prime i click it and tries to open it on you tube")
+const STREAM_NETS = new Set(['Netflix', 'Hulu', 'Prime Video', 'Amazon Prime Video', 'Disney+', 'HBO Max', 'Max', 'Peacock', 'Paramount+', 'Apple TV+', 'Apple TV']);
+const pkgHas = (pk, n) => { if (STREAM_NETS.has(n)) return false; const v = LIVE_PKG[pk]; return v === '*' || (Array.isArray(v) ? v.includes(n) : !v.not.includes(n)); };
 const livePkgFor = n => Object.keys(LIVE_PKG).find(pk => S.mine.includes(pk) && pkgHas(pk, n)) || null;   // the live package of yours that carries channel n
 const wayRank = svc => !S.mine.includes(svc) ? (FREE_SVC.has(svc) ? 1 : 3) : LIVE_PKG[svc] ? 0 : 2;   // your live package, then free, then your apps, then not yours
 const optsFor = tv => [...new Set(tv.flatMap(n => NET_OPTS[String(n).toUpperCase()] || (NETWORK_SERVICE[n] ? [NETWORK_SERVICE[n]] : [])))].sort((a, b) => wayRank(a) - wayRank(b)).map(svc => ({ svc, url: SERVICE_URL[svc]('') }));
@@ -83,7 +86,7 @@ function bestSvc(x) {
   if (!x) return null;
   if (!S.mine.length) return x.svc || null;
   // a live show on channel n opens only a way to THAT channel (Scott 11/21) - no way in = "not on your services", never another network's app
-  const n = x.net || x.chan; if (n && !x.isGame) { const w = waysFor(n)[0]; return w ? w.svc : null; }
+  const n = x.net || x.chan; if (n && !x.isGame) { const ws = waysFor(n); if (x.svc && ws.some(w => w.svc === x.svc && hasIt(w.svc))) return x.svc; const w = ws[0]; return w ? w.svc : null; }   // the one the card shows, when it is a way to that channel
   if (ownSvc(x.svc)) return x.svc;
   const o = (x.options || []).find(p => ownSvc(p.svc)); return o ? o.svc : null;
 }

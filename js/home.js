@@ -349,7 +349,28 @@ function openIt(x) {
   }
   openNow(x, null);
 }
+// WHICH SERVICE (Scott 11/25: "it should go to one you show or open a window and lets you pick from which service you wanna see it from not the wrong one").
+// Watch opens the service the card names when it is yours. When the card names none of yours and two or more of yours have it, you pick.
+function ownWays(x) {
+  if (!S.mine.length) return [];
+  const n = x.net || x.chan, raw = n && !x.isGame ? waysFor(n) : (x.options || []);
+  const seen = new Set(); return raw.filter(o => o && o.svc && (n && !x.isGame ? S.mine.includes(o.svc) || FREE_SVC.has(o.svc) : ownSvc(o.svc)) && !seen.has(o.svc) && seen.add(o.svc));
+}
+function pickSvc(x, ways, pre) {
+  if (pre) try { pre.close(); } catch {}
+  const b = $('back'); if (b.open) b.close();
+  b.innerHTML = `<b>Watch ${esc(x.title)} on…</b><p>It's on more than one of your services. Pick one.</p><div class="act" style="flex-direction:column;align-items:stretch;gap:8px">${ways.map((o, i) => `<button class="btn" data-pk="${i}">▶ ${esc(o.svc)}</button>`).join('')}<button class="btn alt" data-pkx>Cancel</button></div>`;
+  b.querySelectorAll('[data-pk]').forEach(el => el.onclick = () => { const o = ways[Number(el.dataset.pk)]; b.close(); openNow({ ...x, svc: o.svc, exact: o.url && /^https?:\/\/[^/]+\/./.test(o.url) ? o.url : null, _picked: true }, null); });
+  b.querySelector('[data-pkx]').onclick = () => b.close();
+  b.showModal(); const f = b.querySelector('[data-pk]'); if (f) f.focus();
+}
 function openNow(x, pre) {
+  if (!x._picked && !x.sport && S.mine.length) {
+    const ways = ownWays(x), shown = x.svc && ways.some(o => o.svc === x.svc);
+    if (!shown && ways.length > 1) { pickSvc(x, ways, pre); return; }
+    if (shown) x = { ...x, _picked: true };
+  }
+  if (x._picked && x.svc && hasIt(x.svc)) { /* the service the card names, or the one picked: open exactly that */ } else
   { const v = bestSvc(x); if (S.mine.length && !v && !x.exact) { if (pre) try { pre.close(); } catch {} notOnYours(x.svc); return; }
     if (v && v !== x.svc) { const o = (x.options || []).find(o => o.svc === v && o.url && /^https?:\/\/[^/]+\/./.test(o.url)); x = { ...x, svc: v, exact: o ? o.url : null }; } }   // switching to your service keeps its title page when the lookup found one
   if (x && x.fromList) scoreList(x.fromList, x);
