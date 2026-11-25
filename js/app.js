@@ -8,8 +8,53 @@ function focusables() {
   const box = $('back').open ? $('back') : document;
   return [...box.querySelectorAll('button:not([disabled]),a[href],input,select')].filter(e => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
 }
+// GUIDE REMOTE (Scott 11/25: "as you click down guide the cursor square goes all over the place instead of straight down ... quirky"). Up/Down in a guide
+// grid stays in the same time column, one channel row at a time, like a cable box; Left/Right sets that column. The grid never slides a box under the channel names.
+let gAnchor = null;   // { el, at }: the focused guide box and the time column (% of the row) Up/Down keeps
+const gPct = c => parseFloat(c.style.left) || 0;
+function guideStep(cur, dir) {
+  const row = cur.closest('.row'), grid = cur.closest('.grid'); if (!row || !grid) return null;
+  const rows = [...grid.querySelectorAll('.row')], at = gAnchor && gAnchor.el === cur ? gAnchor.at : Math.max(gPct(cur), guideVisPct(cur)) + 0.01;
+  for (let i = rows.indexOf(row) + (dir === 'down' ? 1 : -1); i >= 0 && i < rows.length; i += dir === 'down' ? 1 : -1) {
+    const cells = [...rows[i].querySelectorAll('.track .cell')].filter(c => c.matches('button:not([disabled]),a[href]') && c.getClientRects().length);
+    if (!cells.length) continue;
+    let best = cells.find(c => gPct(c) <= at && at < gPct(c) + (parseFloat(c.style.width) || 0));
+    if (!best) best = cells.reduce((a, c) => Math.abs(gPct(c) - at) < Math.abs(gPct(a) - at) ? c : a);
+    return { el: best, at };
+  }
+  return null;   // past the last channel: the normal remote rules take over (next section of the page)
+}
+function guideVisPct(c) {   // where the visible part of a box starts (a box that began before the grid's left edge counts from the edge)
+  const tr = c.closest('.track'), g = c.closest('.grid'), ch = g && g.querySelector('.ch'); if (!tr || !ch) return 0;
+  const tl = tr.getBoundingClientRect(), vis = ch.getBoundingClientRect().right + 6;
+  return Math.max(0, (vis - tl.left) / tl.width * 100);
+}
+function guideScroll(c) {   // keep the box out from under the sticky channel names; scroll the page so the row sits in the middle
+  const g = c.closest('.grid'), ch = g.querySelector('.ch'), gr = g.getBoundingClientRect(), cr = c.getBoundingClientRect();
+  const visL = (ch ? ch.getBoundingClientRect().right : gr.left) + 6, visR = gr.right - 8;
+  if (cr.left < visL) g.scrollLeft += cr.left - visL; else if (cr.right > visR) g.scrollLeft += Math.min(cr.left - visL, cr.right - visR);
+  const inner = g.scrollHeight > g.clientHeight + 4 && getComputedStyle(g).overflowY !== 'visible';
+  if (inner) { const top = cr.top - gr.top + g.scrollTop; g.scrollTop = top - g.clientHeight / 2 + cr.height / 2; }
+  const r = c.getBoundingClientRect(); window.scrollTo(0, window.scrollY + r.top - innerHeight / 2 + r.height / 2);
+  guideNowSide(g);
+}
+function guideNowSide(g) {   // the NOW line / tab hide once the grid is slid past them, so they never sit on the channel names
+  const ch = g.querySelector('.ch'); if (!ch) return; const edge = ch.getBoundingClientRect().right;
+  g.querySelectorAll('.nowline,.nowtab').forEach(n => { n.style.visibility = n.getBoundingClientRect().left < edge + 2 ? 'hidden' : ''; });
+}
+document.addEventListener('scroll', e => { if (e.target && e.target.classList && e.target.classList.contains('grid')) guideNowSide(e.target); }, true);
 function moveFocus(dir) {
   const all = focusables(), cur = document.activeElement;
+  if (all.includes(cur) && cur.matches('.grid .track .cell')) {
+    if (dir === 'up' || dir === 'down') {
+      const st = guideStep(cur, dir);
+      if (st) { st.el.focus({ preventScroll: true }); gAnchor = { el: st.el, at: st.at }; guideScroll(st.el); return; }
+    } else {
+      const row = cur.closest('.row'), cells = [...row.querySelectorAll('.track .cell')].filter(c => c.matches('button:not([disabled]),a[href]')).sort((a, b) => gPct(a) - gPct(b)), i = cells.indexOf(cur), nx = cells[i + (dir === 'right' ? 1 : -1)];
+      if (nx) { nx.focus({ preventScroll: true }); gAnchor = { el: nx, at: Math.max(gPct(nx), guideVisPct(nx)) + 0.01 }; guideScroll(nx); return; }
+      if (dir === 'right') return;   // end of the row: stay put (the 8 hours end here)
+    }
+  }
   if (!all.includes(cur)) { const start = document.querySelector('main button:not([disabled]),main a[href],main input') || all[0]; if (start) start.focus(); return; }
   const r = cur.getBoundingClientRect(); let best = null, bestScore = Infinity;
   for (const e of all) {
@@ -24,6 +69,7 @@ function moveFocus(dir) {
   }
   if (!best) return;
   best.focus({ preventScroll: true });
+  if (best.matches('.grid .track .cell')) { gAnchor = null; guideScroll(best); return; }
   if (best.closest('main')) best.scrollIntoView({ block: 'center', inline: 'nearest' });
 }
 function goBack() {

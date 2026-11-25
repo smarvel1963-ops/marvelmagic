@@ -93,7 +93,7 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 @media (max-width:760px){nav button{font-size:11px}}
 .teamhits{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.chip:disabled{opacity:.6;cursor:default}#teamfind+.filters,.teamhits+.filters{margin:10px 0}
 @media (max-width:760px){nav{overflow-x:auto}nav button{flex:0 0 76px}}
-.grid{overflow-x:auto;padding-bottom:8px}.grid .times,.grid .row{min-width:2270px}.grid .ch{position:sticky;left:0;z-index:2;background:var(--bg)}
+.grid{overflow-x:auto;padding-bottom:8px}.grid .times,.grid .row{min-width:2270px}.grid .ch{position:sticky;left:0;z-index:4;background:var(--bg)}
 a.cell.freecell{display:flex;align-items:center;color:var(--text);text-decoration:none;background:#2A2150;line-height:normal}a.freecard{color:var(--text);text-decoration:none}
 @media (min-width:1000px){header{overflow-y:auto}}
 dialog{background:#161D3B;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(420px,calc(100vw - 32px))}dialog::backdrop{background:rgba(0,0,0,.6)}
@@ -169,7 +169,7 @@ nav button{display:flex;align-items:center;gap:12px}nav svg{width:24px;height:24
 .cell{display:flex;flex-direction:column;justify-content:center;line-height:1.2;padding:0 12px}.cell b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cell small{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden}.cell.on small{color:#fff}
 .cell.on{padding-right:64px;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border:2px solid #C9B8FF;box-shadow:0 0 14px rgba(120,80,255,.6)}
 .lv{position:absolute;top:6px;right:8px;padding:1px 7px;border-radius:6px;background:var(--gold);color:#1A1030;font-size:11px;font-weight:900}
-.nowline{background:rgba(255,194,75,.42);width:2px;z-index:2;box-shadow:0 0 6px rgba(255,194,75,.25)}   /* Scott 11/14: a clear line you can see through */
+.nowline{background:rgba(255,194,75,.42);width:2px;z-index:1;box-shadow:0 0 6px rgba(255,194,75,.25)}   /* Scott 11/14: a clear line you can see through */
 .tick{display:flex;align-items:center;gap:14px;width:100%;margin-top:16px;padding:10px 16px;border-radius:12px;background:linear-gradient(90deg,#1A1440,#120E30);border:1px solid #4B3A9A;flex-wrap:wrap;font-size:17px}.tkb{padding:6px 18px;background:linear-gradient(180deg,#FFD36B,var(--gold2));color:#1A1030;font-weight:900;font-style:italic;border-radius:6px;transform:skewX(-12deg)}.tks{font-size:20px}.tkn{margin-left:auto;color:var(--gold);font-weight:650}
 @media (min-width:761px){body[data-tab="0"] .dock{display:none!important}}
 @media (max-width:760px){.gpv{padding:18px;min-height:0}.gpv-art{width:100%;opacity:.3;-webkit-mask-image:none;mask-image:none}.gpvt{font-size:30px}.gpvd{display:none}.gbar .gsb{display:none}.tkn{margin-left:0}}
