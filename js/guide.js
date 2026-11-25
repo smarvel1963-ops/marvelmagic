@@ -204,6 +204,7 @@ function settingsPage() {
     ${signTvBox()}
     ${tvAppBox()}
     ${box('⭐ Marvel Magic Membership', memberBox(), 'amber')}
+    ${typeof tipBox === 'function' ? tipBox() : ''}
     ${box('👤 Profile', `<label class="stlab">Your name<input id="pfname" class="stin" maxlength="40" value="${esc(S.profile.name || firstName() || '')}" placeholder="Your name"></label><button class="btn alt" data-pfsave style="margin-top:8px">Save name</button>
       <p class="fine" style="margin:12px 0 6px">${me ? '✓ Signed in as ' + esc(me.email || me.displayName || '') + '. Your settings follow you to every device.' : 'Sign in with Google and your settings follow you to every device.'}</p><button class="btn ${me ? 'alt' : ''}" data-acct2>${me ? 'Sign out' : 'Sign in with Google'}</button>`)}
     ${box('🏈 Favorite Teams', `${S.teams.length ? S.teams.map(t => `<div class="spmy"><span>★</span><b>${esc(t.name)}</b><small>${esc(t.league)}</small><button class="round" data-rmteam="${esc(t.path + '|' + t.id)}" aria-label="Remove ${esc(t.name)}">✕</button></div>`).join('') : '<p class="fine">No teams yet.</p>'}
