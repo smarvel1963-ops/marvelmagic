@@ -5,16 +5,18 @@
 // core -> guide -> sports -> home -> app. After editing, run  python tools\stamp_versions.py  then  python tests\smoke_test.py
 
 function focusables() {
-  const box = $('back').open ? $('back') : document;
+  const box = $('back').open ? $('back') : (document.querySelector('#mmTip .tipb') || document);   // an open Marvel tip holds the remote (tipster.js)
   return [...box.querySelectorAll('button:not([disabled]),a[href],input,select')].filter(e => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
 }
 // GUIDE REMOTE (Scott 11/25: "as you click down guide the cursor square goes all over the place instead of straight down ... quirky"). Up/Down in a guide
 // grid stays in the same time column, one channel row at a time, like a cable box; Left/Right sets that column. The grid never slides a box under the channel names.
 let gAnchor = null;   // { el, at }: the focused guide box and the time column (% of the row) Up/Down keeps
 const gPct = c => parseFloat(c.style.left) || 0;
+// 11/25 later (Scott: "box pans down channels only, go left or right on that row, and if you go up or down it goes back"): Up/Down now
+// moves channel to channel and always lands on what's on NOW on that channel (the guide slides back to now); Left/Right walks that row.
 function guideStep(cur, dir) {
   const row = cur.closest('.row'), grid = cur.closest('.grid'); if (!row || !grid) return null;
-  const rows = [...grid.querySelectorAll('.row')], at = gAnchor && gAnchor.el === cur ? gAnchor.at : Math.max(gPct(cur), guideVisPct(cur)) + 0.01;
+  const nl = grid.querySelector('.nowline'), rows = [...grid.querySelectorAll('.row')], at = (nl ? parseFloat(nl.style.left) || 0 : 0) + 0.01;
   for (let i = rows.indexOf(row) + (dir === 'down' ? 1 : -1); i >= 0 && i < rows.length; i += dir === 'down' ? 1 : -1) {
     const cells = [...rows[i].querySelectorAll('.track .cell')].filter(c => c.matches('button:not([disabled]),a[href]') && c.getClientRects().length);
     if (!cells.length) continue;
@@ -33,14 +35,39 @@ function guideScroll(c) {   // keep the box out from under the sticky channel na
   const g = c.closest('.grid'), ch = g.querySelector('.ch'), gr = g.getBoundingClientRect(), cr = c.getBoundingClientRect();
   const visL = (ch ? ch.getBoundingClientRect().right : gr.left) + 6, visR = gr.right - 8;
   if (cr.left < visL) g.scrollLeft += cr.left - visL; else if (cr.right > visR) g.scrollLeft += Math.min(cr.left - visL, cr.right - visR);
+  // 11/25 (Scott: "soft and smooth" + "page should pan down as you go not bounce"): the guide GLIDES, and only when the highlighted row
+  // gets within a row of the top (under the locked time bar) or the bottom - one row at a time, like a cable box, never re-centred each press.
+  // Targets come from where things are right now, so a held-down button just moves the glide's end point. Reduced-motion devices jump.
+  const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   const inner = g.scrollHeight > g.clientHeight + 4 && getComputedStyle(g).overflowY !== 'visible';
-  if (inner) { const top = cr.top - gr.top + g.scrollTop; g.scrollTop = top - g.clientHeight / 2 + cr.height / 2; }
-  const r = c.getBoundingClientRect(); window.scrollTo(0, window.scrollY + r.top - innerHeight / 2 + r.height / 2);
+  const head = ((g.querySelector(':scope > .times') || {}).offsetHeight || 0), m = cr.height + 8;
+  let moved = 0;
+  if (inner) {
+    const top = cr.top - gr.top + g.scrollTop; let to = g.scrollTop;
+    if (top - head - m < g.scrollTop) to = top - head - m; else if (top + cr.height + m > g.scrollTop + g.clientHeight) to = top + cr.height + m - g.clientHeight;
+    to = Math.max(0, Math.min(g.scrollHeight - g.clientHeight, to)); moved = to - g.scrollTop; if (moved) g.scrollTo({ top: to, behavior });
+    if (gr.top < -2 || gr.top > 40) window.scrollTo({ top: Math.max(0, window.scrollY + gr.top - 8), behavior });   // the whole guide on screen
+  } else {
+    const t = cr.top, bmax = innerHeight - m;
+    if (t - m < head) window.scrollTo({ top: Math.max(0, window.scrollY + t - head - m), behavior });
+    else if (t + cr.height > bmax) window.scrollTo({ top: window.scrollY + t + cr.height - bmax, behavior });
+  }
+  guideMark(c);
   guideNowSide(g);
 }
+function guideMark(c) {   // the channel name of the highlighted row lights up
+  document.querySelectorAll('.chcol .ch.cur').forEach(k => k.classList.remove('cur'));
+  const g = c && c.closest('.grid'), col = g && g.querySelector(':scope > .chcol'); if (!col || !col._rows) return;
+  const k = col.children[col._rows.indexOf(c.closest('.row'))]; if (k) k.classList.add('cur');
+}
+document.addEventListener('focusin', e => { if (!(e.target.closest && e.target.closest('.grid .track'))) document.querySelectorAll('.chcol .ch.cur').forEach(k => k.classList.remove('cur')); else guideMark(e.target); });
 function guideNowSide(g) {   // the NOW line / tab hide once the grid is slid past them, so they never sit on the channel names
-  const ch = g.querySelector('.ch'); if (!ch) return; const edge = ch.getBoundingClientRect().right;
-  g.querySelectorAll('.nowline,.nowtab').forEach(n => { n.style.visibility = n.getBoundingClientRect().left < edge + 2 ? 'hidden' : ''; });
+  // 11/25 smooth guide: every NOW line sits at the same spot, so ONE read decides for all of them and ONE class hides them (it used to
+  // read + write each row in turn - a fresh page layout per row, ~37 layouts a remote press)
+  const ch = g.querySelector('.ch'), n = g.querySelector('.nowline,.nowtab'); if (!ch || !n) return;
+  const was = g.classList.contains('nowhide'); if (was) g.classList.remove('nowhide');
+  const hide = n.getBoundingClientRect().left < ch.getBoundingClientRect().right + 2;
+  g.classList.toggle('nowhide', hide);
 }
 document.addEventListener('scroll', e => { if (e.target && e.target.classList && e.target.classList.contains('grid')) guideNowSide(e.target); }, true);
 function moveFocus(dir) {
@@ -48,7 +75,7 @@ function moveFocus(dir) {
   if (all.includes(cur) && cur.matches('.grid .track .cell')) {
     if (dir === 'up' || dir === 'down') {
       const st = guideStep(cur, dir);
-      if (st) { st.el.focus({ preventScroll: true }); gAnchor = { el: st.el, at: st.at }; guideScroll(st.el); return; }
+      if (st) { const g = st.el.closest('.grid'); if (g.scrollLeft) g.scrollLeft = 0; st.el.focus({ preventScroll: true }); gAnchor = { el: st.el, at: st.at }; guideScroll(st.el); return; }
     } else {
       const row = cur.closest('.row'), cells = [...row.querySelectorAll('.track .cell')].filter(c => c.matches('button:not([disabled]),a[href]')).sort((a, b) => gPct(a) - gPct(b)), i = cells.indexOf(cur), nx = cells[i + (dir === 'right' ? 1 : -1)];
       if (nx) { nx.focus({ preventScroll: true }); gAnchor = { el: nx, at: Math.max(gPct(nx), guideVisPct(nx)) + 0.01 }; guideScroll(nx); return; }

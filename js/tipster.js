@@ -10,9 +10,8 @@
 // His outfit follows the page (Director on Movies & Shows / Browse, Commentator on Sports, Explorer on Free TV / Coming Soon, Detective on
 // For You, Streaming Helper on the Live TV Guide, the wizard everywhere else) and a holiday outfit replaces it on the holiday's days.
 // Rules: quiet with Kids Lock on; never while the lock screen, the trial notice or a pop-up is open, while you type, or in the first 6 seconds;
-// never steals the remote's focus (his corner picture is not a button, so the arrows skip it; the tip's own buttons can be reached).
-// Got it = gone till tomorrow; Hush = off on this device; Settings -> Marvel the Tipster turns him back on. A tip nobody touches closes after
-// 40 seconds on a TV. No price, no AI, no network beyond his own pictures (img/tipster, made by tools/make_tipster_art.py).
+// his corner picture is not a button, so the arrows skip it; an OPEN tip holds the remote until you answer it (see tipFocus).
+// Got it = gone till tomorrow; Hush = off on this device; Settings -> Marvel the Tipster turns him back on. No price, no AI, no network beyond his own pictures (img/tipster, made by tools/make_tipster_art.py).
 // Saved in localStorage mm_tipster (this device only, never synced). Every top-level name starts with tip / TIP.
 "use strict";
 const TIP_ART = 'img/tipster/';
@@ -123,7 +122,7 @@ const TIP_CSS = `
 @media (max-width:760px){#mmTip{right:10px;bottom:calc(14px + env(safe-area-inset-bottom))}#mmTip .tipme{width:58px;height:58px}#mmTip.small .tipme{width:44px;height:44px}#mmTip .tipb{padding:12px}#mmTip .tipb img{width:56px;height:56px}#mmTip .tipb p{font-size:15px}}
 @media (min-width:1600px){#mmTip .tipb p{font-size:19px}#mmTip .tipme{width:92px;height:92px}#mmTip .tipbtns button{min-height:44px;font-size:17px}}
 @media (prefers-reduced-motion:reduce){#mmTip .tipb{animation:none}#mmTip .tipme{transition:none}}`;
-let tipNow = null, tipTimer = 0, tipBorn = Date.now(), tipLastInput = 0;
+let tipNow = null, tipBorn = Date.now(), tipLastInput = 0;
 function tipEl() {
   let el = $('mmTip');
   if (!el) {
@@ -159,15 +158,26 @@ function tipDraw() {   // the corner picture (and the bubble while a tip is open
   el.innerHTML = `<div class="tipb" role="dialog" aria-label="A tip from Marvel"><img src="${TIP_ART}${pic}.webp" alt="">
     <div><b>${tipNow[0].startsWith('hol-') ? 'Marvel says' : tipNow[0].startsWith('l-') ? 'Tip from Marvel' : tipNow[0].startsWith('d-') ? 'Did you know?' : 'Marvel noticed'}</b><p>${esc(words)}</p>
     <div class="tipbtns">${show ? '<button class="go" data-tipgo>Show me</button>' : ''}<button data-tipok>Got it</button><button data-tiphush>Hush</button></div></div></div>${me}`;
+  tipFocus();
+}
+// THE TIP HOLDS THE REMOTE (Scott 11/25 on his TV: "you cant highlite a response so you should have to click something on him first before
+// all else"). While a tip is open the highlight sits on its first button and the arrows stay on its buttons (app.js focusables), until
+// Show me / Got it / Hush - or Back, which counts as Got it. Then the highlight goes back where it was.
+let tipPrev = null;
+function tipFocus() {
+  const el = $('mmTip'), b = el && (el.querySelector('.tipb [data-tipgo]') || el.querySelector('.tipb [data-tipok]')); if (!b) return;
+  const a = document.activeElement; if (a && !el.contains(a) && a !== document.body) tipPrev = a;
+  if (!el.contains(a)) b.focus({ preventScroll: true });
 }
 function tipOpen(t, force) {
   const st = tipState(); if (!t || (!force && st.day === tipToday())) return;
   st.day = tipToday(); st.said[t[0]] = Date.now(); st.n = (st.n || 0) + 1; if (!st.first) st.first = tipToday(); tipPut(st);
   tipNow = t; tipDraw();
-  clearTimeout(tipTimer);
-  if (tipOnTv()) tipTimer = setTimeout(() => { if (tipNow && !($('mmTip') && $('mmTip').contains(document.activeElement))) tipClose(); }, 40000);
 }
-function tipClose() { tipNow = null; clearTimeout(tipTimer); tipDraw(); }
+function tipClose() {
+  tipNow = null; tipDraw();
+  const p = tipPrev; tipPrev = null; if (p && p.isConnected && p.getClientRects().length) p.focus({ preventScroll: true });
+}
 function tipTry() {   // once a day, when nothing else is going on
   const st = tipState();
   if (!st.on || kidsOn() || tipNow || st.day === tipToday() || Date.now() - tipBorn < 6000 || tipBusy()) return;
@@ -200,7 +210,13 @@ document.addEventListener('click', e => {
   }
 });
 ['keydown', 'pointerdown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, () => { tipLastInput = Date.now(); }, { passive: true, capture: true }));
-addEventListener('keydown', e => { if (tipNow && ['Escape', 'GoBack', 'BrowserBack', 'XF86Back'].includes(e.key) && $('mmTip').contains(document.activeElement)) { e.stopPropagation(); tipClose(); } }, true);
+addEventListener('keydown', e => {   // Back on any remote while a tip is open = Got it (and nothing else goes back)
+  if (!tipNow) return;
+  if (['Escape', 'GoBack', 'BrowserBack', 'XF86Back'].includes(e.key) || e.keyCode === 461 || e.keyCode === 10009 || (e.key === 'Backspace' && !(e.target.matches && e.target.matches('input')))) { e.preventDefault(); e.stopPropagation(); tipClose(); }
+}, true);
 addEventListener('resize', () => { if ($('mmTip')) tipLift($('mmTip')); });
 new MutationObserver(() => { if ($('mmTip')) tipDraw(); }).observe(document.body, { attributes: true, attributeFilter: ['data-tab'] });
-setTimeout(() => { tipDraw(); tipTry(); setInterval(tipTry, 2500); }, 1500);
+setTimeout(() => {
+  const back = window.mmBack; if (typeof back === 'function') window.mmBack = function () { if (tipNow) { tipClose(); return true; } return back.apply(this, arguments); };   // Samsung's Back
+  tipDraw(); tipTry(); setInterval(tipTry, 2500);
+}, 1500);

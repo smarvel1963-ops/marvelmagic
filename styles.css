@@ -70,7 +70,7 @@ h1{margin:0 0 12px;font-size:28px}h2{margin:22px 0 8px;font-size:18px}
 .ar{display:flex;align-items:center;gap:12px;width:100%;padding:8px 0;border-bottom:1px solid var(--line);min-height:60px}.ar img,.noimg{width:72px;height:48px;object-fit:cover;object-position:top;border-radius:6px;flex:none;background:var(--off)}.ar .t{flex:1;min-width:0}.ar b{display:block;font-size:17px}.ar small{font-size:14px;color:var(--text)}.ar em{font-style:normal;color:#3DE08A;font-weight:700}
 .glow .svcs{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (min-width:1000px){
- body{background:radial-gradient(900px 500px at 75% -10%,rgba(90,50,220,.35),transparent),radial-gradient(700px 500px at 20% 110%,rgba(30,90,220,.25),transparent),var(--bg);background-attachment:fixed}
+ body{background:var(--bg)} body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(900px 500px at 75% -10%,rgba(90,50,220,.35),transparent),radial-gradient(700px 500px at 20% 110%,rgba(30,90,220,.25),transparent)}/* 11/25 smooth guide (Scott: 'flow down the huge guide soft and smooth'): the glow was background-attachment:fixed, which repaints the whole page every scroll frame (guide scroll 36 -> 17 ms a frame at 4x CPU). A fixed layer behind the page looks the same and only moves on the GPU. */
  header{position:fixed;left:0;top:0;bottom:0;width:270px;flex-direction:column;align-items:stretch;padding:12px 14px;gap:14px;background:rgba(10,15,44,.95);border-right:1px solid #3050C0;box-shadow:2px 0 18px rgba(50,90,255,.3)}
  .brand{display:none}.logo{display:block;width:100%}
  nav{flex-direction:column}nav button{min-height:52px;font-size:20px;padding:0 18px}nav button[aria-current=page]{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);box-shadow:0 0 14px rgba(120,80,255,.7)}
@@ -380,3 +380,10 @@ html.tvapp .castremote{display:none!important}
 
 .prevend{display:block;color:#FFB454;font-weight:700;margin-top:2px}
 .cub.lssoon{background:#B8730A}.cub.lshot{background:#E5342A}
+/* 11/25 ONE CHANNEL COLUMN (core.js chColumns): the row keeps a hidden, non-sticky box; the real boxes ride in one column over the rows */
+.grid.onecol{position:relative}.grid.onecol .row>.ch{position:static;visibility:hidden}.chcol{position:absolute;left:0;top:0;width:0;z-index:4;pointer-events:none;will-change:transform}.chcol .ch{position:absolute;left:0}
+.grid.nowhide .nowline,.grid.nowhide .nowtab{visibility:hidden}
+#fgrid .times{z-index:5}
+/* 11/25 locked time bar (Scott: 'the time should stay locked at the top always'): the main guide scrolls inside itself, under its time bar */
+#ggrid{max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain}#ggrid .times{position:sticky;top:0;z-index:5;background:var(--bg)}.chcol .ch.cur{border-color:#7fd8ff;box-shadow:0 0 12px rgba(127,216,255,.55)}
+.chcorner{position:sticky;top:0;left:0;width:190px;height:34px;margin-bottom:-34px;z-index:6;background:var(--bg)}

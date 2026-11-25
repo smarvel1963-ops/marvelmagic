@@ -199,8 +199,32 @@ const reg = x => (items.push(x), items.length - 1);
 function stickTitles() {
   for (const id of ['ggrid', 'fgrid']) { const g = $(id); if (!g) continue;
   const edge = g.getBoundingClientRect().left + 190;   // just right of the sticky channel column
-  for (const c of g.querySelectorAll('.cell')) { const r = c.getBoundingClientRect(); c.style.paddingLeft = (12 + Math.max(0, Math.min(edge - r.left, r.width - 70))) + 'px'; } }
+  const cs = [...g.querySelectorAll('.cell')], rs = cs.map(c => c.getBoundingClientRect());   // 11/25: read every box first, then write (no layout per box)
+  cs.forEach((c, i) => { const p = (12 + Math.max(0, Math.min(edge - rs[i].left, rs[i].width - 70))) + 'px'; if (c.style.paddingLeft !== p) c.style.paddingLeft = p; }); }
 }
+// ONE CHANNEL COLUMN (Scott 11/25: "flow down the huge guide soft and smooth no lag or chops"). Every guide row had its own sticky
+// channel box - up to hundreds in the free guide - and the browser re-tracked each one on every scroll and remote press (measured at Fire Stick
+// speed: a Down press 330 ms, 80 ms without them). Now the boxes are MOVED (not copied - each logo loads once) into one column laid over the
+// rows, which slides as a single piece when the grid slides sideways. The row keeps an empty, hidden box of the same size, so nothing shifts.
+function chColumns() {
+  for (const g of document.querySelectorAll('#view .grid')) {
+    if (!g.getClientRects().length || g.querySelector(':scope > .chcol')) continue;
+    const rows = [...g.querySelectorAll(':scope > .row')]; if (!rows.length) continue;
+    g.classList.add('onecol');
+    const col = document.createElement('div'); col.className = 'chcol'; col.setAttribute('aria-hidden', 'true');
+    for (const r of rows) { const c = r.querySelector(':scope > .ch'); if (!c) continue; const k = document.createElement('div'); k.className = c.className; while (c.firstChild) k.appendChild(c.firstChild); col.appendChild(k); }
+    g.prepend(col); col._rows = rows; chPlace(g);
+    if (g.querySelector(':scope > .times')) { const cn = document.createElement('div'); cn.className = 'chcorner'; cn.setAttribute('aria-hidden', 'true'); g.prepend(cn); }   // covers the corner over the names, under the locked time bar
+    let busy = false; g.addEventListener('scroll', () => { if (busy) return; busy = true; requestAnimationFrame(() => { busy = false; col.style.transform = 'translateX(' + g.scrollLeft + 'px)'; }); }, { passive: true });
+  }
+}
+function chPlace(g) {   // each moved box sits exactly over its own row
+  const col = g.querySelector(':scope > .chcol'); if (!col || !col._rows) return;
+  const ks = col.children, at = col._rows.map(r => { const c = r.querySelector(':scope > .ch'); return c ? [r.offsetTop, c.offsetHeight] : null; });   // read all, then write all
+  at.forEach((a, i) => { const k = ks[i]; if (a && k) { k.style.top = a[0] + 'px'; k.style.height = a[1] + 'px'; } });
+  col.style.transform = 'translateX(' + g.scrollLeft + 'px)';
+}
+addEventListener('resize', () => { for (const g of document.querySelectorAll('#view .grid.onecol')) chPlace(g); chColumns(); });
 function draw() {
   const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0, fx = $('fgrid') ? $('fgrid').scrollLeft : 0;
   items.length = 0;
@@ -216,8 +240,9 @@ function draw() {
   if (gx && $('ggrid')) $('ggrid').scrollLeft = gx;   // Scott 11/14: the guide keeps your place when it refreshes
   if (fx && $('fgrid')) $('fgrid').scrollLeft = fx;
   drawPairQr(); if (linkPair) setTimeout(maybeApproveFromLink, 50);
-  for (const id of ['ggrid', 'fgrid']) if ($(id)) $(id).addEventListener('scroll', () => requestAnimationFrame(stickTitles), { passive: true });
+  for (const id of ['ggrid', 'fgrid']) if ($(id)) $(id).addEventListener('scroll', function () { if (this._sl === this.scrollLeft) return; this._sl = this.scrollLeft; requestAnimationFrame(stickTitles); }, { passive: true });   // sideways only (11/25: the guide now also scrolls up/down inside itself)
   stickTitles();
+  chColumns();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
 const rateKey = x => x.show ? 's' + x.show.id : x.key;
