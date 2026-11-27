@@ -280,7 +280,7 @@ function switchProfile(id) {
 }
 function withPin(msg, then) { if (!S.profLock) return then(); pinBox(msg, v => { if (v !== S.kids.pin) return false; S.profLock = false; save('profLock', false); then(); }); }
 function easyHome() {
-  return `${!S.paired && S.pairCode ? pairPanel() : ''}<div class="ezhead"><h1>Hi ${esc(profName())} 👋</h1><span class="hclock" id="hclock">${esc(clock(new Date()))}</span></div>
+  return `${!S.paired && S.pairCode ? pairPanel() : ''}<div class="ezhead"><h1>Hi ${esc(profName())} 👋</h1><span class="hclockw"><span class="hclock" id="hclock">${esc(clock(new Date()))}</span><small class="hver">${esc(mmVer())}</small></span></div>
     <div class="ezgrid"><button class="ez" data-tab="0"><span>📺</span><b>Live TV</b></button><button class="ez" data-tab="4"><span>🆓</span><b>Free TV</b></button><button class="ez" data-tab="3"><span>⭐</span><b>My Shows</b></button><button class="ez" data-tab="2"><span>🏈</span><b>Sports</b></button></div>
     ${S.later.length ? `<h2 class="ezh2">⏰ Saved for Later</h2>${laterRow(6)}` : ''}
     ${S.profLock || !S.prof ? '' : `<button class="ez back" data-whome>↩ Back to ${esc(firstName() || 'the main')} profile</button>`}`;
