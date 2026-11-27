@@ -429,3 +429,10 @@ html.tvapp .castremote{display:none!important}
 .pdc.c5{border-color:#3E9BFF;background:linear-gradient(180deg,#123a6e,#081a36)}.pdc.c6{border-color:#4ADE80;background:linear-gradient(180deg,#14502a,#082a14)}
 .pdc.c7{border-color:#9AA4C8;background:linear-gradient(180deg,#2c3350,#151a2e)}.pdc.c8{border-color:#E879F9;background:linear-gradient(180deg,#52185e,#280a2e)}
 }
+
+/* 11/27 Marvel's circle sits top right (tipster.js): Cast to TV moves left of him, and the top bars leave him room */
+.pdar:focus-visible{position:absolute}
+.castbtn{right:82px}
+@media (min-width:1000px){.htop{padding-right:250px}}
+html.tvapp .htop{padding-right:80px}
+@media (max-width:999px){header{padding-right:72px}.castbtn{right:12px}}

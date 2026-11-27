@@ -118,8 +118,16 @@ const TIP_CSS = `
 #mmTip .tipbtns button{min-height:36px;padding:0 14px;border-radius:9px;border:1px solid #6d4bd8;background:#2a1f63;color:#fff;font-weight:650;font-size:14px;cursor:pointer}
 #mmTip .tipbtns button.go{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border-color:transparent}
 #mmTip .tipbtns button:focus-visible{outline:3px solid #7fd8ff;outline-offset:2px}
+/* 11/27 (Scott: "tipster needs to also show in middle of screen so people see him" + "tipster circle need to go and stay top right corner to right of
+   the time so can open for questions as well"): his small circle lives top right on every page (right of Home's clock); a tip pops up in the
+   middle of the screen with the page dimmed behind it, his picture inside the bubble. Tap the circle any time for a tip. */
+#mmTip.small{top:12px;right:16px;bottom:auto}
+#mmTip:not(.small){top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 32px));justify-content:center}
+#mmTip:not(.small) .tipme{display:none}
+#mmTip:not(.small) .tipb{flex:1;border-radius:18px;box-shadow:0 0 0 100vmax rgba(5,8,20,.55),0 0 34px rgba(168,85,247,.55),0 10px 32px rgba(0,0,0,.5);border-width:2px}
 @keyframes tipIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@media (max-width:760px){#mmTip{right:10px;bottom:calc(14px + env(safe-area-inset-bottom))}#mmTip .tipme{width:58px;height:58px}#mmTip.small .tipme{width:44px;height:44px}#mmTip .tipb{padding:12px}#mmTip .tipb img{width:56px;height:56px}#mmTip .tipb p{font-size:15px}}
+@media (max-width:760px){#mmTip.small{top:10px;right:10px}#mmTip .tipme{width:58px;height:58px}#mmTip.small .tipme{width:44px;height:44px}#mmTip .tipb{padding:12px}#mmTip .tipb img{width:56px;height:56px}#mmTip .tipb p{font-size:15px}}
+@media (min-width:1200px){#mmTip:not(.small){width:min(760px,calc(100vw - 64px))}#mmTip:not(.small) .tipb{padding:20px 24px 18px;gap:18px}#mmTip:not(.small) .tipb img{width:120px;height:120px}#mmTip:not(.small) .tipb p{font-size:20px}}
 @media (min-width:1600px){#mmTip .tipb p{font-size:19px}#mmTip .tipme{width:92px;height:92px}#mmTip .tipbtns button{min-height:44px;font-size:17px}}
 @media (prefers-reduced-motion:reduce){#mmTip .tipb{animation:none}#mmTip .tipme{transition:none}}`;
 let tipNow = null, tipBorn = Date.now(), tipLastInput = 0;
@@ -143,7 +151,8 @@ function tipLift(el) {   // sit above anything fixed along the bottom: the phone
     if (!x || x.hidden || !x.getClientRects().length || getComputedStyle(x).position !== 'fixed') continue;
     const r = x.getBoundingClientRect(); if (r.top > innerHeight / 2) lift = Math.max(lift, innerHeight - r.top);
   }
-  el.style.bottom = lift ? (lift + 10) + 'px' : '';
+  el.style.bottom = '';   // 11/27: he no longer sits along the bottom (top right / middle of the screen), so nothing to lift over
+  void lift;
 }
 function tipDraw() {   // the corner picture (and the bubble while a tip is open)
   const st = tipState(), el = tipEl();
@@ -176,7 +185,9 @@ function tipOpen(t, force) {
 }
 function tipClose() {
   tipNow = null; tipDraw();
-  const p = tipPrev; tipPrev = null; if (p && p.isConnected && p.getClientRects().length) p.focus({ preventScroll: true });
+  const p = tipPrev; tipPrev = null; if (p && p.isConnected && p.getClientRects().length) { p.focus({ preventScroll: true }); return; }
+  // 11/27: nothing to go back to (the tip came up before anything was highlighted) - light the first box you can see, so the remote is never lost
+  const f = typeof focusables === 'function' && focusables().find(e => e.closest('main')); if (f) f.focus({ preventScroll: true });
 }
 function tipTry() {   // once a day, when nothing else is going on
   const st = tipState();

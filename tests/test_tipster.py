@@ -69,6 +69,15 @@ def main():
         if shots: pg.screenshot(path=str(sd / "tip_tv_hello.png"))
         pg.keyboard.press("Enter")
         check("Got it closes it; the small Marvel stays", pg.query_selector("#mmTip .tipb") is None and pg.query_selector("#mmTip.small .tipme") is not None)
+        # 11/27 Scott: "remote control is dead not moving after entered tipster answer" - after the tip the highlight is on a box you can see,
+        # and the arrows move it (the first button in the page was the phone home's Home tile, hidden on a TV)
+        vis = "(() => { const a = document.activeElement; return !!a && a !== document.body && a.getClientRects().length > 0; })()"
+        check("after Got it a visible box holds the highlight", pg.evaluate(vis), pg.evaluate("document.activeElement.outerHTML.slice(0, 80)"))
+        was = pg.evaluate("document.activeElement.outerHTML")
+        pg.keyboard.press("ArrowDown"); pg.wait_for_timeout(200)
+        check("and the arrows move it", pg.evaluate(vis) and pg.evaluate("document.activeElement.outerHTML") != was)
+        pg.evaluate("document.activeElement.blur()"); pg.keyboard.press("ArrowDown"); pg.wait_for_timeout(200)
+        check("nothing highlighted + an arrow = a visible box lights up", pg.evaluate(vis))
         check("no second tip the same day", wait_tip(pg, 60000) == "")
         check("no page errors", not errs, errs[:2])
         state = pg.evaluate("localStorage.getItem('mm_tipster')")

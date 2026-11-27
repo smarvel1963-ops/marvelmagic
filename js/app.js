@@ -82,7 +82,9 @@ function moveFocus(dir) {
       if (dir === 'right') return;   // end of the row: stay put (the 8 hours end here)
     }
   }
-  if (!all.includes(cur)) { const start = document.querySelector('main button:not([disabled]),main a[href],main input') || all[0]; if (start) start.focus(); return; }
+  // 11/27 (Scott: "remote control is dead not moving after entered tipster answer"): the start must be a box you can SEE - the first
+  // main button in the page was the phone home's Home tile, hidden on a TV, so focus() did nothing and every arrow went nowhere
+  if (!all.includes(cur)) { const start = all.find(e => e.closest('main')) || all[0]; if (start) { start.focus({ preventScroll: true }); if (start.closest('main')) start.scrollIntoView({ block: 'nearest' }); } return; }
   const r = cur.getBoundingClientRect(); let best = null, bestScore = Infinity;
   for (const e of all) {
     if (e === cur) continue;
