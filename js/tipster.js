@@ -77,6 +77,19 @@ const TIP_DYK = [
   ['d-remote', 'remote', 'On the TV remote: the arrows move, OK opens, and Back goes back one step.', null, () => tipOnTv()],
   ['d-coming', 'calendar', 'Coming Soon shows what’s premiering this week on your services.', 'tab:8'],
 ];
+// ASK MARVEL (Scott 11/27: "tipster circle ... so can open for questions as well"): tapping his circle opens these questions, answered from
+// here (no AI, no network). [id, picture, question, answer, Show me, can he show it now?]. Kids Lock hides Sports + Settings answers.
+const TIP_ASK = [
+  ['q-watch', 'movie', 'How do I watch something?', 'Pick any show, movie or game and press Watch. Marvel Magic opens it in the real app (Netflix, Hulu, Peacock and the rest) - it never plays video itself. Come back here when you’re done.', 'tab:1'],
+  ['q-game', 'sports', 'Where’s my game on?', 'Sports lists today’s games and which of your services carries each one. Add your teams in Settings and they show first.', 'tab:2', () => !kidsOn()],
+  ['q-guide', 'streamer', 'What’s on TV right now?', 'The Live TV Guide shows what’s on now and later on the channels you can watch. Pick a show to open its channel.', 'tab:0'],
+  ['q-free', 'explorer', 'What can I watch for free?', 'Free TV has live channels and movies that need no account and no sign-up - Pluto TV, Tubi, Plex, The Roku Channel and more.', 'tab:4'],
+  ['q-services', 'guide', 'How do I pick my services?', 'Go to Settings → My Services and tick the ones you have. The guide, picks and Watch buttons then use only those.', 'tab:10', () => !kidsOn() && !S.paired],
+  ['q-next', 'detective', 'What should I watch tonight?', 'For You picks from what you like, on services you already have. Give shows hearts and the picks get better.', 'tab:9'],
+  ['q-kids', 'hello', 'How do I lock it for kids?', 'Press Kids Lock on Home and set a PIN. Marvel Magic then shows only kids’ channels and family shows until the PIN turns it off.', 'tab:7'],
+  ['q-tv', 'tv', 'How do I put it on my TV?', 'On a phone or tablet, press Cast to TV at the top. Or set it up on the TV itself with Show a TV code on Home - nothing to type on the TV.', 'tab:7', () => !tipOnTv()],
+  ['q-remote', 'remote', 'How does the remote work?', 'Arrows move the highlight, OK opens, and Back goes back one step. Back also closes me.', null, () => tipOnTv()],
+];
 function tipSoon(st) {   // things on YOUR services that need you soon - each said once
   const out = [];
   try {
@@ -94,6 +107,7 @@ function tipSoon(st) {   // things on YOUR services that need you soon - each sa
   } catch {}
   return out;
 }
+const tipAskOk = q => !(q[5] && !q[5]()) && !(q[4] === 'tab:10' && S.paired);
 const tipOk = t => !(t[4] && !t[4]()) && !(t[3] === 'tab:2' && kidsOn()) && !(t[3] === 'tab:10' && (kidsOn() || S.paired));
 function tipPick(st) {
   const h = tipHoliday(); if (h && h.isDay && !st.said[h.id]) return [h.id, h.art, h.words, h.show || null];
@@ -115,6 +129,7 @@ const TIP_CSS = `
 #mmTip .tipb b{display:block;color:#c4b5fd;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
 #mmTip .tipb p{margin:0 0 10px;font-size:16px;line-height:1.4}
 #mmTip .tipbtns{display:flex;gap:8px;flex-wrap:wrap}
+#mmTip .tipqs{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}#mmTip .tipqs button{min-height:40px;padding:6px 12px;border-radius:9px;border:1px solid #6d4bd8;background:#241a58;color:#fff;font-weight:650;font-size:15px;text-align:left;cursor:pointer}#mmTip .tipqs button:focus-visible{outline:3px solid #7fd8ff;outline-offset:2px}
 #mmTip .tipbtns button{min-height:36px;padding:0 14px;border-radius:9px;border:1px solid #6d4bd8;background:#2a1f63;color:#fff;font-weight:650;font-size:14px;cursor:pointer}
 #mmTip .tipbtns button.go{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border-color:transparent}
 #mmTip .tipbtns button:focus-visible{outline:3px solid #7fd8ff;outline-offset:2px}
@@ -162,11 +177,18 @@ function tipDraw() {   // the corner picture (and the bubble while a tip is open
   const look = tipCostume();
   const me = `<div class="tipme" data-tipme role="img" aria-label="Marvel, your Marvel Magic helper" style="background-image:url('${TIP_ART}${look}.webp')"></div>`;
   if (!tipNow) { el.className = 'small'; el.innerHTML = me; return; }
+  if (tipNow[0] === 'ask') {   // the question list
+    el.className = '';
+    el.innerHTML = `<div class="tipb tipask" role="dialog" aria-label="Ask Marvel"><img src="${TIP_ART}thinking.webp" alt="">
+      <div><b>Ask Marvel</b><p>What can I help with?</p><div class="tipqs">${TIP_ASK.filter(tipAskOk).map(q => `<button data-tipq="${q[0]}">${esc(q[2])}</button>`).join('')}</div>
+      <div class="tipbtns"><button data-tiptip>💡 Tip of the day</button><button data-tipok>Close</button><button data-tiphush>Hush</button></div></div></div>${me}`;
+    tipFocus(); return;
+  }
   const [, pic, words, show] = tipNow;
   el.className = '';
   el.innerHTML = `<div class="tipb" role="dialog" aria-label="A tip from Marvel"><img src="${TIP_ART}${pic}.webp" alt="">
     <div><b>${tipNow[0].startsWith('hol-') ? 'Marvel says' : tipNow[0].startsWith('l-') ? 'Tip from Marvel' : tipNow[0].startsWith('d-') ? 'Did you know?' : 'Marvel noticed'}</b><p>${esc(words)}</p>
-    <div class="tipbtns">${show ? '<button class="go" data-tipgo>Show me</button>' : ''}<button data-tipok>Got it</button><button data-tiphush>Hush</button></div></div></div>${me}`;
+    <div class="tipbtns">${show ? '<button class="go" data-tipgo>Show me</button>' : ''}${tipNow[0].startsWith('q-') ? '<button data-tipask>More questions</button><button data-tipok>Got it</button>' : '<button data-tipok>Got it</button><button data-tiphush>Hush</button>'}</div></div></div>${me}`;
   tipFocus();
 }
 // THE TIP HOLDS THE REMOTE (Scott 11/25 on his TV: "you cant highlite a response so you should have to click something on him first before
@@ -174,7 +196,7 @@ function tipDraw() {   // the corner picture (and the bubble while a tip is open
 // Show me / Got it / Hush - or Back, which counts as Got it. Then the highlight goes back where it was.
 let tipPrev = null;
 function tipFocus() {
-  const el = $('mmTip'), b = el && (el.querySelector('.tipb [data-tipgo]') || el.querySelector('.tipb [data-tipok]')); if (!b) return;
+  const el = $('mmTip'), b = el && (el.querySelector('.tipb [data-tipgo]') || el.querySelector('.tipb [data-tipq]') || el.querySelector('.tipb [data-tipok]')); if (!b) return;
   const a = document.activeElement; if (a && !el.contains(a) && a !== document.body) tipPrev = a;
   if (!el.contains(a)) b.focus({ preventScroll: true });
 }
@@ -208,7 +230,11 @@ function tipBox() {
     <div class="tipbtns" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${st.on ? '<button class="btn" data-tipshow>Show me a tip now</button><button class="btn alt" data-tiphush>Hush Marvel</button>' : '<button class="btn" data-tipwake>Turn Marvel back on</button>'}</div></section>`;
 }
 document.addEventListener('click', e => {
-  const t = e.target.closest && e.target.closest('[data-tipgo],[data-tipok],[data-tiphush],[data-tipwake],[data-tipshow],[data-tipme]'); if (!t) return;
+  const t = e.target.closest && e.target.closest('[data-tipgo],[data-tipok],[data-tiphush],[data-tipwake],[data-tipshow],[data-tipme],[data-tipq],[data-tipask],[data-tiptip]'); if (!t) return;
+  if (t.hasAttribute('data-tipme') && !tipNow) { tipNow = ['ask']; tipDraw(); return; }   // his circle = Ask Marvel
+  if (t.hasAttribute('data-tipask')) { tipNow = ['ask']; tipDraw(); return; }
+  if (t.dataset.tipq) { const q = TIP_ASK.find(x => x[0] === t.dataset.tipq); if (q) { tipNow = [q[0], q[1], q[3], q[4]]; tipDraw(); } return; }
+  if (t.hasAttribute('data-tiptip')) { tipNow = null; t.removeAttribute('data-tiptip'); t.setAttribute('data-tipshow', ''); }
   if (t.hasAttribute('data-tipgo')) { const show = tipNow && tipNow[3]; tipClose(); tipGo(show); return; }
   if (t.hasAttribute('data-tipok')) { tipClose(); return; }
   if (t.hasAttribute('data-tiphush')) { const st = tipState(); st.on = false; tipPut(st); tipClose(); if (S.tab === 10) draw(); return; }
