@@ -90,6 +90,31 @@ const TIP_ASK = [
   ['q-tv', 'tv', 'How do I put it on my TV?', 'On a phone or tablet, press Cast to TV at the top. Or set it up on the TV itself with Show a TV code on Home - nothing to type on the TV.', 'tab:7', () => !tipOnTv()],
   ['q-remote', 'remote', 'How does the remote work?', 'Arrows move the highlight, OK opens, and Back goes back one step. Back also closes me.', null, () => tipOnTv()],
 ];
+// ASK BY TYPING OR VOICE (Scott 11/27: "he needs micro phone in box as well so can voice text him"): the box in Ask Marvel gets the shared
+// microphone (/dayhub/voicefill.js adds one to every typing box). What you say is matched to his answers by these words - no AI, no network.
+// Nothing matches: he offers to Search Marvel Magic for your words.
+const TIP_ASK_WORDS = {
+  'q-watch': 'watch play open start stream how', 'q-game': 'game games sports team teams score nfl nba mlb nhl football basketball baseball hockey soccer playing match',
+  'q-guide': 'tv now guide channel channels live schedule airing on', 'q-free': 'free nothing pluto tubi plex roku no account cheap',
+  'q-services': 'service services netflix hulu disney peacock paramount max prime subscription subscriptions add pick tick settings',
+  'q-next': 'recommend suggest should tonight bored ideas something good for you picks', 'q-kids': 'kids kid children child lock pin parental family safe',
+  'q-tv': 'cast chromecast television phone put mirror screen', 'q-remote': 'remote arrows arrow button buttons back ok',
+};
+const TIP_EXTRA = [   // answers he only gives when asked (not on the list)
+  ['q-search', 'search', 'Search finds any movie or show and shows which of your services has it.', 'search', 'search find look movie movies show shows title actor'],
+  ['q-later', 'movie', 'Press Save on any show or movie and it goes in My Stuff, with where you left off and new episodes.', 'tab:3', 'save saved later list watchlist my stuff episodes keep track'],
+  ['q-coming', 'calendar', 'Coming Soon lists new episodes and movies on the way to your services.', 'tab:8', 'coming soon new premiere premieres upcoming next week season'],
+  ['q-sync', 'party', 'Sign in with Google in Settings and your services, lists and hearts follow you to every TV and phone.', 'tab:10', 'sign signin login account google sync other devices'],
+];
+function tipAnswer(text) {
+  const w = String(text || '').toLowerCase().replace(/[^a-z0-9+ ]/g, ' ').split(/\s+/).filter(x => x.length > 1);
+  let best = null, top = 0;
+  const score = words => { const k = new Set(words.split(' ')); return w.filter(x => k.has(x) || k.has(x.replace(/s$/, ''))).length; };
+  for (const q of TIP_ASK.filter(tipAskOk)) { const n = score(TIP_ASK_WORDS[q[0]] || ''); if (n > top) { top = n; best = [q[0], q[1], q[3], q[4]]; } }
+  for (const q of TIP_EXTRA) { if (q[3] === 'tab:10' && (kidsOn() || S.paired)) continue; const n = score(q[4]); if (n > top) { top = n; best = [q[0], q[1], q[2], q[3]]; } }
+  if (best) return best;
+  return ['q-none', 'thinking', `I don’t know that one yet. Want me to search Marvel Magic for “${String(text).trim().slice(0, 60)}”?`, 'search:' + String(text).trim().slice(0, 80)];
+}
 function tipSoon(st) {   // things on YOUR services that need you soon - each said once
   const out = [];
   try {
@@ -129,6 +154,7 @@ const TIP_CSS = `
 #mmTip .tipb b{display:block;color:#c4b5fd;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
 #mmTip .tipb p{margin:0 0 10px;font-size:16px;line-height:1.4}
 #mmTip .tipbtns{display:flex;gap:8px;flex-wrap:wrap}
+#mmTip .tipaskf{display:flex;gap:6px;margin:0 0 10px}#mmTip .tipaskf input{flex:1;min-width:0;min-height:42px;padding:0 12px;border-radius:9px;border:1px solid #6d4bd8;background:#0f0b2a;color:#fff;font-size:15px}#mmTip .tipaskf button{min-height:42px;padding:0 14px;border-radius:9px;border:0;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);color:#fff;font-weight:700;cursor:pointer}
 #mmTip .tipqs{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}#mmTip .tipqs button{min-height:40px;padding:6px 12px;border-radius:9px;border:1px solid #6d4bd8;background:#241a58;color:#fff;font-weight:650;font-size:15px;text-align:left;cursor:pointer}#mmTip .tipqs button:focus-visible{outline:3px solid #7fd8ff;outline-offset:2px}
 #mmTip .tipbtns button{min-height:36px;padding:0 14px;border-radius:9px;border:1px solid #6d4bd8;background:#2a1f63;color:#fff;font-weight:650;font-size:14px;cursor:pointer}
 #mmTip .tipbtns button.go{background:linear-gradient(135deg,#5C3DF0,#8A3FF0);border-color:transparent}
@@ -181,7 +207,7 @@ function tipDraw() {   // the corner picture (and the bubble while a tip is open
   if (tipNow[0] === 'ask') {   // the question list
     el.className = '';
     el.innerHTML = `<div class="tipb tipask" role="dialog" aria-label="Ask Marvel"><img src="${TIP_ART}thinking.webp" alt="">
-      <div><b>Ask Marvel</b><p>What can I help with?</p><div class="tipqs">${TIP_ASK.filter(tipAskOk).map(q => `<button data-tipq="${q[0]}">${esc(q[2])}</button>`).join('')}</div>
+      <div><b>Ask Marvel</b><p>What can I help with?</p><form class="tipaskf" data-tipform><input id="tipq" placeholder="Ask me anything… (tap the mic to talk)" aria-label="Ask Marvel a question" autocomplete="off"><button>Ask</button></form><div class="tipqs">${TIP_ASK.filter(tipAskOk).map(q => `<button data-tipq="${q[0]}">${esc(q[2])}</button>`).join('')}</div>
       <div class="tipbtns"><button data-tiptip>💡 Tip of the day</button><button data-tipok>Close</button><button data-tiphush>Hush</button></div></div></div>${me}`;
     tipFocus(); return;
   }
@@ -220,6 +246,8 @@ function tipTry() {   // once a day, when nothing else is going on
 }
 function tipGo(show) {
   if (!show) return;
+  if (String(show).startsWith('search:')) { const q = String(show).slice(7); if (S.tab !== 1) history.pushState({ tab: 1 }, ''); showTab(1);
+    setTimeout(() => { const i = $('q'), f = $('find'); if (i) { i.value = q; if (f && f.requestSubmit) f.requestSubmit(); else i.focus(); } }, 60); return; }
   if (show === 'search') { if (S.tab !== 1) history.pushState({ tab: 1 }, ''); showTab(1); setTimeout(() => $('q') && $('q').focus(), 60); return; }
   const n = Number(String(show).replace('tab:', '')); if (!Number.isFinite(n)) return;
   if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n);
@@ -248,6 +276,11 @@ document.addEventListener('click', e => {
     if (t2) { st.said[t2[0]] = Date.now(); tipPut(st); tipNow = t2; tipDraw(); }
   }
 });
+document.addEventListener('submit', e => {
+  const f = e.target.closest && e.target.closest('form[data-tipform]'); if (!f) return;
+  e.preventDefault(); const v = (f.querySelector('input') || {}).value || ''; if (!v.trim()) return;
+  tipNow = tipAnswer(v); tipDraw();
+}, true);
 ['keydown', 'pointerdown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, () => { tipLastInput = Date.now(); }, { passive: true, capture: true }));
 addEventListener('keydown', e => {   // Back on any remote while a tip is open = Got it (and nothing else goes back)
   if (!tipNow) return;
