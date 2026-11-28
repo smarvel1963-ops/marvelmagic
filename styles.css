@@ -439,3 +439,7 @@ html.tvapp .htop{padding-right:80px}
 
 /* 11/27 the version in tiny print under the clock */
 .hclockw{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1.1}.hver{font-size:11px;color:var(--dim);opacity:.75;padding-left:14px;font-weight:500;letter-spacing:.02em;white-space:nowrap}
+/* 11/27 (Scott: "panning down in live guide still super slow"): the big guides have ~96 channel rows but only ~12 on screen. Rows off
+   screen are skipped (not painted / laid out) until they come near the screen, so a remote press repaints a dozen rows, not all 96.
+   "auto" remembers each row's real size, so the channel column and scroll positions stay exact. */
+#ggrid > .row,#fgrid > .row{content-visibility:auto;contain-intrinsic-size:auto 2270px auto 62px}

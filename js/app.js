@@ -65,14 +65,19 @@ function guideNowSide(g) {   // the NOW line / tab hide once the grid is slid pa
   // 11/25 smooth guide: every NOW line sits at the same spot, so ONE read decides for all of them and ONE class hides them (it used to
   // read + write each row in turn - a fresh page layout per row, ~37 layouts a remote press)
   const ch = g.querySelector('.ch'), n = g.querySelector('.nowline,.nowtab'); if (!ch || !n) return;
-  const was = g.classList.contains('nowhide'); if (was) g.classList.remove('nowhide');
+  // 11/27: nowhide only sets visibility:hidden, which keeps the line's position - so read it as it is (it used to take the class off and
+  // put it back on every scroll frame: a restyle + repaint of the whole guide ~60 times a second while it glides) and write only on a change
   const hide = n.getBoundingClientRect().left < ch.getBoundingClientRect().right + 2;
-  g.classList.toggle('nowhide', hide);
+  if (hide !== g.classList.contains('nowhide')) g.classList.toggle('nowhide', hide);
 }
 document.addEventListener('scroll', e => { if (e.target && e.target.classList && e.target.classList.contains('grid')) guideNowSide(e.target); }, true);
 function moveFocus(dir) {
-  const all = focusables(), cur = document.activeElement;
-  if (all.includes(cur) && cur.matches('.grid .track .cell')) {
+  // 11/27 (Scott: "panning down in live guide still super slow"): inside the guide the next box comes from the guide itself, so the
+  // whole-page focusables() scan (getClientRects + getComputedStyle on ~1,000 buttons, ~30 ms a press on a PC, several times that on a
+  // Fire Stick) only runs when the guide can't answer. An open tip or popup still holds the remote (no guide shortcut then).
+  const cur = document.activeElement, held = $('back').open || document.querySelector('#mmTip .tipb');
+  let all = null; const getAll = () => all || (all = focusables());
+  if (!held && cur && cur.matches && cur.matches('.grid .track .cell') && cur.getClientRects().length) {
     if (dir === 'up' || dir === 'down') {
       const st = guideStep(cur, dir);
       if (st) { const g = st.el.closest('.grid'); if (g.scrollLeft) g.scrollLeft = 0; st.el.focus({ preventScroll: true }); gAnchor = { el: st.el, at: st.at }; guideScroll(st.el); return; }
@@ -84,6 +89,7 @@ function moveFocus(dir) {
   }
   // 11/27 (Scott: "remote control is dead not moving after entered tipster answer"): the start must be a box you can SEE - the first
   // main button in the page was the phone home's Home tile, hidden on a TV, so focus() did nothing and every arrow went nowhere
+  getAll();
   if (!all.includes(cur)) { const start = all.find(e => e.closest('main')) || all[0]; if (start) { start.focus({ preventScroll: true }); if (start.closest('main')) start.scrollIntoView({ block: 'nearest' }); } return; }
   const r = cur.getBoundingClientRect(); let best = null, bestScore = Infinity;
   for (const e of all) {
