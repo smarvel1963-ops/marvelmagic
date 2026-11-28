@@ -51,7 +51,7 @@ function phoneDeck() {
       <button class="pdgo" data-tab="3">My Stuff »</button></section>`;
   const cats = PD_CATS.filter(c => !(kids && c[2] === 10)).map(([ic, name, tab, col, flag]) =>
     `<button class="pdc ${col}" data-tab="${tab}"${flag ? ` data-${flag}` : ''}><i>${ic}</i><span>${esc(name)}</span></button>`).join('');
-  return `<div class="pdeck"><div class="pdban"><img class="pdmas" src="img/tipster/thumbs.webp" alt=""><div class="pdbrand"><img src="${logo}" alt="Marvel Magic"><small>by Marvel Corp</small><em>Your All-in-One Streaming &amp; Live TV Guide</em></div></div>
+  return `<div class="pdeck"><div class="pdban"><img class="pdmas" src="img/tipster/thumbs.webp" alt=""><div class="pdbrand"><img src="${logo}" alt="Marvel Magic"><small>by Marvel Corp</small><em>Your All-in-One Streaming &amp; Live TV Guide</em><small class="pdver">${esc(typeof mmVer === 'function' ? mmVer() : '')}</small></div></div>
     <div class="pdtiles">${top}</div>
     <div class="pdsearch"><button class="pdq" data-tab="1" data-q>🔍 Find a movie, show, game or channel…</button><button class="pdwhere" data-pick>✨ Tonight's Pick</button></div>
     <div class="pdmid">${pick}${svcs}</div>

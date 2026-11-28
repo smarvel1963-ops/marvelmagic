@@ -452,3 +452,6 @@ html.tvapp .htop{padding-right:80px}
 
 /* 11/27 a guide show with a reminder set */
 .cell.rem .ci b::before{content:'🔔 '}
+
+/* 11/27 (Scott: "where are version numbers on phone app"): the version in tiny print in the phone banner too */
+.pdbrand small.pdver{color:var(--dim);font-weight:500;font-size:10px;opacity:.8;margin-top:3px}
