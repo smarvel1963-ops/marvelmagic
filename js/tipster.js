@@ -122,7 +122,7 @@ function tipPick(st) {
 const TIP_CSS = `
 #mmTip{position:fixed;right:22px;bottom:22px;z-index:40;display:flex;align-items:flex-end;gap:12px;pointer-events:none;max-width:min(560px,calc(100vw - 32px))}
 #mmTip .tipme{width:76px;height:76px;border-radius:50%;flex:none;background:#eeeafc center/cover no-repeat;border:3px solid #a855f7;box-shadow:0 0 18px rgba(168,85,247,.55);pointer-events:auto;cursor:pointer;transition:transform .25s}
-#mmTip .tipme:hover{transform:scale(1.06)}
+#mmTip .tipme{padding:0}#mmTip .tipme:hover{transform:scale(1.06)}#mmTip .tipme:focus-visible{outline:4px solid #7fd8ff;outline-offset:3px;box-shadow:0 0 22px 6px rgba(127,216,255,.75);transform:scale(1.12);opacity:1}
 #mmTip.small .tipme{width:52px;height:52px;opacity:.92;border-width:2px}
 #mmTip .tipb{pointer-events:auto;background:#1b1442;border:1px solid #6d4bd8;border-radius:16px 16px 4px 16px;padding:14px 16px 12px;color:#f3efff;box-shadow:0 10px 32px rgba(0,0,0,.5);display:flex;gap:12px;align-items:flex-start;animation:tipIn .35s ease-out}
 #mmTip .tipb img{width:84px;height:84px;border-radius:50%;flex:none;background:#eeeafc;object-fit:cover}
@@ -175,7 +175,8 @@ function tipDraw() {   // the corner picture (and the bubble while a tip is open
   el.hidden = false;
   tipLift(el);
   const look = tipCostume();
-  const me = `<div class="tipme" data-tipme role="img" aria-label="Marvel, your Marvel Magic helper" style="background-image:url('${TIP_ART}${look}.webp')"></div>`;
+  // 11/27 (Scott: "tipster on mm cant be highlited"): his circle is a real button now, so the remote reaches it (OK = Ask Marvel)
+  const me = `<button class="tipme" data-tipme aria-label="Ask Marvel, your Marvel Magic helper" style="background-image:url('${TIP_ART}${look}.webp')"></button>`;
   if (!tipNow) { el.className = 'small'; el.innerHTML = me; return; }
   if (tipNow[0] === 'ask') {   // the question list
     el.className = '';
@@ -208,6 +209,7 @@ function tipOpen(t, force) {
 function tipClose() {
   tipNow = null; tipDraw();
   const p = tipPrev; tipPrev = null; if (p && p.isConnected && p.getClientRects().length) { p.focus({ preventScroll: true }); return; }
+  if (p && p.matches && p.matches('[data-tipme]')) { const c = document.querySelector('#mmTip [data-tipme]'); if (c) { c.focus({ preventScroll: true }); return; } }   // opened from his circle: back to it
   // 11/27: nothing to go back to (the tip came up before anything was highlighted) - light the first box you can see, so the remote is never lost
   const f = typeof focusables === 'function' && focusables().find(e => e.closest('main')); if (f) f.focus({ preventScroll: true });
 }
