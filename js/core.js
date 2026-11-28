@@ -199,12 +199,12 @@ async function enrichNow(x) {
   } catch {}
 }
 const reg = x => (items.push(x), items.length - 1);
-// 11/27 (Scott: "under clock on MM should be version number in tiny print"): the web version (index.html meta mm-version, bumped by
+// 11/27 (Scott: "under clock on MM should be version number in tiny print", "mm is 1.7"): v1.7.<update> - the web version (index.html meta mm-version, bumped by
 // tools/stamp_versions.py on every code change) + the Fire TV / Android TV app's own version when inside the TV app.
 function mmVer() {
   const m = document.querySelector('meta[name=mm-version]'), w = m ? 'v' + m.content : '';
   let t = ''; try { t = window.MMNative && typeof MMNative.version === 'function' ? MMNative.version() : ''; } catch (e) { t = ''; }
-  return [w, t ? 'TV app ' + t : ''].filter(Boolean).join(' · ');
+  return [w, t && !(m && m.content.startsWith(t + '.')) ? 'TV app ' + t : ''].filter(Boolean).join(' · ');   // the TV app's number only when it differs
 }
 
 // Scott 11/14 "when time moves it still shows whats playing": a show that started before the visible edge keeps its title readable

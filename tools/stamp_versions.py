@@ -8,7 +8,6 @@
 # Run:  python tools\stamp_versions.py          (prints what changed; exit 0)
 #       python tools\stamp_versions.py --check  (exit 1 if a stamp is out of date - the smoke test runs this)
 import hashlib, re, sys
-from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -31,13 +30,12 @@ def stamp(check=False):
     new = PAT.sub(repl, html)
     if check:
         return stale
-    if stale:   # 11/27: any code change bumps the version shown under the clock: <date>.<n>, n counts that day's builds
-        today = date.today().strftime('%Y.%m.%d')
-        def bump(m):
-            cur = m.group(2)
-            n = int(cur.rsplit('.', 1)[1]) + 1 if cur.startswith(today + '.') else 1
-            stale.append(f'version: {cur} -> {today}.{n}')
-            return f'{m.group(1)}{today}.{n}{m.group(3)}'
+    if stale:   # 11/27: any code change bumps the version under the clock. Scott: "mm is 1.7" -> <app>.<update>, e.g. 1.7.1, 1.7.2 ...
+        def bump(m):   # (the app number - 1.7 - changes only by hand here, when Scott names a new one; the update number then restarts at 1)
+            cur = m.group(2); head, _, n = cur.rpartition('.')
+            new = f'{head}.{int(n) + 1}'
+            stale.append(f'version: {cur} -> {new}')
+            return f'{m.group(1)}{new}{m.group(3)}'
         new = VER.sub(bump, new, count=1)
     if new != html:
         index.write_text(new, encoding='utf-8', newline='')
