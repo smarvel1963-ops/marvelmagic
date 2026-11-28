@@ -443,3 +443,6 @@ html.tvapp .htop{padding-right:80px}
    screen are skipped (not painted / laid out) until they come near the screen, so a remote press repaints a dozen rows, not all 96.
    "auto" remembers each row's real size, so the channel column and scroll positions stay exact. */
 #ggrid > .row,#fgrid > .row{content-visibility:auto;contain-intrinsic-size:auto 2270px auto 62px}
+
+/* 11/27 guide page marker (core.js gWatch) */
+.gsent{height:1px}

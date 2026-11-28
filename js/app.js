@@ -79,7 +79,10 @@ function moveFocus(dir) {
   let all = null; const getAll = () => all || (all = focusables());
   if (!held && cur && cur.matches && cur.matches('.grid .track .cell') && cur.getClientRects().length) {
     if (dir === 'up' || dir === 'down') {
-      const st = guideStep(cur, dir);
+      let st = guideStep(cur, dir);
+      if (!st && dir === 'down' && gMore(cur.closest('.grid'))) {   // 11/27: past the last drawn row - draw the next page, then step into it
+        const nc = document.activeElement; if (nc && nc.matches && nc.matches('.grid .track .cell')) st = guideStep(nc, dir);
+      }
       if (st) { const g = st.el.closest('.grid'); if (g.scrollLeft) g.scrollLeft = 0; st.el.focus({ preventScroll: true }); gAnchor = { el: st.el, at: st.at }; guideScroll(st.el); return; }
     } else {
       const row = cur.closest('.row'), cells = [...row.querySelectorAll('.track .cell')].filter(c => c.matches('button:not([disabled]),a[href]')).sort((a, b) => gPct(a) - gPct(b)), i = cells.indexOf(cur), nx = cells[i + (dir === 'right' ? 1 : -1)];
@@ -126,7 +129,7 @@ document.addEventListener('keydown', e => {
   if (['Escape', 'GoBack', 'BrowserBack', 'MediaRewind', 'XF86Back'].includes(e.key) || e.keyCode === 461 || e.keyCode === 10009 || (e.key === 'Backspace' && !typing)) { e.preventDefault(); goBack(); return; }   // 10009 / XF86Back = Samsung TV remote Back
   if (['GoForward', 'BrowserForward', 'MediaFastForward'].includes(e.key)) { e.preventDefault(); history.forward(); }
 });
-function showTab(n) { if (n === 2 && kidsOn()) n = HOME; if (n === 8 || n === 9) loadPool(); S.tab = n; save('tab', n); S.sel = null; draw(); window.scrollTo(0, 0); if (n === 3 || n === HOME) loadEps(); }
+function showTab(n) { if (n === 2 && kidsOn()) n = HOME; if (n === 0) { S.gLim = 0; S.fLim = 0; } if (n === 8 || n === 9) loadPool(); S.tab = n; save('tab', n); S.sel = null; draw(); window.scrollTo(0, 0); if (n === 3 || n === HOME) loadEps(); }
 window.addEventListener('popstate', e => showTab(e.state && e.state.tab != null ? e.state.tab : HOME));
 history.replaceState({ tab: S.tab }, '');
 // ACCOUNT + SYNC (Scott 11/08: "these should all run independently to just the owner of account"). One Google sign-in per person. Their services, watchlist and

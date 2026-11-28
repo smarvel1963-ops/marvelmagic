@@ -30,6 +30,7 @@ if (/[?&](samsung|cast)=1/.test(location.search) && window.parent !== window && 
 const TABS = ['Live TV Guide', 'Movies & Shows', 'Sports', 'My Stuff', 'Free TV', 'My Ratings', 'Watched', 'Home', 'Coming Soon', 'For You', 'Settings', 'Browse Movies'];   // 11 = Browse Movies (browse.js, Scott 11/16)
 // Home (Scott 11/14) is page 7 so every older page number stays the same; it shows FIRST in the menu and the app opens on it.
 const HOME = 7, NAV_ORDER = [7, 0, 1, 11, 8, 9, 2, 3, 4, 5, 6, 10];   // Coming Soon + For You (Scott 11/14) are pages 8 and 9
+const GPAGE = 25;   // 11/27 (Scott: "load next page only ... smaller batches"): guide rows drawn per page; gMore() adds the next page
 const ICONS = ['<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 11h18M7 7l3-4M13 7l3-4"/>', '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/>', '<path d="M6 3h12v18l-6-4-6 4z"/>', '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>', '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>', '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/>', '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>', '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/>'];
 const icon = i => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[i]}</svg>`;
 const LEAGUES = [['NBA', 'basketball/nba'], ['College Basketball', 'basketball/mens-college-basketball'], ['NFL', 'football/nfl'], ['College Football', 'football/college-football'], ['NHL', 'hockey/nhl'], ['MLB', 'baseball/mlb']];
@@ -124,7 +125,11 @@ function openOffer(svc) {
 const SLOT = 30 * 60000, SLOTS = 16;   // 8 hours from now (Scott 11/08)
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const clock = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+// 11/27 (guide speed): toLocaleTimeString builds a new time formatter on every call - over half of a guide redraw on a Fire Stick (thousands
+// of "7:00 PM" labels). One formatter, made once, and each minute's text kept, gives the same words.
+const CLOCK_FMT = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }), CLOCK_MEMO = new Map();
+const clock = d => { const t = +d; if (!Number.isFinite(t)) return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); const k = Math.floor(t / 60000);
+  let v = CLOCK_MEMO.get(k); if (v === undefined) { if (CLOCK_MEMO.size > 5000) CLOCK_MEMO.clear(); v = CLOCK_FMT.format(t); CLOCK_MEMO.set(k, v); } return v; };
 const save = (k, v) => { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} if (['mine', 'list', 'setup', 'ratings', 'rank', 'opens', 'teams', 'history', 'likes', 'actors', 'moods', 'profile', 'order', 'lastOpen', 'svcSince', 'svcSnooze', 'svcRemindOff', 'later', 'profiles', 'svcRate'].includes(k)) queueSync(); };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem('mm_' + k)); return v == null ? d : v; } catch { return d; } };
 const S = { freeSvc: load('freeSvc', /Tizen|SMART-TV.*Samsung|SamsungBrowser.*TV/i.test(navigator.userAgent) ? 'Samsung TV Plus' : 'All'), tab: HOME, mine: load('mine', []), list: load('list', []), airings: [], games: [], results: null, sel: null, err: '', eps: {}, setup: load('setup', []), ratings: load('ratings', {}), rank: load('rank', []), opens: load('opens', {}), history: load('history', []), teams: load('teams', []), teamGames: [], allTeams: null, teamHits: null, remind: load('remind', {}), plutoCat: null, pool: null, likes: load('likes', []), kids: load('kids', { on: false, pin: '' }), told: load('told', {}), cat: {}, order: load('order', []), shared: load('shared', false), house: null, houseRole: null, paired: load('paired', null), pairCode: null, prof: load('prof', null), profLock: load('profLock', false), profiles: load('profiles', {}), svcRate: load('svcRate', {}), later: load('later', []), lastOpen: load('lastOpen', {}), svcSince: load('svcSince', {}), svcSnooze: load('svcSnooze', {}), svcRemindOff: load('svcRemindOff', false), lists: null, viewList: null, actors: load('actors', []), moods: load('moods', []), profile: load('profile', {}) };
@@ -206,7 +211,11 @@ function mmVer() {
 function stickTitles() {
   for (const id of ['ggrid', 'fgrid']) { const g = $(id); if (!g) continue;
   const edge = g.getBoundingClientRect().left + 190;   // just right of the sticky channel column
-  const cs = [...g.querySelectorAll('.cell')], rs = cs.map(c => c.getBoundingClientRect());   // 11/25: read every box first, then write (no layout per box)
+  // 11/27 (guide speed): every row's track has the same left edge and width, so ONE track is measured and each box's place comes from its
+  // own left/width % (it used to measure every box: ~0.5 s of a redraw on a Fire Stick). Boxes without a % fall back to measuring.
+  const tr = g.querySelector(':scope > .row .track'); if (!tr) continue; const tl = tr.getBoundingClientRect();
+  const cs = [...g.querySelectorAll('.cell')], rs = cs.map(c => { const l = parseFloat(c.style.left), w = parseFloat(c.style.width);
+    return Number.isFinite(l) && Number.isFinite(w) && c.parentElement && c.parentElement.classList.contains('track') ? { left: tl.left + l / 100 * tl.width, width: w / 100 * tl.width } : c.getBoundingClientRect(); });
   cs.forEach((c, i) => { const p = (12 + Math.max(0, Math.min(edge - rs[i].left, rs[i].width - 70))) + 'px'; if (c.style.paddingLeft !== p) c.style.paddingLeft = p; }); }
 }
 // ONE CHANNEL COLUMN (Scott 11/25: "flow down the huge guide soft and smooth no lag or chops"). Every guide row had its own sticky
@@ -232,8 +241,25 @@ function chPlace(g) {   // each moved box sits exactly over its own row
   col.style.transform = 'translateX(' + g.scrollLeft + 'px)';
 }
 addEventListener('resize', () => { for (const g of document.querySelectorAll('#view .grid.onecol')) chPlace(g); chColumns(); });
+// GUIDE PAGES (11/27): a marker (.gsent) under the last drawn row loads the next GPAGE rows when it comes within ~10 rows of the screen
+// (scrolling, touch or the remote). gMore(grid) also runs straight away when the remote steps past the last drawn row.
+let gIO = null;
+function gMore(g) {
+  const m = g && g.querySelector(':scope > .gsent'); if (!m) return false;
+  const k = m.dataset.gmore; S[k] = (S[k] || GPAGE) + GPAGE; draw(); return true;
+}
+function gWatch() {
+  if (gIO) { gIO.disconnect(); gIO = null; }
+  const ms = document.querySelectorAll('#view .grid > .gsent'); if (!ms.length || !('IntersectionObserver' in window)) return;
+  for (const m of ms) {
+    const g = m.parentElement, inner = g.scrollHeight > g.clientHeight + 4 && getComputedStyle(g).overflowY !== 'visible';
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); requestAnimationFrame(() => gMore(g)); } }, { root: inner ? g : null, rootMargin: '0px 0px 640px 0px' });
+    io.observe(m); if (!gIO) gIO = { disconnect() { for (const x of gIO.list) x.disconnect(); }, list: [] }; gIO.list.push(io);
+  }
+}
 function draw() {
   const had = focusables().indexOf(document.activeElement), gx = $('ggrid') ? $('ggrid').scrollLeft : 0, fx = $('fgrid') ? $('fgrid').scrollLeft : 0;
+  const gy = $('ggrid') ? $('ggrid').scrollTop : 0;
   items.length = 0;
   document.body.classList.toggle('easy', activeEasy());
   // 11/15 (Scott: "also on mm on left menu a search bar button"): Search sits under Home - same as Home's Search button (Movies & Shows, cursor in the box)
@@ -245,11 +271,13 @@ function draw() {
   drawAcct();
   dock();
   if (gx && $('ggrid')) $('ggrid').scrollLeft = gx;   // Scott 11/14: the guide keeps your place when it refreshes
+  if (gy && $('ggrid')) $('ggrid').scrollTop = gy;   // 11/27: and its place down the channels (a new page of rows redraws the guide)
   if (fx && $('fgrid')) $('fgrid').scrollLeft = fx;
   drawPairQr(); if (linkPair) setTimeout(maybeApproveFromLink, 50);
   for (const id of ['ggrid', 'fgrid']) if ($(id)) $(id).addEventListener('scroll', function () { if (this._sl === this.scrollLeft) return; this._sl = this.scrollLeft; requestAnimationFrame(stickTitles); }, { passive: true });   // sideways only (11/25: the guide now also scrolls up/down inside itself)
   stickTitles();
   chColumns();
+  gWatch();
   if (had >= 0) { const f = focusables(); (f[had] || f[f.length - 1]).focus({ preventScroll: true }); }
 }
 const rateKey = x => x.show ? 's' + x.show.id : x.key;

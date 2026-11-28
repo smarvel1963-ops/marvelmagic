@@ -69,7 +69,10 @@ function guide() {
   const pv = (S.sel && S.sel.net) ? S.sel : onNow.sort((a, b) => ((b.show && b.show.weight) || 0) - ((a.show && a.show.weight) || 0))[0] || null;
   const nowPct = (now - t0) / span * 100;
   const times = Array.from({ length: SLOTS }, (_, i) => `<div>${esc(clock(new Date(t0 + i * SLOT)))}</div>`).join('');
-  const rows = nets.map(n => {
+  // 11/27 GUIDE IN PAGES (Scott: "load a page and while looking and moving down it load next page only that way it smaller batches and way
+  // faster"): the guide draws GPAGE channel rows; a marker below the last one loads the next GPAGE as you get near it (gMore, core.js).
+  const gLim = S.gLim || GPAGE, gHas = nets.length > gLim;
+  const rows = nets.slice(0, gLim).map(n => {
     const ways = waysFor(n), mineW = ways.filter(w => S.mine.includes(w.svc)), svc = (mineW[0] || ways[0] || {}).svc || null, ok = !svc || hasIt(svc);
     for (const a of by[n]) if (!a.isGame) { a.svc = svc; a.options = ways; a.exact = null; }   // Watch = your first way in (live package before the network's app)
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
@@ -90,7 +93,7 @@ function guide() {
   const fall = (FREE_G.ch || []).filter(r => fsvc === 'All' || r.p.some(q => q[0] === fsvc)).map(r => fsvc === 'All' ? r : { ...r, p: [...r.p.filter(q => q[0] === fsvc), ...r.p.filter(q => q[0] !== fsvc)] });
   const fcats = FREE_ORDER.filter(c => fall.some(r => r.g === c) && (!kidsOn() || c === 'Kids'));
   const fcat = fcats.includes(S.freeCat) ? S.freeCat : (kidsOn() ? 'Kids' : 'Movies');
-  const fch = fall.filter(r => r.g === fcat).slice(0, 150);
+  const fchAll = fall.filter(r => r.g === fcat).slice(0, 150), fLim = S.fLim || GPAGE, fch = fchAll.slice(0, fLim), fHas = fchAll.length > fLim;
   const fRows = fch.map(r => {
     const places = r.p.map(q => ({ svc: q[0], url: q[1] })), first = places[0];
     const cells = r.s.filter(q => q[1] * 1000 > t0 && q[0] * 1000 < t1).map(q => {
@@ -115,9 +118,9 @@ function guide() {
   }).join('');
   const today = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
   return `${preview(pv, now)}<div class="gbar"><span class="gday">📅 Today, ${esc(today)}</span><button class="pill gsb" data-gs="-1" aria-label="Earlier">‹</button><button class="pill gsb" data-gs="1" aria-label="Later">›</button><span class="fine">${nets.length} channel${nets.length === 1 ? '' : 's'} you can watch · next 8 hours${Object.keys(LIVE_PKG).some(pk => S.mine.includes(pk) && LIVE_PKG[pk] !== '*') ? ' · package channels can vary by plan and area' : ''}</span></div>
-    <div class="grid" id="ggrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW ${esc(clock(new Date(now)))}</span></div>${rows}${freeRows}</div><div class="phone">${list}${freeCards}</div>
+    <div class="grid" id="ggrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW ${esc(clock(new Date(now)))}</span></div>${rows}${gHas ? `<div class="gsent" data-gmore="gLim" aria-hidden="true"></div>` : freeRows}</div><div class="phone">${list}${freeCards}</div>
     ${odBar}<div class="grid gplut gond">${odRows}</div><div class="phone">${odCards}</div>
-    ${fBar}<div class="grid" id="fgrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW</span></div>${fRows}</div><div class="phone">${fCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
+    ${fBar}<div class="grid" id="fgrid"><div class="times">${times}<span class="nowtab" style="left:${nowPct}%">NOW</span></div>${fRows}${fHas ? `<div class="gsent" data-gmore="fLim" aria-hidden="true"></div>` : ''}</div><div class="phone">${fCards}</div>${kidsOn() ? '' : ticker()}${freeTv()}${credit()}`;
 }
 const card = x => `<button class="card ${S.sel && S.sel.key === x.key ? 'on' : !x.svc || hasIt(x.svc) ? '' : 'off'}" data-i="${reg(x)}">${x.img ? `<img src="${esc(x.img)}"${tvmSet(x.img)} alt="" loading="lazy">` : ''}<span class="t"><b>${esc(x.title)}</b><small>${esc(x.note || '')}</small></span></button>`;
 function showItem(s) {
