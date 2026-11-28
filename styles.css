@@ -446,3 +446,6 @@ html.tvapp .htop{padding-right:80px}
 
 /* 11/27 guide page marker (core.js gWatch) */
 .gsent{height:1px}
+/* 11/27 (Scott: "top part of mm should stay frozen"): on a TV / PC, Home's top bar (greeting, Search, Kids Lock, Settings, the clock with the
+   version, Marvel + Cast at its right) stays put while the page scrolls. Phones already keep their top bar (header) pinned. */
+@media (min-width:761px){.htop,.ezhead{position:sticky;top:0;z-index:6;background:var(--bg);margin-top:-20px;padding-top:14px;padding-bottom:12px;box-shadow:0 8px 14px -10px rgba(0,0,0,.7)}}
