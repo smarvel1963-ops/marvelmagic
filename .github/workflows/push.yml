@@ -1,0 +1,38 @@
+# push.yml
+# Save to: C:\MarvelApps\marvelmagic\.github\workflows\push.yml
+# ALERTS WHEN MARVEL MAGIC IS CLOSED (Scott 11/27: "yes build 4"): every 5 minutes, tools/push_send.py sends due show / game reminders and
+# new-episode alerts to the devices that turned them on (js/push.js). What was sent is remembered in the Actions cache (push_state.json),
+# never committed. Logs print counts only (this repo is public).
+# Secrets: FIREBASE_SA (Firebase service account JSON), VAPID_PRIVATE_KEY (PEM; the public half is in js/push.js). Without them it does nothing.
+name: push alerts
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: push-alerts
+  cancel-in-progress: false
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Remembered sends
+        uses: actions/cache@v4
+        with:
+          path: push_state.json
+          key: push-state-${{ github.run_id }}
+          restore-keys: push-state-
+      - name: Install
+        run: pip install --quiet 'pywebpush>=2,<3' 'google-auth>=2,<3' 'requests>=2,<3'
+      - name: Send
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: python tools/push_send.py

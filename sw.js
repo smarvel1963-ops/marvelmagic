@@ -52,3 +52,18 @@ self.addEventListener('fetch', e => {
   if (mine && /\.(css|js)$/i.test(u.pathname) && u.searchParams.has('v')) return e.respondWith(code(e));
   e.respondWith(fetch(req));
 });
+
+// 11/27 ALERTS WHEN MARVEL MAGIC IS CLOSED (js/push.js; sent by tools/push_send.py): show what arrives; a tap opens Marvel Magic on that page.
+self.addEventListener('push', e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Marvel Magic', { body: d.body || '', icon: 'icon-192.png', badge: 'icon-192.png', tag: d.tag || undefined, data: { tab: d.tab != null ? d.tab : 7 } }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const tab = (e.notification.data && e.notification.data.tab != null) ? e.notification.data.tab : 7, url = new URL('./?tab=' + tab, self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+    const c = cs.find(x => x.url.startsWith(self.registration.scope));
+    if (c) { c.postMessage({ mm: 'tab', tab }); return c.focus(); }
+    return self.clients.openWindow(url);
+  }));
+});
