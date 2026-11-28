@@ -4,9 +4,19 @@
 // Split out of index.html 2026-11-15 (sell-readiness pass). Plain script, shared global scope, loaded in order:
 // core -> guide -> sports -> home -> app. After editing, run  python tools\stamp_versions.py  then  python tests\smoke_test.py
 
+// 11/27 (Scott: "do 1" - speed up the remote on every page): the list of boxes the remote can reach is worked out once and kept until the
+// page changes (a box added / removed / shown / hidden / disabled, a popup or tip opening, the screen resized) - it used to be rebuilt on every
+// press, checking every button's size and style. takeRecords() makes a change made a moment ago count straight away.
+let FOC = null;
+const focMO = new MutationObserver(() => { FOC = null; });
+focMO.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'disabled', 'open', 'class', 'href'] });
+addEventListener('resize', () => { FOC = null; });
 function focusables() {
+  if (focMO.takeRecords().length) FOC = null;
   const box = $('back').open ? $('back') : (document.querySelector('#mmTip .tipb') || document);   // an open Marvel tip holds the remote (tipster.js)
-  return [...box.querySelectorAll('button:not([disabled]),a[href],input,select')].filter(e => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
+  if (FOC && FOC.box === box) return FOC.list.slice();
+  const list = [...box.querySelectorAll('button:not([disabled]),a[href],input,select')].filter(e => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
+  FOC = { box, list }; return list.slice();
 }
 // GUIDE REMOTE (Scott 11/25: "as you click down guide the cursor square goes all over the place instead of straight down ... quirky"). Up/Down in a guide
 // grid stays in the same time column, one channel row at a time, like a cable box; Left/Right sets that column. The grid never slides a box under the channel names.

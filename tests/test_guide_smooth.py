@@ -43,7 +43,10 @@ def main():
         check("each name sits on its own row", all(abs(t) <= 1 for t in tops), tops)
         cdp = ctx.new_cdp_session(pg); cdp.send("Performance.enable")
         def lc(): return {x["name"]: x["value"] for x in cdp.send("Performance.getMetrics")["metrics"]}["LayoutCount"]
-        a = lc(); pg.evaluate("chPlace(document.getElementById('ggrid'))"); place = lc() - a
+        # 11/27: best of 3 - a listing that lands during one measurement adds its own layout (failed 1 run in 5)
+        place = 99
+        for _ in range(3):
+            a = lc(); pg.evaluate("chPlace(document.getElementById('ggrid'))"); place = min(place, lc() - a); pg.wait_for_timeout(150)
         check("placing the column is one read + one write (not a layout per row)", place <= 2, place)
         for _ in range(20):   # wait until the listings stop arriving (each one redraws the guide)
             a = lc(); pg.wait_for_timeout(700)

@@ -81,7 +81,10 @@ def open_app(b, mem):
 
 def free_tv(pg):
     pg.evaluate("showTab(4)")
-    pg.wait_for_timeout(4000)
+    # 11/27: wait for the cards themselves (a fixed 4 s failed whenever the free-channel lists were slow to come in), then let them settle
+    try: pg.wait_for_function("document.querySelectorAll('.flc').length >= 8", timeout=20000)
+    except Exception: pass
+    pg.wait_for_timeout(800)
     return pg.evaluate(FREE)
 
 
