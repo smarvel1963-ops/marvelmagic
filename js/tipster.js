@@ -154,6 +154,7 @@ const TIP_CSS = `
 #mmTip .tipb b{display:block;color:#c4b5fd;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
 #mmTip .tipb p{margin:0 0 10px;font-size:16px;line-height:1.4}
 #mmTip .tipbtns{display:flex;gap:8px;flex-wrap:wrap}
+.tipsw{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.tipsw .btn{min-width:84px}
 #mmTip .tipaskf{display:flex;gap:6px;margin:0 0 10px}#mmTip .tipaskf input{flex:1;min-width:0;min-height:42px;padding:0 12px;border-radius:9px;border:1px solid #6d4bd8;background:#0f0b2a;color:#fff;font-size:15px}#mmTip .tipaskf button{min-height:42px;padding:0 14px;border-radius:9px;border:0;background:linear-gradient(135deg,#5C3DF0,#8A3FF0);color:#fff;font-weight:700;cursor:pointer}
 #mmTip .tipqs{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}#mmTip .tipqs button{min-height:40px;padding:6px 12px;border-radius:9px;border:1px solid #6d4bd8;background:#241a58;color:#fff;font-weight:650;font-size:15px;text-align:left;cursor:pointer}#mmTip .tipqs button:focus-visible{outline:3px solid #7fd8ff;outline-offset:2px}
 #mmTip .tipbtns button{min-height:36px;padding:0 14px;border-radius:9px;border:1px solid #6d4bd8;background:#2a1f63;color:#fff;font-weight:650;font-size:14px;cursor:pointer}
@@ -253,11 +254,11 @@ function tipGo(show) {
   if (n !== S.tab) history.pushState({ tab: n }, ''); showTab(n);
 }
 // Settings box (guide.js settingsPage calls this when it exists)
-function tipBox() {
+function tipBox() {   // 11/27 (Scott: "mm need in setting away to turn tipster back on or off"): a plain ON / OFF switch, near the top of Settings
   const st = tipState();
-  return `<section class="glow plain stbox"><h3>🧙 Marvel the Tipster</h3>
-    <p class="fine">${st.on ? 'Marvel gives one short tip a day, in the bottom corner. His outfit changes with the page and the holidays.' : 'Marvel is hushed on this device.'}</p>
-    <div class="tipbtns" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${st.on ? '<button class="btn" data-tipshow>Show me a tip now</button><button class="btn alt" data-tiphush>Hush Marvel</button>' : '<button class="btn" data-tipwake>Turn Marvel back on</button>'}</div></section>`;
+  return `<section class="glow plain stbox tipset"><h3>🧙 Marvel the Tipster</h3>
+    <p class="fine">${st.on ? 'Marvel is <b>ON</b>: his circle sits top right - tap it to ask him anything - and he gives one short tip a day.' : 'Marvel is <b>OFF</b> on this device: no circle, no tips. Turn him back on any time.'}</p>
+    <div class="tipsw" role="group" aria-label="Marvel the Tipster on or off"><button class="btn ${st.on ? '' : 'alt'}" data-tipwake aria-pressed="${st.on}">ON</button><button class="btn ${st.on ? 'alt' : ''}" data-tiphush aria-pressed="${!st.on}">OFF</button>${st.on ? '<button class="btn alt" data-tipshow>Show me a tip now</button>' : ''}</div></section>`;
 }
 document.addEventListener('click', e => {
   const t = e.target.closest && e.target.closest('[data-tipgo],[data-tipok],[data-tiphush],[data-tipwake],[data-tipshow],[data-tipme],[data-tipq],[data-tipask],[data-tiptip]'); if (!t) return;
