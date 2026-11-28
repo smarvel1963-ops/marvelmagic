@@ -207,7 +207,7 @@ function tipDraw() {   // the corner picture (and the bubble while a tip is open
   if (tipNow[0] === 'ask') {   // the question list
     el.className = '';
     el.innerHTML = `<div class="tipb tipask" role="dialog" aria-label="Ask Marvel"><img src="${TIP_ART}thinking.webp" alt="">
-      <div><b>Ask Marvel</b><p>What can I help with?</p><form class="tipaskf" data-tipform><input id="tipq" placeholder="Ask me anything… (tap the mic to talk)" aria-label="Ask Marvel a question" autocomplete="off"><button>Ask</button></form><div class="tipqs">${TIP_ASK.filter(tipAskOk).map(q => `<button data-tipq="${q[0]}">${esc(q[2])}</button>`).join('')}</div>
+      <div><b>Ask Marvel</b><p>What can I help with?</p><form class="tipaskf" data-tipform><input id="tipq" placeholder="Ask me anything…" aria-label="Ask Marvel a question" autocomplete="off"><button>Ask</button></form><div class="tipqs">${TIP_ASK.filter(tipAskOk).map(q => `<button data-tipq="${q[0]}">${esc(q[2])}</button>`).join('')}</div>
       <div class="tipbtns"><button data-tiptip>💡 Tip of the day</button><button data-tipok>Close</button><button data-tiphush>Hush</button></div></div></div>${me}`;
     tipFocus(); return;
   }
