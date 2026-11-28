@@ -566,7 +566,7 @@ document.addEventListener('click', e => {
   else if (t.hasAttribute('data-clearq')) { S.q = ''; S.results = null; S.movies = null; draw(); }
   else if (t.dataset.sport) { S.sport = t.dataset.sport; const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.sf) { S.sf = t.dataset.sf; const y = window.scrollY; draw(); window.scrollTo(0, y); }
-  else if (t.dataset.remind) { const k = t.dataset.remind; if (S.remind[k]) delete S.remind[k]; else { S.remind[k] = { title: t.dataset.rt, when: Number(t.dataset.rw) }; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } save('remind', S.remind); const y = window.scrollY; draw(); window.scrollTo(0, y); }
+  else if (t.dataset.remind) { const k = t.dataset.remind; if (S.remind[k]) delete S.remind[k]; else { S.remind[k] = { title: t.dataset.rt, when: Number(t.dataset.rw), net: t.dataset.rn || '', tab: t.dataset.rpage != null ? Number(t.dataset.rpage) : null }; /* 11/27: channel + page for Marvel's reminder */ if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } save('remind', S.remind); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.dataset.wf) { S.wf = t.dataset.wf; draw(); }
   else if (t.dataset.unwatch) { S.history = S.history.filter(h => h.k !== t.dataset.unwatch); save('history', S.history); const y = window.scrollY; draw(); window.scrollTo(0, y); }
   else if (t.id === 'acct') acctPress();

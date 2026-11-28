@@ -198,7 +198,8 @@ function tipLift(el) {   // sit above anything fixed along the bottom: the phone
 }
 function tipDraw() {   // the corner picture (and the bubble while a tip is open)
   const st = tipState(), el = tipEl();
-  if (!st.on || kidsOn()) { el.hidden = true; el.innerHTML = ''; return; }
+  const rem = tipNow && String(tipNow[0]).startsWith('rem-');   // a reminder shows even with Marvel OFF / Kids Lock on
+  if ((!st.on || kidsOn()) && !rem) { el.hidden = true; el.innerHTML = ''; return; }
   el.hidden = false;
   tipLift(el);
   const look = tipCostume();
@@ -215,14 +216,21 @@ function tipDraw() {   // the corner picture (and the bubble while a tip is open
   const [, pic, words, show] = tipNow;
   el.className = '';
   el.innerHTML = `<div class="tipb" role="dialog" aria-label="A tip from Marvel"><img src="${TIP_ART}${pic}.webp" alt="">
-    <div><b>${tipNow[0].startsWith('hol-') ? 'Marvel says' : tipNow[0].startsWith('l-') ? 'Tip from Marvel' : tipNow[0].startsWith('d-') ? 'Did you know?' : 'Marvel noticed'}</b><p>${esc(words)}</p>
-    <div class="tipbtns">${show ? '<button class="go" data-tipgo>Show me</button>' : ''}${tipNow[0].startsWith('q-') ? '<button data-tipask>More questions</button><button data-tipok>Got it</button>' : '<button data-tipok>Got it</button><button data-tiphush>Hush</button>'}</div></div></div>${me}`;
+    <div><b>${tipNow[0].startsWith('rem-') ? '🔔 Reminder' : tipNow[0].startsWith('hol-') ? 'Marvel says' : tipNow[0].startsWith('l-') ? 'Tip from Marvel' : tipNow[0].startsWith('d-') ? 'Did you know?' : 'Marvel noticed'}</b><p>${esc(words)}</p>
+    <div class="tipbtns">${show ? '<button class="go" data-tipgo>Show me</button>' : ''}${tipNow[0].startsWith('rem-') ? '<button data-tipok>Got it</button>' : tipNow[0].startsWith('q-') ? '<button data-tipask>More questions</button><button data-tipok>Got it</button>' : '<button data-tipok>Got it</button><button data-tiphush>Hush</button>'}</div></div></div>${me}`;
   tipFocus();
 }
 // THE TIP HOLDS THE REMOTE (Scott 11/25 on his TV: "you cant highlite a response so you should have to click something on him first before
 // all else"). While a tip is open the highlight sits on its first button and the arrows stay on its buttons (app.js focusables), until
 // Show me / Got it / Hush - or Back, which counts as Got it. Then the highlight goes back where it was.
 let tipPrev = null;
+// REMINDERS (11/27, Scott: "do 6" - remind me on any guide show): 15 minutes before, Marvel says it in the middle of the screen - even when he's
+// switched OFF (you asked for this one) - with Show me (the guide, or Sports for a game). app.js's reminder timer calls this.
+function tipRemind(r) {
+  const mins = Math.round((r.when - Date.now()) / 60000);
+  tipNow = ['rem-' + r.when, 'calendar', `${r.title} ${mins > 0 ? 'starts in ' + mins + ' minute' + (mins === 1 ? '' : 's') : 'is starting now'}${r.net ? ' on ' + r.net : ''}.`, 'tab:' + (r.tab != null ? r.tab : 0)];
+  tipDraw();
+}
 function tipFocus() {
   const el = $('mmTip'), b = el && (el.querySelector('.tipb [data-tipgo]') || el.querySelector('.tipb [data-tipq]') || el.querySelector('.tipb [data-tipok]')); if (!b) return;
   const a = document.activeElement; if (a && !el.contains(a) && a !== document.body) tipPrev = a;

@@ -199,7 +199,11 @@ setTimeout(loadPool, 4000);
 setInterval(episodeAlerts, 30 * 60000);
 setTimeout(unusedNotify, 8000); setInterval(unusedNotify, 6 * 3600000);
 setInterval(loadTeamGames, 15 * 60000);
-setInterval(() => { const now = Date.now(); let ch = false; for (const [k, r] of Object.entries(S.remind)) { if (r.when - now <= 15 * 60000) { if (r.when - now > -10 * 60000 && 'Notification' in window && Notification.permission === 'granted') { try { new Notification('Marvel Magic', { body: r.title + ' starts in 15 minutes', icon: 'icon-192.png' }); } catch {} } delete S.remind[k]; ch = true; } } if (ch) save('remind', S.remind); }, 30000);   // Scott 11/14 board: remind me 15 min before
+setInterval(() => { const now = Date.now(); let ch = false; for (const [k, r] of Object.entries(S.remind)) { if (r.when - now <= 15 * 60000) { if (r.when - now > -10 * 60000) {   // 11/27 (Scott: remind me on any show): on screen = Marvel says it (TVs have no notifications); in the background = a notification
+        const vis = document.visibilityState === 'visible';
+        if (vis && typeof tipRemind === 'function') tipRemind(r);
+        if ((!vis || !(typeof tipRemind === 'function')) && 'Notification' in window && Notification.permission === 'granted') { try { new Notification('Marvel Magic', { body: r.title + (r.when > now ? ' starts in ' + Math.max(1, Math.round((r.when - now) / 60000)) + ' minutes' : ' is starting now') + (r.net ? ' on ' + r.net : ''), icon: 'icon-192.png' }); } catch {} }
+      } delete S.remind[k]; ch = true; } } if (ch) save('remind', S.remind); }, 30000);   // Scott 11/14 board: remind me 15 min before
 setInterval(() => { if ((S.tab !== HOME && S.tab !== 2) || document.hidden) return; const c = $('hclock'); if (c) c.textContent = clock(new Date()); document.querySelectorAll('.cd[data-when]').forEach(el => { el.textContent = cdText(Number(el.dataset.when)); }); }, 1000);   // Home clock + game countdown tick without redrawing
 setInterval(() => { if (!document.hidden) loadGuide(); }, 5 * 60000);   // the guide keeps itself current (Scott 11/08) - not while another app / tab is showing (11/21)
 // BACK FROM A SHOW (11/21, Scott "make sure our guides dont slow everything down"): while a show plays in another app or tab, Marvel Magic

@@ -303,6 +303,7 @@ function dock() {
   d.innerHTML = `<div class="t"><b>${esc(x.title)}</b><small class="${ok ? '' : 'no'}">${esc(x.note || '')}${!ok ? ' · ' + esc(x.svc) + ' is not one of your services' : ''}</small>${whereRow(x)}${rateRow(x)}</div>
     ${x.show ? `<button class="btn alt" data-save>${S.list.some(s => s.id === x.show.id) ? 'Saved' : 'Save'}</button>` : ''}
     <button class="btn alt" data-later>${isLater(x) ? '✓ Watch Later' : '⏰ Watch Later'}</button>
+    ${x.start && x.start - Date.now() > 60000 ? `<button class="btn alt" data-remind="${esc(x.key)}" data-rt="${esc(x.title)}" data-rw="${x.start}" data-rn="${esc(x.net || (x.tv || [])[0] || '')}" data-rpage="${x.sport || x.isGame ? 2 : 0}" aria-pressed="${S.remind[x.key] ? 'true' : 'false'}">${S.remind[x.key] ? '✓ Reminder set' : '🔔 Remind me'}</button>` : ''}
     <button class="btn" data-open ${ok ? '' : 'disabled'}>${x.svc ? 'Open in ' + esc(x.svc) : x.place ? 'Open in ' + esc(x.place) : 'Open'}</button>`;
 }
 // GUIDE DATA (Scott 11/14 "we need more usable data in it"): ESPN's channel names -> the guide's channel names, game lengths, channel types.

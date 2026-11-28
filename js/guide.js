@@ -42,7 +42,7 @@ function preview(pv, now) {
     <div class="gpvk"><span class="chb">${esc(pv.net)}</span><span>${live ? 'Now Live' : 'Coming Up'} · ${esc(clock(new Date(pv.start)))} – ${esc(clock(new Date(pv.end)))}</span></div>
     <h1 class="gpvt">${esc(pv.title)}</h1>${pv.ep || pv.epName ? `<div class="gpve">${esc([pv.ep, pv.epName].filter(Boolean).join('  '))}</div>` : ''}
     ${short ? `<p class="gpvd">${esc(short)}</p>` : ''}${tags.length ? `<div class="gtags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
-    <div class="gpvb">${thumbBtn(pv)}<button class="pill" data-laterx="${reg(pv)}">${isLater(pv) ? '✓ Watch Later' : '⏰ Watch Later'}</button><button class="btn watch" data-i="${reg(pv)}" data-go>▶ ${live ? 'Watch Live' : 'Open'} ↗</button>${pv.show ? `<button class="pill" data-addlist="${reg(pv)}">${saved ? '✓ On My List' : '＋ My List'}</button>` : ''}</div>${whereRow(pv)}</div></section>`;
+    <div class="gpvb">${thumbBtn(pv)}<button class="pill" data-laterx="${reg(pv)}">${isLater(pv) ? '✓ Watch Later' : '⏰ Watch Later'}</button>${pv.start - now > 60000 ? `<button class="pill" data-remind="${esc(pv.key)}" data-rt="${esc(pv.title)}" data-rw="${pv.start}" data-rn="${esc(pv.net || '')}" data-rpage="${pv.isGame ? 2 : 0}" aria-pressed="${S.remind[pv.key] ? 'true' : 'false'}">${S.remind[pv.key] ? '✓ Reminder set' : '🔔 Remind me'}</button>` : ''}<button class="btn watch" data-i="${reg(pv)}" data-go>▶ ${live ? 'Watch Live' : 'Open'} ↗</button>${pv.show ? `<button class="pill" data-addlist="${reg(pv)}">${saved ? '✓ On My List' : '＋ My List'}</button>` : ''}</div>${whereRow(pv)}</div></section>`;
 }
 function guide() {
   if (S.err && !S.airings.length) return `<h1>Live TV Guide</h1><p>${esc(S.err)}</p>`;
@@ -77,7 +77,7 @@ function guide() {
     for (const a of by[n]) if (!a.isGame) { a.svc = svc; a.options = ways; a.exact = null; }   // Watch = your first way in (live package before the network's app)
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
       const l = Math.max(0, (a.start - t0) / span * 100), r = Math.min(100, (a.end - t0) / span * 100), on = pv && pv.key === a.key, live = a.start <= now && a.end > now;
-      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}${a.isGame ? ' isg' : ''}${live ? ' live' : ''}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%;--el:${live ? Math.round((now - a.start) / (a.end - a.start) * 100) : 0}%" title="${esc(a.title)}"><span class="ci"><b>${a.isGame ? '🏟 ' : ''}${esc(a.title)}</b><small>${a.isGame ? esc((a.state === 'in' ? 'LIVE ' + a.score + ' · ' + a.detail : a.state === 'post' ? 'Final ' + a.score : clock(new Date(a.start))) + ' · ' + a.league) : esc(clock(new Date(a.start))) + ' – ' + esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
+      return `<button class="cell ${on ? 'on' : ok ? '' : 'off'}${a.isGame ? ' isg' : ''}${live ? ' live' : ''}${S.remind[a.key] ? ' rem' : ''}" data-i="${reg(a)}" style="left:${l}%;width:${r - l}%;--el:${live ? Math.round((now - a.start) / (a.end - a.start) * 100) : 0}%" title="${esc(a.title)}"><span class="ci"><b>${a.isGame ? '🏟 ' : ''}${esc(a.title)}</b><small>${a.isGame ? esc((a.state === 'in' ? 'LIVE ' + a.score + ' · ' + a.detail : a.state === 'post' ? 'Final ' + a.score : clock(new Date(a.start))) + ' · ' + a.league) : esc(clock(new Date(a.start))) + ' – ' + esc(clock(new Date(a.end)))}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
     // Scott 11/14 "keep guide uniform easy to see": every hole in a row gets a plain box, so all rows read the same way
     let gaps = '', cur = t0;
@@ -199,7 +199,7 @@ function settingsPage() {
   const hits = S.teamHits ? `<div class="teamhits">${S.teamHits.length ? S.teamHits.map((t, i) => `<button class="chip" data-team="${i}" ${mineT(t) ? 'disabled' : ''}>${esc(t.name)} · ${esc(t.league)}${mineT(t) ? ' ✓' : ''}</button>`).join('') : '<p class="fine">No team found.</p>'}</div>` : '';
   const box = (title, body, cls) => `<section class="glow ${cls || 'plain'} stbox"><h3>${title}</h3>${body}</section>`;
   const tick = (list, key, v) => `<label class="stck"><input type="checkbox" data-st="${key}" value="${esc(v)}" ${list.includes(v) ? 'checked' : ''}><span>${esc(v)}</span></label>`;
-  const notif = !('Notification' in window) ? 'Not supported on this device.' : Notification.permission === 'granted' ? '✓ On. New episodes and game reminders pop up while Marvel Magic is open.' : Notification.permission === 'denied' ? 'Blocked in this browser\'s site settings.' : '<button class="btn" data-alerts>Turn on alerts</button>';
+  const notif = !('Notification' in window) ? 'Not supported on this device.' : Notification.permission === 'granted' ? '✓ On. New episodes and your show and game reminders pop up while Marvel Magic is open.' : Notification.permission === 'denied' ? 'Blocked in this browser\'s site settings.' : '<button class="btn" data-alerts>Turn on alerts</button>';
   return `<img class="top50ban" src="banner_settings.jpg" alt="Settings - My Settings: tell Marvel Magic what you like. It shapes For You, picks, Sports and alerts">
     <div class="stgrid">
     ${box('🏠 My Household', houseBox(), 'stwide')}
