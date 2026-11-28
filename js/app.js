@@ -90,6 +90,13 @@ function moveFocus(dir) {
       if (dir === 'right') return;   // end of the row: stay put (the 8 hours end here)
     }
   }
+  // 11/27 (Scott: "the guide is super fast but left side button slow to respond moving down"): Up/Down in the side menu steps to the menu
+  // item above / below straight from the menu's own list - no whole-page scan (1,000+ buttons on the guide page). Left/Right use the normal rules.
+  if (!held && cur && cur.closest && cur.closest('#nav') && (dir === 'up' || dir === 'down')) {
+    const ms = [...$('nav').querySelectorAll('button:not([disabled])')].filter(e => e.offsetParent !== null), i = ms.indexOf(cur);
+    const nx = i >= 0 && ms[i + (dir === 'down' ? 1 : -1)];
+    if (nx) { nx.focus({ preventScroll: true }); nx.scrollIntoView({ block: 'nearest' }); return; }
+  }
   // 11/27 (Scott: "remote control is dead not moving after entered tipster answer"): the start must be a box you can SEE - the first
   // main button in the page was the phone home's Home tile, hidden on a TV, so focus() did nothing and every arrow went nowhere
   getAll();
