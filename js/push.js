@@ -45,11 +45,11 @@ async function pushCheck() {   // this device says it's on: make sure the browse
   } catch {}
 }
 function pushBox() {   // Settings -> Alerts
-  if (typeof inTvApp === 'function' && inTvApp()) return '<p class="fine" style="margin-top:10px">On this TV, Marvel says your reminders on screen while Marvel Magic is open.</p>';
-  const head = '<p style="margin:12px 0 4px"><b>📱 Alerts when Marvel Magic is closed</b></p><p class="fine" style="margin:0 0 8px">Your show and game reminders, and new episodes of shows in My Stuff - even with the app closed.</p>';
+  if (typeof inTvApp === 'function' && inTvApp()) return '<p style="margin:0 0 4px"><b>📺 Alerts on this TV</b></p><p class="fine" style="margin:0">Marvel says your reminders on screen while Marvel Magic is open. Alerts while it is closed come to phones and computers (turn them on there); the TV gets them with TV app 1.8.</p>';
+  const head = '<p style="margin:0 0 4px"><b>📱 Alerts when Marvel Magic is closed</b></p><p class="fine" style="margin:0 0 8px">Your show and game reminders, and new episodes of shows in My Stuff - even with the app closed.</p>';
   if (pushIos()) return head + '<p class="fine">On iPhone and iPad: first add Marvel Magic to your Home Screen (Share → Add to Home Screen), open it from there, then turn this on.</p>';
   if (!pushCan()) return head + '<p class="fine">This browser can’t get alerts while closed. Chrome on Android, or Chrome / Edge on a computer, can.</p>';
-  if (!me || me.isAnonymous) return head + '<p class="fine">Sign in with Google (top of Settings) and you can turn this on.</p>';
+  if (!me || me.isAnonymous) return head + '<p class="fine" style="margin:0 0 8px">Sign in with Google to turn this on - that is how the alerts know they are yours.</p><button class="btn" data-acct2>Sign in with Google</button>';
   const on = pushMine() && Notification.permission === 'granted';
   return head + `<div class="tipsw"><button class="btn ${on ? '' : 'alt'}" data-pushon aria-pressed="${on}">ON</button><button class="btn ${on ? 'alt' : ''}" data-pushoff aria-pressed="${!on}">OFF</button></div>${pushMsg ? `<p class="fine" style="margin-top:6px">${esc(pushMsg)}</p>` : ''}`;
 }

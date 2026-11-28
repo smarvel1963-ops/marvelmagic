@@ -72,7 +72,7 @@ function guide() {
   // 11/27 GUIDE IN PAGES (Scott: "load a page and while looking and moving down it load next page only that way it smaller batches and way
   // faster"): the guide draws GPAGE channel rows; a marker below the last one loads the next GPAGE as you get near it (gMore, core.js).
   const gLim = S.gLim || GPAGE, gHas = nets.length > gLim;
-  const rows = nets.slice(0, gLim).map(n => {
+  const gRow = n => {
     const ways = waysFor(n), mineW = ways.filter(w => S.mine.includes(w.svc)), svc = (mineW[0] || ways[0] || {}).svc || null, ok = !svc || hasIt(svc);
     for (const a of by[n]) if (!a.isGame) { a.svc = svc; a.options = ways; a.exact = null; }   // Watch = your first way in (live package before the network's app)
     const cells = by[n].sort((a, b) => a.start - b.start).map(a => {
@@ -85,7 +85,8 @@ function guide() {
     for (const a of by[n].slice().sort((x, y) => x.start - y.start)) { if (a.start > cur) gapBox(cur, Math.min(a.start, t1)); cur = Math.max(cur, a.end); }
     if (cur < t1) gapBox(cur, t1);
     return `<div class="row"><div class="ch ${pv && pv.net === n ? 'on' : ''}"><b class="chn">${esc(n)}</b><small class="${ok ? '' : 'no'}">${esc(svc || 'Network')}</small></div><div class="track">${cells}${gaps}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
-  }).join('');
+  };
+  const rows = nets.slice(0, gLim).map(gRow).join('');
   // FREE CHANNELS with real schedules (free_guide.json), one category at a time, on the same timeline; one row per channel, every service that has it
   loadFreeGuide();
   const fsvcs = FREE_GSVC.filter(v => (FREE_G.ch || []).some(r => r.p.some(q => q[0] === v)));
@@ -94,7 +95,7 @@ function guide() {
   const fcats = FREE_ORDER.filter(c => fall.some(r => r.g === c) && (!kidsOn() || c === 'Kids'));
   const fcat = fcats.includes(S.freeCat) ? S.freeCat : (kidsOn() ? 'Kids' : 'Movies');
   const fchAll = fall.filter(r => r.g === fcat).slice(0, 150), fLim = S.fLim || GPAGE, fch = fchAll.slice(0, fLim), fHas = fchAll.length > fLim;
-  const fRows = fch.map(r => {
+  const fRow = r => {
     const places = r.p.map(q => ({ svc: q[0], url: q[1] })), first = places[0];
     const cells = r.s.filter(q => q[1] * 1000 > t0 && q[0] * 1000 < t1).map(q => {
       const a = q[0] * 1000, b = q[1] * 1000, x = { key: 'f' + r.n + q[0], title: q[2] || r.n, net: r.n, start: a, end: b, svc: first.svc, exact: first.url, options: places, series: false, ep: q[3] || '' };
@@ -102,7 +103,10 @@ function guide() {
       return `<button class="cell ${on ? 'on' : ''}${live ? ' live' : ''}" data-i="${reg(x)}" style="left:${l}%;width:${w}%;--el:${live ? Math.round((now - a) / (b - a) * 100) : 0}%" title="${esc(x.title)}"><span class="ci"><b>${esc(x.title)}</b><small>${esc(clock(new Date(a)))} – ${esc(clock(new Date(b)))}${q[3] ? ' · ' + esc(q[3]) : ''}</small></span>${on && live ? '<span class="lv">● LIVE</span>' : ''}</button>`;
     }).join('');
     return `<div class="row"><div class="ch">${r.l ? `<img class="chlogo" src="${esc(r.l)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="cht"><b class="chn">${esc(r.n)}</b><small>Free · ${esc(r.p[0][0])}${r.p.length > 1 ? ' +' + (r.p.length - 1) : ''}</small></span></div><div class="track">${cells}<div class="nowline" style="left:${nowPct}%"></div></div></div>`;
-  }).join('');
+  };
+  const fRows = fch.map(fRow).join('');
+  // 11/27 (Scott: "the locked page bounces around ... when new page in guide loads"): gMore adds the next page with these builders - no redraw
+  S._gMore = { gLim: { all: nets, row: gRow, tail: freeRows }, fLim: { all: fchAll, row: fRow, tail: '' } };
   const fCards = fch.map(r => { const cur = r.s.find(q => q[1] * 1000 > now) || r.s[0]; if (!cur) return ''; const x = { key: 'f' + r.n + cur[0], title: cur[2] || r.n, net: r.n, start: cur[0] * 1000, end: cur[1] * 1000, svc: r.p[0][0], exact: r.p[0][1], options: r.p.map(q => ({ svc: q[0], url: q[1] })), series: false }; return `<button class="card" data-i="${reg(x)}"><span class="t"><small>${esc(r.n)} · Free</small><b>${esc(x.title)}</b><small>${cur[0] * 1000 <= now ? 'On now' : esc(clock(new Date(cur[0] * 1000)))}</small></span></button>`; }).join('');
   const fBar = fcats.length ? `<div class="gbar gfree"><span class="gday">📺 Free channels · ${fall.length.toLocaleString()} with schedules</span>${fsvcs.length > 1 ? `<div class="filters fsvcs">${['All', ...fsvcs].map(v => `<button class="chip ${v === fsvc ? 'on' : ''}" data-frsvc="${esc(v)}">${esc(v === 'All' ? 'All free' : v)}</button>`).join('')}</div>` : ''}<div class="filters">${fcats.map(c => `<button class="chip ${c === fcat ? 'on' : ''}" data-frcat="${esc(c)}">${esc(c)} <small>${fall.filter(r => r.g === c).length}</small></button>`).join('')}</div></div>` : (FREE_G.ch ? '' : '<p class="fine">Loading free channels…</p>');
   // ON-DEMAND ROWS: a streaming service has no timetable, so its row shows what's on it (top movies + shows), each watch-anytime
@@ -172,7 +176,7 @@ function tvAppBox() {
   let plat = ''; try { plat = window.MMNative && MMNative.platform ? MMNative.platform() : ''; } catch (e) { plat = ''; }
   if (plat !== 'firetv' && plat !== 'androidtv') return '';
   let v = ''; try { v = typeof MMNative.version === 'function' ? MMNative.version() : ''; } catch (e) { v = ''; }
-  const body = v ? `<p style="margin:0 0 10px">Marvel Magic TV app <b>version ${esc(v)}</b>.</p><button class="btn" data-tvupd>Check for update</button>`
+  const body = v ? `<p style="margin:0 0 10px">The app on this TV is <b>version ${esc(v)}</b>. Marvel Magic itself (the guide, pages, Marvel) is <b>${esc(typeof mmVer === 'function' ? mmVer().split(' · ')[0] : '')}</b> and updates itself.</p><button class="btn" data-tvupd>Check for update</button>`
     : `<p style="margin:0 0 8px">This TV has an <b>older Marvel Magic app</b> (1.5 or before).</p><p class="fine" style="margin:0">To update: close Marvel Magic all the way (Settings &gt; Applications &gt; Manage Installed Applications &gt; Marvel Magic &gt; Force stop), then open it again and pick <b>Update now</b>.</p>`;
   // 11/21 memory (Scott: "do we need to monitor memory use on fire stick"): free memory from the TV app (1.6.3+) and low-memory mode
   const m = memRead(), on = load('liteForce', false);
@@ -201,9 +205,11 @@ function settingsPage() {
   const tick = (list, key, v) => `<label class="stck"><input type="checkbox" data-st="${key}" value="${esc(v)}" ${list.includes(v) ? 'checked' : ''}><span>${esc(v)}</span></label>`;
   const notif = !('Notification' in window) ? 'Not supported on this device.' : Notification.permission === 'granted' ? '✓ On. New episodes and your show and game reminders pop up while Marvel Magic is open.' : Notification.permission === 'denied' ? 'Blocked in this browser\'s site settings.' : '<button class="btn" data-alerts>Turn on alerts</button>';
   return `<img class="top50ban" src="banner_settings.jpg" alt="Settings - My Settings: tell Marvel Magic what you like. It shapes For You, picks, Sports and alerts">
+    <p class="fine stver">Marvel Magic ${esc(typeof mmVer === 'function' ? mmVer() : '')}</p>
     <div class="stgrid">
     ${box('🏠 My Household', houseBox(), 'stwide')}
     ${typeof tipBox === 'function' ? tipBox() : ''}
+    ${box('🔔 Alerts', `${typeof pushBox === 'function' ? pushBox() : ''}<p class="fine" style="margin-top:12px">${notif}</p><label class="stck" style="margin-top:8px"><input type="checkbox" data-svcremind ${S.svcRemindOff ? '' : 'checked'}><span>Remind me when I haven't used a paid service for 30 days (again every 30)</span></label>`)}
     ${S.prof || S.profLock ? box('🔒 This TV', `<p class="fine">This TV opens as <b>${esc(profName())}</b> every time.</p><button class="btn ${S.profLock ? '' : 'alt'}" data-proflock>${S.profLock ? '🔒 Locked to ' + esc(profName()) + ' (PIN to unlock)' : 'Lock this TV to ' + esc(profName())}</button>`) : ''}
     ${signTvBox()}
     ${tvAppBox()}
@@ -219,7 +225,6 @@ function settingsPage() {
     ${box('📺 My Services', `<p class="fine">Tick what you have. The guide, catalogs and picks show only these.</p><div class="svcs">${SERVICES.map(x => `<label><input type="checkbox" data-svc="${esc(x)}" ${S.mine.includes(x) ? 'checked' : ''}>${esc(x)}</label>`).join('')}</div><button class="btn alt" data-tab="3" style="margin-top:10px">Sign in to services ›</button>`, 'stwide')}
     ${box('✨ Get more services', `<label class="fine" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-offersw ${offersOn() ? 'checked' : ''}> Show offers (free trials for services you don't have)</label>`
       + (offersOn() ? `<div class="svcs" style="margin-top:8px">${SERVICES.filter(x => OFFER[x] && !S.mine.includes(x)).map(x => `<button class="btn alt" data-offer="${esc(x)}">${esc(x)} ›</button>`).join('')}</div><p class="fine" style="opacity:.7;margin-top:8px">${OFFER_NOTE}</p>` : ''), 'stwide')}
-    ${box('🔔 Alerts', `<p class="fine">${notif}</p><label class="stck" style="margin-top:8px"><input type="checkbox" data-svcremind ${S.svcRemindOff ? '' : 'checked'}><span>Remind me when I haven't used a paid service for 30 days (again every 30)</span></label>${typeof pushBox === 'function' ? pushBox() : ''}`)}
     ${kidsSection()}
     </div>`;
 }

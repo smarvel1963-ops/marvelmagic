@@ -246,7 +246,24 @@ addEventListener('resize', () => { for (const g of document.querySelectorAll('#v
 let gIO = null;
 function gMore(g) {
   const m = g && g.querySelector(':scope > .gsent'); if (!m) return false;
-  const k = m.dataset.gmore; S[k] = (S[k] || GPAGE) + GPAGE; draw(); return true;
+  const k = m.dataset.gmore, src = S._gMore && S._gMore[k];
+  if (!src) { S[k] = (S[k] || GPAGE) + GPAGE; draw(); return true; }   // no builders (older page): the old way
+  // 11/27: ADD the next page under the last row - nothing already on screen is redrawn, so the locked time bar, the highlighted box and
+  // the scroll position stay exactly where they are (a full redraw made the guide jump while it glided)
+  const cur = S[k] || GPAGE, next = cur + GPAGE, done = next >= src.all.length;
+  m.insertAdjacentHTML('beforebegin', src.all.slice(cur, next).map(src.row).join('') + (done ? (src.tail || '') : ''));
+  S[k] = next; if (done) m.remove();
+  chAppend(g); stickTitles(); gWatch(); return true;
+}
+function chAppend(g) {   // rows added under a grid that already has its channel column: move their channel boxes into it too
+  const col = g.querySelector(':scope > .chcol'); if (!col || !col._rows) { chColumns(); return; }
+  for (const r of g.querySelectorAll(':scope > .row')) {
+    if (col._rows.includes(r)) continue;
+    const c = r.querySelector(':scope > .ch'); col._rows.push(r); const k = document.createElement('div');
+    if (c) { k.className = c.className; while (c.firstChild) k.appendChild(c.firstChild); }
+    col.appendChild(k);
+  }
+  chPlace(g);
 }
 function gWatch() {
   if (gIO) { gIO.disconnect(); gIO = null; }
